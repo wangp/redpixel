@@ -1,17 +1,17 @@
 sounds--
 
-ûPostal
-Dune II
-ûCommando
-ûMechWarrior II demo
-ûDOOM
-ûCyberdogs
+û Postal
+  Dune II
+û Commando
+û MechWarrior II demo
+û DOOM
+û Cyberdogs
 
 
 == code ==
-ûshawn  (allegro)
-ûdj  (djgpp)
-tran (pmode)
-ûtheur (seer)
-jon (jonipx)
-ûlamothe (sk basis)
+û shawn  (allegro)
+û dj  (djgpp)
+  tran (pmode)
+X theur (seer)
+  jon (jonipx)
+û lamothe (sk basis)

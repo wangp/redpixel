@@ -7,9 +7,10 @@
 #include "sk.h"
 #include "blood.h"
 
+//  FIXME: pressing ESC in game loop should return to game, 
+//
 
-
-/* menu stuff */
+//------------------------------------------------------ menu `system' -------
 
 typedef struct BLUBBER
 {
@@ -26,11 +27,15 @@ int     end;
 int     count, top;
 
 
+//------------------------------------------------------ ditto ---------------
 
-/* procs */
+BLUBBER root_menu[];
+BLUBBER startgame_menu[];
 
-// dummy
-void prev(BLUBBER *bp, int command, int ex) {} 
+
+//------------------------------------------------------ procs ---------------
+
+void prev(BLUBBER *bp, int command, int ex) { /* i am a dummy */ } 
 
 // switch to another node of menu
 void enter_menu(BLUBBER *bp)
@@ -84,44 +89,27 @@ void func(BLUBBER *bp, int command, int ex)
 }
 
 
-
-/* funcs */
-
-BLUBBER root_menu[];
-BLUBBER startgame_menu[];
-
-
-// super dooper zapper creds
+//------------------------------------------------------ funcs ---------------
 
 void credits(); //creds.c
 
 void credits_func()
 {
+    // super dooper zapper creds
     credits();
 }
 
-// bye bye
 void quit_func()
 {
     end = 1;
+
 }
 
 
-
-/* game starters funcs */
-
-// helpers to get name and colour of local player
+//------------------------------------------------------ whatta your name ----
 
 #define MAX_NAME_LEN    16
-
 char local_name[MAX_NAME_LEN+1] = "NO NAME";
-int local_colour = 0;
-
-char *colours[] = { 
-    "RED", "BLOOD RED", "ORANGE", "YELLOW", "GREEN", "CYAN", "BLUE",
-    "LIGHT BLUE", "PURPLE BLUE", "PURPLE", "MAROON", "BROWN", "DIARRHOEA",
-    "GRAY", "WHITE", "PINK"
-};
 
 int get_name()
 {
@@ -177,52 +165,8 @@ int get_name()
     }
 }
 
-/*
-int get_colour()
-{
-    int k;
 
-    show_mouse(NULL);
-    clear_keybuf();
-
-    for (;;)
-    {
-	// to screen
-	clear(dbuf);
-	textout_centre(dbuf, small, "CHOOSE YOUR COLOUR:", 160, 70, makecol(255,255,255));
-	blit(dat[BLOB000 + local_colour].dat, dbuf, 0, 0, 160-8, 100-8, 16, 16);
-	textout_centre(dbuf, small, colours[local_colour], 160, 110, makecol(255,255,255));
-	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
-
-	// wait for keypress
-	k = readkey() >> 8;
-
-	// enter.. continue
-	if (k == KEY_ENTER) {
-	    while (key[KEY_ENTER]);
-	    return 1;
-	}
-
-	// esc.. get out
-	if (k == KEY_ESC) {
-	    while (key[KEY_ESC]);
-	    return 0;
-	}
-
-	// left/up
-	if (k == KEY_UP || k == KEY_LEFT)
-	    if (--local_colour<0) local_colour = 15;
-
-	// down/right
-	if (k == KEY_RIGHT || k == KEY_DOWN)
-	    if (++local_colour==16) local_colour = 0;
-    }
-}
-*/
-
-
-
-// map filename things
+//------------------------------------------------------ wak names -----------
 
 typedef struct MAPFILE
 {
@@ -234,10 +178,10 @@ MAPFILE maphead, *curmap, *tmpmap;
 
 int num_maps = 0;
 
-// retrieve map filenames from ./maps/*.wak
-
 void get_map_filenames()
 {
+    // retrieve map filenames from ./maps/*.wka
+
     struct ffblk f;
     int i;
 
@@ -346,17 +290,11 @@ void free_map_filenames()
 }
 
 
-
-/* serial--
- * send 
- * recv and compare map filenames
- * then sort
- */
+//------------------------------------------------------ trade waks ----------
 
 #define MAPLIST_START   'M'
 #define MAPLIST_END     'm'
 
-// helper
 MAPFILE *match(char *fn)
 {
     MAPFILE *t;
@@ -372,6 +310,10 @@ MAPFILE *match(char *fn)
     return NULL;
 }
 
+/* send
+ * recv and compare map filenames
+ * then sort
+ */
 void trade_map_filenames()
 {
     char buf[80];
@@ -445,6 +387,7 @@ void trade_map_filenames()
 }
 
 
+//------------------------------------------------------ select wak ----------
 
 // allow map selection
 // w/ chat box 
@@ -452,8 +395,9 @@ void trade_map_filenames()
 #define CHAT_INCOMING   1
 #define CHAT_KEYDOWN    2
 #define CHAT_KEYUP      3
-#define CHAT_F10        4
+#define CHAT_NEWMAP     4
 #define CHAT_LEAVE      5
+#define CHAT_RETURN     6
 
 char *select_map()
 {
@@ -471,6 +415,8 @@ char *select_map()
 
 	textout(dbuf, small, "GRAVEYARD", 20, 10, RED);
 	textout_centre(dbuf, small, "UP/DOWN TO SELECT, F10 TO START", 160, 120, RED);
+	// FIXME-->wrong pos
+	textout_centre(dbuf, small, "CTRL-D: DOS SHELL  CTRL-Q: DISCONNECT", 160, 130, RED);
 
 	curmap = maphead.next;
 	for (i=0; i<top; i++)
@@ -495,8 +441,7 @@ char *select_map()
 	y = 20;
 	for (i=0; i<num_players; i++)
 	{
-	    //blit(dat[players[i].colour + BLOB000].dat, dbuf, 0, 0, 180, y, 16, 16);
-	    textout(dbuf, small, players[i].name, 200, y + 5, WHITE);
+	    textout(dbuf, small, players[i].name, 190, y + 5, WHITE);
 	    y += 20;
 	}
 
@@ -570,10 +515,10 @@ char *select_map()
 	}
 
 	// f10.. start game
-	if ((k>>8) == KEY_F10 || remote == CHAT_F10)
+	if ((k>>8) == KEY_F10 || remote == CHAT_NEWMAP)
 	{
 	    if ((k>>8) == KEY_F10 && comm==serial)
-		skSend(CHAT_F10);
+		skSend(CHAT_NEWMAP);
 
 	    curmap = maphead.next;
 	    while (selected--)
@@ -666,8 +611,7 @@ char *select_map()
 }
 
 
-
-// scores at end of match
+//------------------------------------------------------ i beat you! ---------
 
 void score_sheet()
 {
@@ -679,7 +623,7 @@ void score_sheet()
 
     y = 70;
 
-    for (i=0; i<16; i++)
+    for (i=0; i<MAX_PLAYERS; i++)
     {
 	if (players[i].exist)
 	{
@@ -698,8 +642,7 @@ void score_sheet()
 }
 
 
-
-/* connect via serial */
+//------------------------------------------------------ connect via serial --
 
 #define SER_CONNECTPLS  '?'
 #define SER_CONNECTOK   '!'
@@ -748,7 +691,13 @@ int connect_serial(int comport)
     srandom(seed);
 
     if (!skOpen(comport, BAUD_19200, BITS_8 | PARITY_NONE | STOP_1))
+    {
+	clear(screen);
+	textout_centre(screen, dat[MINI].dat, "ERROR OPENING COM PORT", 160, 90, WHITE);
+	while (!keypressed() && !mouse_b);
+	clear_keybuf();
 	return 0;
+    }
 
     clear(screen);
 
@@ -774,7 +723,10 @@ int connect_serial(int comport)
 	textout(screen, dat[MINI].dat, "FIFO NOT ENABLED", 16, 24, WHITE);
 
     if (!linkup(SER_CONNECTPLS))
+    {
+	skClose();
 	return 0;
+    }
 
     skSend(SER_THROWDICE);
     while (skRecv() != SER_THROWDICE);
@@ -789,6 +741,7 @@ int connect_serial(int comport)
 	    if (key[KEY_ESC]) 
 	    {
 		while (key[KEY_ESC]);
+		skClose();
 		return 0; 
 	    }
 	}
@@ -854,64 +807,74 @@ extern int com_port;    // run.c
 void serial_func()
 {
     char *fn;
+    int first_play = 1;
 
-    // name and colour
-    if (!get_name() /*|| !get_colour()*/)
+    // name
+    if (!get_name())
 	return;
 
     // connect
-    if (!connect_serial(com_port)) {
-	skClose();
+    if (!connect_serial(com_port))
 	return;
-    }
 
     no_germs();
     strcpy(players[local].name, local_name);
     trade_names();
 
-    // get list of maps (from local and remote)
+    for (;;)
+    {
+	show_mouse(NULL);
 
-    maphead.next = NULL;
-    num_maps = 0;
-    get_map_filenames();
-    trade_map_filenames();
+	// get list of maps (from local and remote)
+	get_map_filenames();
+	trade_map_filenames();
+	if (!num_maps) break;
 
-    if (!num_maps)
-	return;
+	// select level
+	fn = select_map();
+	if (!fn) break;
+	free_map_filenames();
 
-    // select level
-    fn = select_map();
-    if (!fn) return;
-    load_map(fn);
+	// load level
+	load_map(fn);
 
-    spawn_players();
+	// init players 
+	retain_players();
+	no_germs(); 
+	restore_players();
+	spawn_players();
 
-    // final synching
-    skSend(SER_CONNECTOK);
-    while (skRecv()!=SER_CONNECTOK);
+	// final synching
+	skSend(SER_CONNECTOK);
+	while (skRecv()!=SER_CONNECTOK);
 
-    // go
-    play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
-    game_loop();
+	// go!
+	play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
+	game_loop();
 
-    free_map_filenames();
+	first_play = 0;
+    }
 
-    score_sheet();
+    if (!first_play)
+    {
+	// disconnected, show who won
+	score_sheet();
+    }
 
     // back to root menu
     enter_menu(root_menu); 
 }
 
 
-
-/* lonely */
+//------------------------------------------------------ lonely --------------
 
 void single_func()
 {
     char *fn;
+    int first_play = 1;
 
-    // name and colour
-    if (!get_name() /*|| !get_colour()*/)
+    // name
+    if (!get_name())
 	return;
 
     // set up few things
@@ -927,30 +890,47 @@ void single_func()
 
     no_germs();
     strcpy(players[local].name, local_name);
-    players[local].colour = local_colour;
 
-    // select level
-    get_map_filenames();
-    sort_map_filenames();
-    fn = select_map();
-    if (!fn) return;
-    load_map(fn);
+    for (;;)
+    {
+	show_mouse(NULL);
 
-    // game loop
-    spawn_players();
-    play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
-    game_loop();
+	get_map_filenames();
+	sort_map_filenames();
 
-    score_sheet();
-    free_map_filenames();
+	// select level
+	fn = select_map();
+	if (!fn) return;
+	free_map_filenames();
+
+	// load level
+	load_map(fn);
+
+	// init players 
+	retain_players();
+	no_germs();
+	restore_players();
+	spawn_players();
+
+	// go!
+	play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
+	game_loop();
+
+	first_play = 0;
+    }
+
+    if (!first_play)
+    {
+	// disconnected, show who won
+	score_sheet();
+    }
 
     // back to root menu
-    enter_menu(root_menu);
+    enter_menu(root_menu); 
 }
 
 
-
-/* not yet, okay? */
+//------------------------------------------------------ not yet, okay? ------
 
 void not_yet_func()
 {
@@ -966,13 +946,13 @@ void not_yet_func()
 }
 
 
-
-/* menus */
+//------------------------------------------------------ menus ---------------
 
 BLUBBER startgame_menu[] = 
 {
     { func, "Solo", single_func },
     { func, "Serial", serial_func },
+    { func, "Modem-Modem", not_yet_func },
     { func, "IPX Network", not_yet_func },
     { func, "Internet", not_yet_func },
     { prev, "", root_menu }
@@ -987,8 +967,7 @@ BLUBBER root_menu[] =
 };
 
 
-
-/* manager */
+//------------------------------------------------------ manager -------------
 
 int inline touch(int item)
 {
@@ -1067,13 +1046,16 @@ void blubber(BLUBBER *start)
 }
 
 
-
-/* to start it all */
+//------------------------------------------------------ start me up----------
 
 void menu()
 {
     big = dat[UNREAL].dat;
     small = dat[MINI].dat;
     text_mode(-1);
+
+    maphead.next = NULL;
+    num_maps = 0;
+
     blubber(root_menu);
 }

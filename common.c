@@ -1,15 +1,12 @@
 #include "common.h"
 
 
-// globals
+// globals 
+
+MAP map;    // jes the one
 
 
-
-
-// map stuff
-
-MAP map;
-
+//------------------------------------------------------------------- lists --
 
 LIST tiles[] =
 {
@@ -52,8 +49,6 @@ LIST ammos[] =
     { -1 }
 };
 
-
-
 int num2pic(LIST *l, int num)
 {
     int i = 0;
@@ -77,36 +72,38 @@ int pic2num(LIST *l, int pic)
 }
 
 
-int rr_a_bullet, rr_a_arrow, rr_w_mine, rr_a_rocket, rr_a_shell, rr_a_chicken;
-int rr_a_coke, rr_a_armour, rr_a_goggles, rr_w_bow, rr_w_m16, rr_w_mini;
-int rr_w_pistol, rr_w_rocket, rr_w_shotgun, rr_w_uzi, rr_a_bloodlust;
+//---------------------------------------------------[ pickup respawn times ]-
 
 int ammo_respawn_rate(int pic)
 {
     switch (pic)
     {
-	case A_BULLET: return rr_a_bullet;
-	case A_ARROW: return rr_a_arrow;
-	case W_MINE: return rr_w_mine;
-	case A_ROCKET: return rr_a_rocket;
-	case A_SHELL: return rr_a_shell;
-	case A_CHICKEN: return rr_a_chicken;
-	case A_COKE: return rr_a_coke;
-	case A_ARMOUR: return rr_a_armour;
-	case A_GOGGLES: return rr_a_goggles; 
-	case A_BLOODLUST: return rr_a_bloodlust;
-	case W_BOW: return rr_w_bow;
-	case W_M16: return rr_w_m16;
-	case W_MINI: return rr_w_mini;
-	case W_PISTOL: return rr_w_pistol;
-	case W_ROCKET: return rr_w_rocket;
-	case W_SHOTGUN: return rr_w_shotgun;
-	case W_UZI: return rr_w_uzi;
-	default: return 0;
+	case A_CHICKEN: return 40 * 120;
+	case A_COKE:    return 40 * 60;
+	case A_ARMOUR:  return 40 * 180;
+	case A_GOGGLES: return 40 * 180;
+	case A_BLOODLUST: return 40 * 180;
+
+	case A_BULLET:  return 40 * 30;
+	case A_SHELL:   return 40 * 20;
+	case A_ARROW:   return 40 * 50;
+	case W_MINE:    return 40 * 90;
+	case A_ROCKET:  return 40 * 70;
+
+	case W_PISTOL:  return 40 * 60;
+	case W_SHOTGUN: return 40 * 75;
+	case W_UZI:     return 40 * 90;
+	case W_M16:     return 40 * 105;
+	case W_MINI:    return 40 * 150;
+	case W_BOW:     return 40 * 130;
+	case W_ROCKET:  return 40 * 150;
+
+	default:        return 0;
     }
 }
 
 
+//---------------------------------------------------------- file io ---------
 
 char file_hdr[] = "­WACKED­";
 

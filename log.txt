@@ -23,3 +23,6 @@
 12 july     fixed bloodlust respawn + chicken respawn, etc +
 	    arrow/rocket hitting player now causes explosion and boom sound
 13 july     fixed respawn bug + sorts map filenames in solo mode
+14 july     stuck in some comments
+15 july     cleaned up code + removed use of seer
+	    using new playing loop (see complay.txt)

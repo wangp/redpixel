@@ -1,21 +1,17 @@
-all : ff red.exe stats.cs
+all: flushsmartdrv red.exe
 
-OPT=-Wall -O2 -m486 -fomit-frame-pointer -ffast-math
+OPT = -Wall -O2 -m486 -fomit-frame-pointer -ffast-math -g
 
-%.o : %.c blood.h
+%.o: %.c blood.h
 	gcc $(OPT) -c -o $@ $<
 
-red.exe : run.o common.o sk.o rnd.o menu.o mapper.o creds.o intro.o
-	gcc $(OPT) -o $@ run.o common.o sk.o rnd.o menu.o mapper.o creds.o intro.o -lalleg -lseer
+OBJ = run.o common.o sk.o rnd.o menu.o mapper.o creds.o intro.o
 
-stats.cs : stats.sc
-	seerc -a tjaden -t "red pixel stats" $<
+red.exe: $(OBJ)
+	gcc $(OPT) -o $@ $(OBJ) -lalleg
 
-dist : red.exe
-	djp red.exe
-
-ff : 
+flushsmartdrv: 
 	@dump /q
 
-clean : 
-	rm -f *.exe *.o *.cs
+clean: 
+	rm -f *.exe *.o

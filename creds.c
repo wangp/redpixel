@@ -1,10 +1,7 @@
 #include <allegro.h>
 #include "common.h"
+#include "run.h"
 #include "blood.h"
-
-
-extern BITMAP *dbuf;
-extern DATAFILE *dat;
 
 
 char *text[] =
@@ -57,26 +54,28 @@ char *text[] =
 "SHAWN HARGREAVES FOR ALLEGRO",
 "",
 "ANDRE LAMOTHE FOR BASIS OF SERIAL CODE",
-"",
-"PRZEMYSLAW PODSIADLY FOR SEER",
+//"",
+//"PRZEMYSLAW PODSIADLY FOR SEER",
 "", "", "", "", "", "", "", "", "", "",
 "", "", "", "", "", "", "", "", "", "",
 "", "", "", "", "", "",
 "x"
 };
 
+
 void credits()
 {
     int line = 0;
     int offset = 0, h;
-    int out = 0;
+    int theend = 0;
     int i;
 
     clear_keybuf();
     show_mouse(NULL);
 
     h = text_height(dat[MINI].dat);
-    while (!keypressed() && !mouse_b && !out)
+
+    while (!keypressed() && !mouse_b && !theend)
     {
 	if (--offset<0)
 	{
@@ -84,22 +83,24 @@ void credits()
 	    line++;
 	}
 
+	// draw me
 	clear(dbuf);
 	for (i=-1; i<200/h; i++)
 	{
-	    if (!out)
+	    if (!theend)
 	    {
 		if (text[line+i][0]=='x')
-		    out = 1;
+		    theend = 1;
 		else if (text[line+i][0]=='r')
 		    textout_centre(dbuf, dat[MINI].dat, text[line+i]+1, 160, i*h + offset, RED);
 		else
 		    textout_centre(dbuf, dat[MINI].dat, text[line+i], 160, i*h + offset, WHITE);
 	    }
 	}
+
 	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
 
-	rest(40);
+	rest(40); 
     }
 
     fade_out(6);

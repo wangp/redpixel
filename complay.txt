@@ -1,0 +1,26 @@
+
+1) Connect once using modem/serial/ipx/net
+
+    |
+    |
+    |
+    V
+
+2) map select
+
+    [ esc --> return to game --> 3 ]
+
+    f10 --> start new map --> 3
+
+    ^D --> dos shell
+
+    ^Q --> disconnect --> score sheet
+
+    TAB --> score sheet
+
+3) game loop
+
+    esc --> 2
+
+
+disconnect on quit

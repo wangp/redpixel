@@ -6,10 +6,17 @@
 #include "blood.h"      // datafile
 
 
+//---------------------------------------------------------------- stuff -----
 
 #define VERSION_STR "v0.666"
 
+#define MAX_PLAYERS         8
 
+#define TILE_HEALTH         30
+#define TILE_RESPAWN_RATE   700
+
+
+//---------------------------------------------------------------- colours ---
 
 #define GREY    16
 #define WHITE   31
@@ -19,6 +26,7 @@
 #define GREEN   255
 
 
+//--------------------------------------------------------------- structs ----
 
 typedef struct {
     int tile[128][128];
@@ -37,8 +45,6 @@ typedef struct {
     } start[24];
 } MAP;
 
-
-
 typedef struct
 {
     int pic;
@@ -46,30 +52,22 @@ typedef struct
 } LIST;
 
 
+//--------------------------------------------------------------- globals ----
 
 extern MAP map;
 
 extern LIST tiles[];
 extern LIST ammos[];
 
+//--------------------------------------------------------------- prototypes -
+
 int num2pic(LIST *l, int num);
 int pic2num(LIST *l, int pic);
+
+int ammo_respawn_rate(int pic);
 
 void reset_map();
 void save_map(char *fn);
 void load_map(char *fn);
-
-
-
-#define TILE_HEALTH         30
-#define TILE_RESPAWN_RATE   700
-
-
-extern int rr_a_bullet, rr_a_arrow, rr_w_mine, rr_a_rocket, rr_a_shell, rr_a_chicken;
-extern int rr_a_coke, rr_a_armour, rr_a_goggles, rr_w_bow, rr_w_m16, rr_w_mini;
-extern int rr_w_pistol, rr_w_rocket, rr_w_shotgun, rr_w_uzi, rr_a_bloodlust;
-
-int ammo_respawn_rate(int pic);
-
 
 #endif

@@ -1,19 +1,32 @@
 #ifndef RUN_H
 #define RUN_H
 
-#include "w_types.h"
+// for the benefit of the SeeR scripts
+// (enums not supported yet -- v0.6a)
+// NOTE> don't use seer now but just lazy
+#define w_knife     1
+#define w_pistol    2
+#define w_bow       3
+#define w_shotgun   4
+#define w_uzi       5
+#define w_m16       6
+#define w_minigun   7
+#define w_bazooka   8
+#define w_mine      9
+#define num_weaps   10
 
 
 #define GAME_SPEED  40
 
 
+//---------------------------------------------------------------- structs ---
 
 typedef struct
 {
     char life;
     fixed x, y;
     fixed xv, yv;
-    char colour;
+    unsigned char colour;
 
     // for bullets
     short           bmp;  // the no. of the bitmap
@@ -21,8 +34,6 @@ typedef struct
 		    dmg;  // dmg it causes
     fixed angle; 
 } PARTICLE;
-
-
 
 typedef struct
 {
@@ -33,8 +44,6 @@ typedef struct
     unsigned char cur, frames, anim; 
 } EXPLOSION;
 
-
-
 typedef struct
 {
     char alive;
@@ -43,16 +52,12 @@ typedef struct
     char tag, unactive;
 } MINE;
 
-
-
 typedef struct
 {
     char life;
     int x, y;
     short pic;
 } BLOD;
-
-
 
 typedef struct
 {
@@ -63,8 +68,6 @@ typedef struct
     unsigned char num_frames, cur, anim;
 } CORPSE;
 
-
-
 typedef struct
 {
     char alive, unactive;
@@ -72,21 +75,17 @@ typedef struct
     int num_bullets, num_shells, num_rockets, num_arrows, num_mines;
 } BACKPACK;
 
-
-
 enum {
     left,
     right
 };
-
-
 
 typedef struct
 {
     char exist;
 
     char name[40];
-    int colour;
+    int frags;
 
     int x, y, xv, yv, jump;
     int health, armour;
@@ -97,8 +96,6 @@ typedef struct
     int num_rockets;
     int num_mines;
     int num_arrows;
-
-    int frags;
 
     char leg_frame, leg_tics;
     int visor_tics;
@@ -115,8 +112,7 @@ typedef struct
 } PLAYER;
 
 
-
-// globals
+//--------------------------------------------------------- globals ----------
 
 extern DATAFILE    *dat;
 extern BITMAP      *dbuf;
@@ -126,19 +122,7 @@ extern RGB_MAP     rgb_table;
 extern COLOR_MAP   alpha_map;
 extern COLOR_MAP   light_map;
 
-
 extern time_t seed;
-
-
-typedef enum {
-    single,     // boring...
-    serial,     // done
-    ipx,        // not yet..
-    udp         // keep dreaming!
-} comm_t;
-
-extern comm_t comm;
-
 
 extern int local;          // local player
 extern int num_players;
@@ -149,18 +133,33 @@ extern int irnd_index;
 
 extern PLAYER players[];
 
-
 extern volatile int speed_counter;
 
 
+//-------------------------------------------------------- connection type ---
 
-// prototypes
+typedef enum {
+    single,     // boring...
+    serial,     // done
+    modem,      // should be easy
+    ipx,        // not yet..
+    udp         // keep dreaming!
+} comm_t;
+
+extern comm_t comm;
+
+
+//-------------------------------------------------------- prototypes --------
 
 void send_long(long);
 long recv_long();
 
-void no_germs();
 void spawn_players();
+
+void no_germs();
+void retain_players();
+void restore_players();
+
 void game_loop();
 
 #endif
