@@ -1,0 +1,114 @@
+               ,--------------------------------------.
+               |                                      | 
+               |           The Allegro GUI            | 
+               |                                      | 
+               |       Un-uglification Project        |
+               |                                      |
+               `--------------------------------------'
+      
+     
+  Let's be honest.  When you see an Allegro dialog, don't you just
+want to stick your fingers down your throat, and make choking noises?
+Haven't you started your own GUI system before, simply because the GUI
+objects Allegro provides are *damned ugly*?  Don't you wish Shawn had
+grown up with an Apple Macintosh, instead of an Atari ST?
+
+  The Allegro GUI Un-uglification Project is here to help.  Its
+purpose is to make DIALOGs look *good*, so you don't have to choke
+yourself, reinvent lots of wheels, or wish a fate worse than death
+upon deity Shawn (lest you be struck down by the non-portability bug).
+
+
+What it provides, so far
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Two sets of GUI objects which act almost exactly the same as Allegro's
+d_*_procs.  *Almost*, because there are some very minor differences.
+For example, the fg and bg fields in the DIALOG struct are ignored,
+because they are useless, except in ugly two colour widget sets.
+
+  Here is the list of procs.
+
+    - d_agup_box_proc
+    - d_agup_shadow_box_proc
+    - d_agup_button_proc
+    - d_agup_push_proc      (1)
+    - d_agup_check_proc
+    - d_agup_radio_proc
+    - d_agup_icon_proc
+    - d_agup_edit_proc
+    - d_agup_list_proc
+    - d_agup_text_list_proc
+    - d_agup_textbox_proc
+    - d_agup_slider_proc
+    - d_agup_menu_proc
+    - d_agup_window_proc    (2)
+
+(1) d_agup_push_proc implements a "push" button, which I think is more
+    useful than Allegro's "toggle" buttons.  The dp3 field should
+    point to a callback function, which will be called whenever the
+    button is clicked (with the DIALOG entry as an argument), or NULL.
+    The callback should have a function prototype of the form:
+
+        int foobar(DIALOG *d);
+
+    It will passed the dialog entry that was pressed, and should
+    return a value that will be passed back to the GUI control loop,
+    e.g. D_O_K or D_CLOSE.
+
+(2) d_agup_window_proc implements a window frame, which can be used in
+    place of d_box_proc or d_shadow_box_proc.  It expects the title of
+    the window in the dp field, or NULL.
+
+
+The API
+~~~~~~~
+
+  AGUP can select from different widget sets ("themes") on the fly.
+You select the theme at initialisation, e.g.
+
+	agup_init(agtk_theme);
+
+Then to switch themes, shutdown the old one, and initialise the new:
+
+	agup_shutdown ();
+	agup_init(awin95_theme);
+
+Remember to shutdown again before the end of your program.
+
+  If you only have need for one specific widget set, you don't have to
+use themes: just use the widget set directly (see the header files).
+
+  The rest of the API should be self-explanatory.  If in doubt, take a
+look at the example, or email me.
+
+
+About "the project"
+~~~~~~~~~~~~~~~~~~~
+
+  So far, there are three widget sets, so it's starting to become more
+of a project.  Please consider contributing emulations of other widget
+sets.  It does not have to look *exactly* the same as the original,
+just close enough to be recognised.
+
+  Here are some that I would like to see:
+
+    MacOS (Platinum?), Motif, BeOS, QNX (Photon), SGI,
+    NeXTStep, or maybe your own (if it's not damned ugly ;)
+
+  Thanks to Robert Ohannessian for stepping up and creating the first
+"3rd-party" widget set (awin95).  As promised, there is now a wrapper
+layer.  
+
+  Thanks to David A. Capello for creating the second 3rd-party widget
+set (aase).  Umm, I'm to busy to patch grabber at the moment.  Some
+other day, I promise :-)
+
+
+Contacting
+~~~~~~~~~~
+
+  Email: tjaden@users.sourceforge.net
+
+  WWW: http://www.alphalink.com.au/~tjaden/
+

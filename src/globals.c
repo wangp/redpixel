@@ -23,6 +23,10 @@ COLOR_MAP light_map;
 
 long seed;
 
+int mouse_speed = 2;
+int record_demos = 0;
+int filtered = 0;
+
 
 
 int load_dat()

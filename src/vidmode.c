@@ -1,0 +1,154 @@
+/* 
+ *  Red Pixel, a violent game.
+ *  Copyright (C) 1999 Psyk Software.
+ * 
+ *  Video modes and blitting to screen.
+ */
+
+
+#include <allegro.h>
+#include "suicide.h"
+#include "vidmode.h"
+
+
+int desired_video_mode = VID_320x200_FULLSCREEN;
+int want_scanlines = FALSE;
+static BITMAP *scanlined_screen;
+
+
+static void prepare_scanlines(void)
+{
+    int y;
+    
+    if ((!want_scanlines) || (SCREEN_H < 400))
+	return;
+
+    /* don't support banked bitmaps */
+    if (!gfx_driver->linear)
+	return;
+
+#ifdef ALLEGRO_WITH_XWINDOWS
+    /* The current X windows graphics driver currently doesn't like
+     * our scanline trick with the sub-bitmap. I think it maybe should
+     * be classified as a "banked" driver. */
+    if ((gfx_driver->id == GFX_XWINDOWS_FULLSCREEN) || (gfx_driver->id == GFX_XWINDOWS))
+	return;
+#endif
+
+    scanlined_screen = create_sub_bitmap(screen, 0, 0, SCREEN_W, SCREEN_H/2);
+    if (!scanlined_screen)
+	suicide("Out of memory");
+
+    for (y = 0; y < scanlined_screen->h; y++)
+	scanlined_screen->line[y] = screen->line[y*2];
+}
+
+
+static void unprepare_scanlines(void)
+{
+    if (scanlined_screen) {
+	destroy_bitmap(scanlined_screen);
+	scanlined_screen = NULL;
+    }
+}
+
+
+static int set_desired_video_mode(void)
+{
+    switch (desired_video_mode) {
+	case VID_320x200_FULLSCREEN:
+	    return set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 320, 200, 0, 0);
+	    
+        case VID_320x240_FULLSCREEN:
+	    return set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 320, 240, 0, 0);
+	    
+	case VID_640x400_FULLSCREEN:
+	    return set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 400, 0, 0);
+	
+	case VID_640x480_FULLSCREEN:
+	    return set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0);
+	    
+	case VID_640x400_WINDOWED:
+        default:
+	    return set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 400, 0, 0);
+	    
+	case VID_320x200_WINDOWED:
+	    return set_gfx_mode(GFX_AUTODETECT_WINDOWED, 320, 200, 0, 0);	    
+    }
+}
+
+
+static void clip_to_size(void)
+{
+    if ((SCREEN_W == 320) && (SCREEN_H == 240))
+	set_clip(screen, 0, 20, 319, 219);
+    else if ((SCREEN_W == 640) && (SCREEN_H == 480))
+	set_clip(screen, 0, 40, 640, 439);
+}
+
+
+int set_desired_video_mode_or_fallback(void)
+{
+    unprepare_scanlines();
+    
+    if (set_desired_video_mode() < 0) {
+	if (desktop_color_depth()) {
+	    /* Probably a windowed environment: choose 640x400 so we
+	     * don't end up in a tiny window. */
+	    desired_video_mode = VID_640x400_FULLSCREEN;
+	    if (set_gfx_mode(GFX_AUTODETECT, 640, 400, 0, 0) < 0)
+		return -1;
+	}
+	else {
+	    desired_video_mode = VID_320x200_FULLSCREEN;
+	    if (set_gfx_mode(GFX_AUTODETECT, 320, 200, 0, 0) < 0)
+		return -1;
+	}
+    }
+    
+    clip_to_size();
+    prepare_scanlines();
+    
+    return 0;
+}
+
+
+inline void blit_to_screen_offset(BITMAP *buffer, int ox, int oy)
+{
+    if (scanlined_screen) {
+	if ((scanlined_screen->w == 640) && (scanlined_screen->h == 200))
+	    stretch_blit(buffer, scanlined_screen, 0, 0, 320, 200, ox, oy, 640, 200);
+	else if ((scanlined_screen->w == 640) && (scanlined_screen->h == 240))
+	    stretch_blit(buffer, scanlined_screen, 0, 0, 320, 200, ox, 20+oy, 640, 200);
+	else
+	    suicide("internal error (interlacing)");
+	return;
+    }
+    
+    /* unscanlined */
+    if ((SCREEN_W == 320) && (SCREEN_H == 240))
+	blit(buffer, screen, 0, 0, ox, 20+oy, 320, 200);
+    else if ((SCREEN_W == 640) && (SCREEN_H == 400))
+	stretch_blit(buffer, screen, 0, 0, 320, 200, ox, oy, 640, 400);
+    else if ((SCREEN_W == 640) && (SCREEN_H == 480))
+	stretch_blit(buffer, screen, 0, 0, 320, 200, ox, 40+oy, 640, 400);
+    else
+	blit(buffer, screen, 0, 0, ox, oy, 320, 200);
+}
+
+
+void blit_to_screen(BITMAP *buffer)
+{
+    blit_to_screen_offset(buffer, 0, 0);
+}
+
+
+void vidmode_init()
+{
+}
+
+
+void vidmode_shutdown(void)
+{
+    unprepare_scanlines();
+}

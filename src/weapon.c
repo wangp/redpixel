@@ -16,7 +16,7 @@ WEAPON weaps[num_weaps];
 
 
 struct weapon_order weapon_order[] = {
-    { W_MINE,    w_mine, 	KEY_ENTER, "a" }, /* enter symbol */
+    { W_MINE,    w_mine, 	KEY_ENTER, "\177" }, /* 127 == enter symbol */
     { W_KNIFE,   w_knife, 	KEY_1,     "1" },
     { W_PISTOL,  w_pistol, 	KEY_2,     "2" },
     { W_SHOTGUN, w_shotgun, 	KEY_3,     "3" },

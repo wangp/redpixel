@@ -18,19 +18,22 @@
 #include "launch.h"
 #include "mapper.h"
 #include "menu.h"
+#include "mousespr.h"
 #include "music.h"
 #include "resource.h"
+#include "rpagup.h"
 #include "setweaps.h"
 #include "sk.h"
 #include "stats.h"
 #include "statlist.h"
 #include "version.h"
+#include "vidmode.h"
 #include "winhelp.h"
 
 
-int record_demos = 0;
-int filtered = 0;
-
+/*----------------------------------------------------------------------*/
+/*      Misc                                                            */
+/*----------------------------------------------------------------------*/
 
 static void usage(char *options)
 {
@@ -53,92 +56,26 @@ static void show_version()
 }
 
 
-/* see also scrblit.c */
-static int set_video_mode(void)
-{
-    if (set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 320, 200, 0, 0) == 0)
-	goto done;
-    
-    if (set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 320, 240, 0, 0) == 0) {
-	set_mouse_range(0, 20, 319, 219);
-	goto done;
-    }
-    
-    if (set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 400, 0, 0) == 0)
-	goto done;
-    
-    if (set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0) == 0) {
-	set_mouse_range(0, 40, 640, 439);
-	goto done;
-    }
-    
-    if (set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 400, 0, 0) == 0)
-	goto done;
-    
-    if (set_gfx_mode(GFX_AUTODETECT, 320, 200, 0, 0) < 0)
-	return -1;
-    
-  done:
-    
-    clear_bitmap(screen);
-    return 0;
-}
+/*----------------------------------------------------------------------*/
+/*      Init / main                                                     */
+/*----------------------------------------------------------------------*/
 
-
-
-static BITMAP *stretched_mouse_sprite;
-
-static void free_stretched_mouse_sprite(void)
-{
-    if (stretched_mouse_sprite) {
-	destroy_bitmap(stretched_mouse_sprite);
-	stretched_mouse_sprite = NULL;
-    }
-}
-
-static void set_stretched_mouse_sprite(BITMAP *sprite, int factor, int hotx, int hoty)
-{
-    free_stretched_mouse_sprite();
-    stretched_mouse_sprite = create_bitmap(sprite->w * factor, sprite->h * factor);
-    clear_bitmap(stretched_mouse_sprite);
-    stretch_blit(sprite, stretched_mouse_sprite, 0, 0, sprite->w, sprite->h,
-		 0, 0, stretched_mouse_sprite->w, stretched_mouse_sprite->h);
-    set_mouse_sprite(stretched_mouse_sprite);
-    set_mouse_sprite_focus(hotx * factor, hoty * factor);
-}
-
-
-/* "shutdown" is a sockets function, which gets called 
- * when we exit if we're under X, which is no good.  */
-void main_shutdown()
-{
-    engine_shutdown();
+static void main_shutdown();
     
-    unload_dat();
-    free_stretched_mouse_sprite();
-    destroy_bitmap(dbuf);
-    destroy_bitmap(light);
-    
-    music_shutdown();
-}
-
-
 int main(int argc, char *argv[])
 {
     int skip_intro = 0;
-    int lcd_cur = 0;
     int alt_stats = 0;
     int mute = 0;
     int editor = 0;
-    int c;
 
     /* command line args  */
     opterr = 0;
     
     while (1) {
-	char *options = ":hveqldmfs:";
+	char *options = ":hveqdms:";
 	    
-	c = getopt(argc, argv, options);
+	int c = getopt(argc, argv, options);
 	if (c < 0) break;
 	    
 	switch (c) {
@@ -146,10 +83,8 @@ int main(int argc, char *argv[])
 	    case 'v': show_version(); return 0;
 	    case 'e': editor = 1; break;
 	    case 'q': skip_intro = 1; break;
-	    case 'l': lcd_cur = 1; break;
 	    case 'd': record_demos = 1; break;
 	    case 'm': mute = 1; break;
-	    case 'f': filtered = 1; break;
 	    case 's': 
 	    	if (!read_stats(optarg, stat_block)) {
 		    allegro_message("Error reading `%s'.\n", optarg);
@@ -183,14 +118,15 @@ int main(int argc, char *argv[])
     install_keyboard();
 
     if (install_mouse() <= 0) {
-        allegro_message("\nRed Pixel requires a mouse to play.\n"
+        allegro_message(
+	    "\nRed Pixel requires a mouse to play.\n"
 #if defined(TARGET_DJGPP)
-			"Please install a mouse driver (e.g. mouse.com).\n\n"
+	    "Please install a mouse driver (e.g. mouse.com).\n\n"
 #elif defined(TARGET_LINUX)
-			"Please check your Allegro mouse port settings\n"
-			"and make sure you have permissions to the device.\n\n"
+	    "Please check your Allegro mouse port settings\n"
+	    "and make sure you have permissions to the device.\n\n"
 #endif
-	               );
+        );
 	return 1;
     }
     
@@ -209,11 +145,12 @@ int main(int argc, char *argv[])
     }
 
     /* load datafile */
+    /* ... before setting a graphics mode -- a big no-no :-) */
     if (load_dat() < 0) {
 	allegro_message("Error loading blood.dat\n");
 	return 1;
     }
-    
+
     /* map editor option */
     if (editor) {
 	int x = mapper();
@@ -223,7 +160,7 @@ int main(int argc, char *argv[])
 
     /* stats, if none read yet */
     if (!alt_stats) {
-	char *p = get_resource(R_SHARE, "stats");
+	char *p = get_resource(R_SHARE, "stats/stats");
 	
 	if (!read_stats(p, stat_block)) {
 	    allegro_message("Error reading %s.\n", p);
@@ -233,30 +170,35 @@ int main(int argc, char *argv[])
 
     set_weapon_stats();
 
+    /* video mode */
+    vidmode_init();
+    if (set_desired_video_mode_or_fallback() < 0) {
+	main_shutdown();
+	allegro_message(
+	    "Error setting video mode.\n"
+#ifdef TARGET_LINUX
+	    "Perhaps the executable does not have root permissions?\n"
+#endif
+	);
+	return 1;
+    }
+
+    set_palette(dat[GAMEPAL].dat);
+    fblit_init(dat[GAMEPAL].dat);
+
+    rpagup_init();
+    
+    /* init game engine */
     engine_init();
    
     setup_lighting();
 
-    if (set_video_mode() < 0) {
-	main_shutdown();
-	allegro_message("Error setting video mode.\n"
-#ifdef TARGET_LINUX
-			"Perhaps the executable does not have root permissions?\n"
-#endif
-			);
-	
-	return 1;
-    }
-    
-    set_palette(dat[GAMEPAL].dat);
-    if (filtered)
-	fblit_init(dat[GAMEPAL].dat);
-    
     dbuf = create_bitmap(320, 200);
     light = create_bitmap(320, 200);
-    set_stretched_mouse_sprite(dat[lcd_cur ? XHAIRLCD : XHAIR].dat,
-			       (SCREEN_W == 640) ? 2 : 1, 2, 2);
+    set_stretched_mouse_sprite(dat[XHAIRLCD].dat, (SCREEN_W == 640) ? 2 : 1, 2, 2);
     set_mouse_speed(1, 1);
+
+    /* begin */
 
     if (!skip_intro)
 	intro();
@@ -268,4 +210,29 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-END_OF_MAIN()
+END_OF_MAIN();
+
+
+/*----------------------------------------------------------------------*/
+/*      Shutdown                                                        */
+/*----------------------------------------------------------------------*/
+
+/* "shutdown" is a sockets function, which gets called 
+ * when we exit if we're under X, which is no good.  */
+static void main_shutdown()
+{
+    free_stretched_mouse_sprite();
+    if (light) {
+	destroy_bitmap(light);
+	light = NULL;
+    }
+    if (dbuf) {
+	destroy_bitmap(dbuf);
+	dbuf = NULL;
+    }
+    engine_shutdown();
+    rpagup_shutdown();
+    unload_dat();
+    music_shutdown();
+    vidmode_shutdown();
+}

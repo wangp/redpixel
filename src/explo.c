@@ -52,7 +52,7 @@ void spawn_explo(int x, int y, int pic, int frames)
 	return;
     }
 
-    add_msg("EXPLOSION OVERFLOW", -1);
+    add_msg("Explosion overflow", -1);
 }
 
 

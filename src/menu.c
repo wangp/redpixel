@@ -11,7 +11,7 @@
 #include "blood.h"
 #include "globals.h"
 #include "menu.h"
-#include "scrblit.h"
+#include "vidmode.h"
 
 
 #define big	dat[UNREAL].dat

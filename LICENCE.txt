@@ -1,5 +1,5 @@
 
-  Copyright (C) 2001 Peter Wang
+  Copyright (C) 2001 Peter Wang and contributing authors.
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages

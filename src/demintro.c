@@ -14,7 +14,7 @@
 #include "engine.h"
 #include "globals.h"
 #include "player.h"
-#include "scrblit.h"
+#include "vidmode.h"
 
 
 /* Although the real screen can be a different size, the screen we

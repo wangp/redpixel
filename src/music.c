@@ -13,8 +13,7 @@
 
 
 static int inited = 0;
-static int using_cd = 0;
-static int using_jgmod = 1;
+static int format =  MUSIC_FMT_MOD;
 static volatile int need_poll = 0;
 
 
@@ -48,13 +47,25 @@ void music_shutdown(void)
 }
 
 
+int music_get_format(void)
+{
+    return format;
+}
+
+
+void music_set_format(int music_format)
+{
+    format = music_format;
+}
+
+
 void music_play_random_track(void)
 {
     if (!inited)
 	return;
-    if (using_cd)
+    if (format == MUSIC_FMT_CD)
 	rpcd_play_random_track();
-    else if (using_jgmod)
+    else if (format == MUSIC_FMT_MOD)
 	rpjgmod_play_random_track();
 }
 
@@ -62,9 +73,9 @@ void music_play_random_track(void)
 void music_poll(void)
 {
     if (inited && need_poll) {
-	if (using_cd)
+	if (format == MUSIC_FMT_CD)
 	    rpcd_poll();
-	else
+	else if (format == MUSIC_FMT_MOD)
 	    rpjgmod_poll();
 	need_poll = 0;
     }
@@ -75,8 +86,8 @@ void music_stop(void)
 {
     if (!inited)
 	return;
-    if (using_cd)
+    if (format == MUSIC_FMT_CD)
 	rpcd_stop();
-    else if (using_jgmod)
+    else if (format == MUSIC_FMT_MOD)
 	rpjgmod_stop();
 }

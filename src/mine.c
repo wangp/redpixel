@@ -65,7 +65,7 @@ void spawn_mine(int x, int y, int tag)
 	suicide("Mine overflow");
 
     _reset_mines(vector_size(mines) - 10);
-    add_msg("ALLOCATED EXTRA 10 MINES", -1);
+    add_msg("Allocated extra 10 mines", -1);
 
     spawn_mine(x, y, tag);
 }

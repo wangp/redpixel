@@ -22,7 +22,7 @@ endif
 
 # default target.
 
-all: libnet libcda jgmod thegame
+all: libnet libcda jgmod agup thegame
 
 
 
@@ -73,6 +73,21 @@ $(JGMOD):
 endif
 
 jgmod: $(JGMOD)
+
+
+
+# agup.
+
+ifeq "$(PLATFORM)" "LINUX"
+
+AGUP := agup/agup.a
+
+$(AGUP):
+	make -C agup agup.a
+
+endif
+
+agup: $(AGUP)
 
 
 

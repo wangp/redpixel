@@ -201,3 +201,16 @@ now back to school, so less done
 		Added support for different screen sizes for platforms
 			that don't support 320x200 (by stretching)
 		Wrote wrapper around CD audio and module support
+
+9 December	Doubled amount of blood particles
+		Lowered gravity on and slowed down particles
+		Made LCD cursor default and disabled -l option
+		Included AGUP and started options screen
+		Made map editor use AGUP
+		Changes to MINI font (lowercase chars, moved down)
+		Moved stats files into their own directory
+
+10 December	[unrelated: released Allegro 4.0.0 :-) ]
+		More work on options
+		Scanlines option for video modes
+		Show current player name at bottom of screen in demos

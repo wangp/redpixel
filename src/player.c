@@ -104,7 +104,7 @@ void hurt_player(int pl, int dmg, int protect, int tag, int deathseq)
     }
 
     /* some nice graphics */
-    spawn_particles(players[pl].x + 3, players[pl].y + 6, dmg * 10, grad_red);
+    spawn_particles(players[pl].x + 3, players[pl].y + 6, dmg * 20, grad_red);
     if (dmg >= 5)
 	spawn_blods(players[pl].x - 4, players[pl].y, dmg * 2);
 
@@ -149,13 +149,13 @@ void hurt_player(int pl, int dmg, int protect, int tag, int deathseq)
 	if (tag == pl) {
 	    players[tag].frags--;
 	    if (deathseq == D_IMPALE000)
-		add_msgf(-1, "%s WAS IMPALED", players[pl].name);
+		add_msgf(-1, "%s was impaled", players[pl].name);
 	    else
-		add_msgf(-1, "%s COMMITTED SUICIDE", players[pl].name);
+		add_msgf(-1, "%s committed suicide", players[pl].name);
 	}
 	else {
 	    players[tag].frags++;
-	    add_msgf(-1, "%s WAS FRAGGED BY %s",
+	    add_msgf(-1, "%s was fragged by %s",
 		     players[pl].name, players[tag].name);
 	}
 

@@ -70,7 +70,7 @@ void spawn_particles(int x, int y, int num, int grad)
 	if (particles[i].life) continue;
 	
 	spd = itofix((rnd() % 40) + 1);
-	spd = fdiv(spd, itofix(10));
+	spd = fdiv(spd, itofix(15));
 	particles[i].x = itofix(x);
 	particles[i].y = itofix(y);
 	angle = itofix(rnd() % 256);
@@ -110,7 +110,7 @@ void spawn_casing(int x, int y, int facing)
 	particles[i].x = itofix(x);
 	particles[i].y = itofix(y);
 	particles[i].xv = (facing == left ? itofix(1) : itofix(-1));
-	particles[i].yv = itofix(-1);
+	particles[i].yv = ftofix(-0.5);
 	particles[i].life = 20;
 	particles[i].colour = 175;
 	return;
@@ -128,7 +128,7 @@ void update_particles()
 	particles[i].life--;
 
 	particles[i].x += particles[i].xv;
-	particles[i].y += (particles[i].yv += ftofix(.15));
+	particles[i].y += (particles[i].yv += ftofix(.09));
 
 	t = tile_at_p(fixtoi(particles[i].x), fixtoi(particles[i].y));
 	if (tile_is_solid(t)) {

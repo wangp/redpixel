@@ -1,0 +1,144 @@
+2001-11-22  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* LICENCE.txt: Added zlib licence.
+
+2001-11-18  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* examp.c: Formatting fix and use `void' for parmless functions.
+
+2001-11-04  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* agtk.c, awin95.c: Replaced SEND_MESSAGE with object_message.
+
+	* README: Wrote about d_agup_push_proc callback function.
+
+	* d_*_push_proc: Redraw itself (as unpressed) before calling user
+	callback, and pass the dialog entry that initiated the call.  Both
+	were the old behaviour before David's implementation.
+
+	* agtk.c, awin95.c: Gray text for disabled state in check and
+	radio procs.
+
+2001-10-27  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* README: Updated.
+
+2001-10-21  David A. Capello  <dacap@users.sourceforge.net>
+
+	* agtk.h, awin95.h: Added prototypes for window frame procs.
+	
+	* agtk.c (d_agtk_push_proc), awin95.c (d_awin95_push_proc):
+	Cleaner implementation, changed callback function signature, and
+	uses D_CLOSE internally instead of D_SELECTED.
+	
+	* aase.c, aase.h: Added a new widget set.
+
+2001-10-13  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* agtk.c (d_agtk_button_proc): Gray text for disabled state.
+
+	* examp.c: David Capello added examples of disabled and
+	disabled/selected buttons.
+
+	* awin95.c (d_awin95_shadow_box_proc): David Capello added this
+	function which he forgot in the previous patch.
+
+2001-10-07  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Released version 0.4.
+
+	* awin95.c: Reindented (David had already done some of this so I
+	finished it off).
+
+	* awin95.c: Changes from David A. Capello to buttons, lists and
+	frames look more like Win95 widgets.
+
+2001-10-04  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Released version 0.3.
+
+	* agtk.c (gtk_draw_scrollable_frame): David A. Capello fixed an
+	aesthetic problem in scrollbars in list procs.
+
+2001-09-16  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* The dp3 argument to d_agup_push_proc can now return messages.
+
+2001-08-24  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* agup_*_proc renamed to d_agup_*_proc.
+
+2001-08-08  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* To the user, themes are now constant opaque pointers.
+
+	* agupitrn.h: Moved struct agup_thme into here from agup.h.
+
+	* rules.mk: New file, containing AGUP rules.
+
+	* Makefile: Changed a bit, preparing for guibrella.
+
+2001-08-02  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* README: Updated for window procs.
+
+	* agtk.c (agtk_window_proc): Very simple window proc for GTK.
+
+	* examp.c (demo_windows): Added to show off agup_window_proc.
+
+2001-07-31  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* awin95.c (awin95_window_proc): Adapted from DIME.
+	* agup.c (agup_window_proc): Wrapper.
+
+	* agtk.c (agtk_edit_proc), awin95.c (awin95_edit_proc): Use font
+	height instead of DIALOG->h.
+
+	* examp.c: Override gui_edit_proc as well, for the file selector.
+
+2001-07-31  Sven Sandberg  <svsa1977@student.tdb.uu.se>
+
+	* awin95.c (awin95_edit_proc): Win95 edit box shouldn't have a
+	dotted rect around it.
+
+2001-07-30  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* examp.c: Demonstrate file_select_ex.
+
+	* examp.c: Use a select_theme function instead of select_<theme>.
+
+2001-07-18  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Released version 0.2.
+
+	* README: Updated.
+
+	* examp.c: Use themes.
+
+	* agup.c: New module (theme manager).
+
+2001-07-18  Robert J. Ohannessian  <ohannessian@videotron.ca>
+
+	* awin95.c: New widget set.
+
+2001-07-13  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Released version 0.1.
+
+2001-05-20  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* agtk.c: Added agtk_menu_proc and related.
+
+	* agtk.c (agtk_push_proc): dp3 function now takes an argument.
+
+	* agtk.c: Use gui_textout in the right places.
+
+	* README: Wrote it.
+
+	* agtk.c: Added agtk_slider_proc.
+
+	* Renamed widgets with agtk_ prefix, and decided to start AGUP.
+
+2000-11-06  Peter Wang  <tjaden@users.sourceforge.net>
+
+	* Started.  Wrote most of the widgets and the example.

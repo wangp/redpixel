@@ -1,0 +1,2 @@
+This is a cut down version of libnet 0.10.10.
+The `examples', `docs' and `tests' directories have been removed.

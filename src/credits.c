@@ -12,8 +12,8 @@
 #include "globals.h"
 #include "fblit.h"
 #include "main.h"
-#include "scrblit.h"
 #include "version.h"
+#include "vidmode.h"
 
 
 static volatile int timer;
@@ -39,7 +39,7 @@ END_OF_STATIC_FUNCTION(timer_func);
 static char *text[] = {
         FULLSCREEN,
 	"rRED PIXEL ", NL,
-	"VERSION " VERSION_STR, NL,
+	"VERSION " VERSION_STR " ", NL,
 	"COPYRIGHT PSYK SOFTWARE " VERSION_YEAR,
 	BLANK3,
 	"rCODE + ADDITIONAL GRAPHICS",
@@ -126,7 +126,7 @@ void credits()
 	blit_to_screen(dbuf);
 
 	while (timer == 0)
-	    ;
+	    yield_timeslice();
     }
 
     fade_out(6);

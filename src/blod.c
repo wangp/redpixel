@@ -38,7 +38,7 @@ void spawn_blods(int x, int y, int num)
 	if (--num <= 0) return;
     }
 
-    add_msg("BLODS OVERFLOW", -1);
+    add_msg("Blods overflow", -1);
 }
 
 

@@ -5,9 +5,10 @@
 
 
 CC := gcc
-INCLUDES := -Isrc -Isrc/include -Isrc/sk -Ilibnet/include -Ilibcda -Ijgmod/src
-CFLAGS := -Wall -O2 -mcpu=pentium -ffast-math -fomit-frame-pointer \
-	-funroll-loops $(INCLUDES)
+INCLUDES :=	-Isrc -Isrc/include -Isrc/sk			\
+		-Ilibnet/include -Ilibcda -Ijgmod/src -Iagup
+CFLAGS :=	-Wall -O2 -mcpu=pentium -ffast-math		\
+		-fomit-frame-pointer -funroll-loops $(INCLUDES)
 
 ifdef DEBUG
 CFLAGS += -g
@@ -17,7 +18,7 @@ endif
 ifeq "$(PLATFORM)" "LINUX"
 CFLAGS += -DTARGET_LINUX
 GAME := redpixel
-LIBS := `allegro-config --libs` $(LIBNET) -lpthread $(LIBCDA) $(JGMOD)
+LIBS := `allegro-config --libs` $(LIBNET) -lpthread $(LIBCDA) $(JGMOD) $(AGUP)
 PLATFORM_MODULES := sklinux
 OBJDIR := obj/linux
 endif
@@ -26,7 +27,7 @@ ifeq "$(PLATFORM)" "MINGW"
 CFLAGS += -DTARGET_WINDOWS
 GAME := redwin.exe
 LDFLAGS := -mwindows
-LIBS := -lalleg $(LIBNET) -lwsock32 $(LIBCDA) $(JGMOD)
+LIBS := -lalleg $(LIBNET) -lwsock32 $(LIBCDA) $(JGMOD) $(AGUP)
 PLATFORM_MODULES := getopt skdummy
 OBJDIR := obj/win
 endif
@@ -34,7 +35,7 @@ endif
 ifeq "$(PLATFORM)" "DJGPP"
 CFLAGS += -DTARGET_DJGPP
 GAME := reddos.exe
-LIBS := -lalleg $(LIBNET) $(LIBCDA) $(JGMOD)
+LIBS := -lalleg $(LIBNET) $(LIBCDA) $(JGMOD) $(AGUP)
 PLATFORM_MODULES := skdos
 OBJDIR := obj/djgpp
 endif
@@ -68,16 +69,18 @@ COMMON_MODULES := \
 	menu		\
 	message		\
 	mine		\
+	mousespr	\
 	music		\
+	options		\
 	particle	\
 	player		\
 	plupdate	\
 	resource	\
 	rg_rand		\
 	rnd		\
+	rpagup		\
 	rpcd		\
 	rpjgmod		\
-	scrblit		\
 	setweaps	\
 	sk		\
 	sklibnet	\
@@ -88,6 +91,7 @@ COMMON_MODULES := \
 	suicide		\
 	tiles		\
 	vector		\
+	vidmode		\
 	weapon
 
 MODULES := $(COMMON_MODULES) $(PLATFORM_MODULES)
@@ -108,12 +112,17 @@ $(OBJDIR)/fastsqrt.o: src/fastsqrt/fastsqrt.c
 	$(CC) -Wall $(INCLUDES) -c -o $@ $<
 
 obj/depend:
-	gcc $(CFLAGS) -MM src/*.c src/sk/*.c | sed 's,^\(.*[.]o:\),obj/*/\1,' > $@
+	gcc $(CFLAGS) -MM src/*.c src/sk/*.c		\
+		| sed -e 's,^\(.*[.]o:\),obj/*/\1,'	\
+		| sed -e 's,/usr/[^ ]\+,,g'		\
+		| sed -e '/^ *\\$$/d' > $@
 
 
 .PHONY := depend compress suidroot strip clean cleaner 
 
-depend: obj/depend
+depend:
+	-rm obj/depend
+	$(MAKE) obj/depend
 
 compress: $(GAME)
 	upx $<

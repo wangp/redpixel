@@ -43,6 +43,7 @@ void rpjgmod_init(void)
 {
     install_mod(16);
     set_mod_volume(128);
+    enable_lasttrk_loop = FALSE;
 
     /* create list of filenames */
     {

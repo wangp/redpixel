@@ -81,7 +81,7 @@ void draw_msgs()
 	len = text_length(dat[MINI].dat, msg_queue[i]);
 	
 	textout(dbuf, dat[MINI].dat, msg_queue[i],
-		320 - 16 - len, 3 + 6 * i,
+		320 - 16 - len, 3 + 7 * i,
 		GREEN - (num_msgs * 2) + (i * 2));
     }
 }

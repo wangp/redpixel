@@ -23,8 +23,8 @@
 #include "packet.h"
 #include "player.h"
 #include "rnd.h"
-#include "scrblit.h"
 #include "sk.h"
+#include "vidmode.h"
 
 #include "backpack.h"
 #include "blod.h"
@@ -164,12 +164,12 @@ static void draw_status()
 	    draw_sprite(dbuf, dat[weapon_order[i].pic].dat,
 			6 + (players[local].cur_weap == weapon_order[i].weap ? 6 : 0), y);
 
-	    textout(dbuf, dat[MINI].dat, weapon_order[i].s, 0, y + 10, RED);
+	    textout(dbuf, dat[MINI].dat, weapon_order[i].s, 0, y + 8, RED);
 
 	    ammo = num_ammo(local, weapon_order[i].weap);
 	    if (ammo != -1) {
 		sprintf(buf, "%d", ammo);
-		textout(dbuf, dat[MINI].dat, buf, 24, y + 6, YELLOW);
+		textout(dbuf, dat[MINI].dat, buf, 24, y + 8, YELLOW);
 		if (weapon_order[i].weap == players[local].cur_weap)
 		    textout(dbuf, dat[UNREAL].dat, buf, 320 - 48, 200 - 24, -1);
 	    }
@@ -197,6 +197,10 @@ static void draw_status()
     draw_sprite(dbuf, dat[A_ARMOUR].dat, 60, 9);
     textprintf(dbuf, dat[UNREAL].dat, 24, 3, -1, "%3d", players[local].health);
     textprintf(dbuf, dat[UNREAL].dat, 78, 3, -1, "%3d", players[local].armour);
+
+    /* if playing demo, show currently viewed player */
+    if (comm == demo)
+	textout_centre(dbuf, dat[MINI].dat, players[local].name, 320/2, 200-10, GREEN);
 }
 
 
@@ -235,7 +239,7 @@ static void render()
 	     && (players[local].visor_tics % 2) == 0)))
 	draw_spotlight();
 
-    if (players[local].scanner_tics) {
+    if ((players[local].scanner_tics) && (players[local].health > 0)) {
 	/* in the last five seconds it screws up */
 	draw_scanner((players[local].scanner_tics < GAME_SPEED * 5));
     }
@@ -317,7 +321,7 @@ void game_loop()
 
 		    if (key[KEY_ENTER] && num_players == 2) {
 			local = 1 - local;
-			add_msgf(-1, "< NOW WATCHING %s >", players[local].name);
+			/* add_msgf(-1, "< Now watching %s >", players[local].name); */
 
 			//key[KEY_ENTER] = 0;	/* bleh */
 		    }

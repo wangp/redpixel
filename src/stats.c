@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
 #include "stats.h"
 
 
@@ -107,6 +109,9 @@ static void read_stats_fp(FILE *fp)
 int read_stats(char *fn, STAT_VAR *block)
 {
     FILE *fp;
+    struct stat buf;
+    if ((stat(fn, &buf) < 0) || !S_ISREG(buf.st_mode))
+	return 0;
     fp = fopen(fn, "r");
     if (!fp) 
       return 0;

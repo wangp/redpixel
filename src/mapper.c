@@ -14,6 +14,7 @@
 #include "globals.h"
 #include "map.h"
 #include "resource.h"
+#include "rpagup.h"
 
 
 
@@ -58,7 +59,7 @@ static void selector_tiles(int command)
 	    { 
 		if (first[m_tile]+i < tile_count &&
 		    tiles[first[m_tile]+i].pic != -1)
-		    draw_sprite(dbuf, dat[tiles[first[m_tile]+i].pic].dat, i*16, 200-16);
+		    draw_sprite(dbuf, dat[tiles[first[m_tile]+i].pic].dat, i*16, SCREEN_H-16);
 	    }
 	    break;
 
@@ -300,7 +301,7 @@ int mapper()
     }
     
     set_window_title("Red Pixel map editor");
-    
+
     dbuf = create_bitmap(SCREEN_W, SCREEN_H);
     clear_bitmap(dbuf);
 
@@ -310,22 +311,19 @@ int mapper()
     set_palette(dat[GAMEPAL].dat);
     set_mouse_sprite(dat[XHAIRLCD].dat);
 
-    gui_fg_color = 0;
-    gui_bg_color = WHITE;
-    gui_mg_color = GREY;
+    rpagup_init();
 
     /* count some */
-    for (tile_count = 0; tiles[tile_count].pic >= 0; tile_count++)
-	;
-    
-    for (ammo_count = 0; ammos[ammo_count].pic >= 0; ammo_count++)
-	;
+    for (tile_count = 0; tiles[tile_count].pic >= 0; tile_count++);
+    for (ammo_count = 0; ammos[ammo_count].pic >= 0; ammo_count++);
 
     /* go */
     map_edit();
 
     /* bye bye */ 
+    rpagup_shutdown();
     destroy_bitmap(dbuf);
+    dbuf = NULL;
     	       
     return 0;  
 }	       

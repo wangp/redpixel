@@ -13,6 +13,11 @@ extern COLOR_MAP light_map;
 extern long seed;
 
 
+extern int mouse_speed;
+extern int record_demos;
+extern int filtered;
+
+
 int load_dat();
 void unload_dat();
 

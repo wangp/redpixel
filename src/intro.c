@@ -10,7 +10,7 @@
 #include <allegro.h>
 #include "blood.h"
 #include "globals.h"
-#include "scrblit.h"
+#include "vidmode.h"
 
 
 static int raster_words(char *s)

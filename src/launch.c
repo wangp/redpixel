@@ -23,15 +23,16 @@
 #include "main.h"
 #include "map.h"
 #include "music.h"
+#include "options.h"
 #include "player.h"
 #include "resource.h"
 #include "rnd.h"
-#include "scrblit.h"
 #include "setweaps.h"
 #include "sk.h"
 #include "skhelp.h"
 #include "stats.h"
 #include "statlist.h"
+#include "vidmode.h"
 #include "winhelp.h"
 
 
@@ -50,9 +51,14 @@ static char target_addr[32 + 1];
 
 /*----------------------------------------------------------------------
  *
- * 	Credits and quit 
+ * 	Options, credits and quit 
  * 
  *----------------------------------------------------------------------*/
+
+static void options_proc()
+{
+    options();
+}
 
 static void credits_proc()
 {
@@ -430,10 +436,10 @@ static char *select_map()
 	hline(dbuf, 0, 130, 319, RED);
 	hline(dbuf, 0, 140, 319, RED);
 	hline(dbuf, 0, 190, 319, RED);
-	textout(dbuf, small, "CHAT BOX", 10, 133, WHITE);
+	textout(dbuf, small, "CHAT BOX", 10, 131, WHITE);
 
 	for (i = 0; i < 6; i++)
-	    textout(dbuf, small, chatbox[i], 0, 143 + i * 8, WHITE);
+	    textout(dbuf, small, chatbox[i], 0, 141 + i * 8, WHITE);
 
 	if (chatting) {
 	    textout(dbuf, small, cur, 0, 192, WHITE);
@@ -602,7 +608,7 @@ static void score_sheet()
 
     for (i = 0; i < num_players; i++) {
 	textprintf(dbuf, dat[MINI].dat, 100, y, WHITE,
-		   "%s: %d FRAGS", players[i].name, players[i].frags);
+		   "%s: %d frags", players[i].name, players[i].frags);
 	y += 16;
     }
 
@@ -1023,13 +1029,10 @@ static void libnet_connect_proc()
 
 static void demo_playback_proc()
 {
-    char filename[1024] = "./";
+    char filename[1024] = "demos/";
     int x;
     
-    gui_bg_color = BLACK;
-    gui_fg_color = RED - 8;
-    
-    x = file_select("Load demo", filename, "rec");
+    x = file_select_ex("Load demo", filename, "rec", sizeof filename, 0, 0);
     text_mode(-1);
     if (!x) return;
     
@@ -1128,6 +1131,7 @@ static BLUBBER startgame_menu[] =
 static BLUBBER root_menu[] =
 {
     { join_menu, "Start", 	startgame_menu },
+    { menu_proc, "Options", 	options_proc },
     { menu_proc, "Credits", 	credits_proc },
     { menu_proc, "Quit", 	quit_proc },
     { prev_menu, "", 		NULL }

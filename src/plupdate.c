@@ -101,7 +101,7 @@ void update_player(int pl)
 		    if (guy->health > st_max_health)
 			guy->health = st_max_health;
 		    map.ammo[ky][kx] = 0;
-		    add_msg("<BURP>", pl);
+		    add_msg("<Burp>", pl);
 		}
 		break;
 
@@ -119,7 +119,7 @@ void update_player(int pl)
 		guy->have[w_mine] = 1;
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, 0);
-		add_msg("GOT YERSELF A MINE", pl);
+		add_msg("Got yerself a mine", pl);
 		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
@@ -140,7 +140,7 @@ void update_player(int pl)
 	    case A_GOGGLES:
 		guy->visor_tics = GAME_SPEED * st_goggles_timeout;
 		map.ammo[ky][kx] = 0;
-		add_msg("LIGHT-AMP ENABLED", pl);
+		add_msg("Light-amp enabled", pl);
 		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
@@ -148,8 +148,8 @@ void update_player(int pl)
 		guy->blood_tics = GAME_SPEED * st_bloodlust_timeout;
 		guy->bloodlust = 1;
 		map.ammo[ky][kx] = 0;
-		add_msg("YOU ARE THE SPAWN OF SATAN!", pl);
-		add_msg("GO KILL SOMETHING!!", pl);
+		add_msg("You are the spawn of Satan!", pl);
+		add_msg("Go kill something!!", pl);
 		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		snd_local(WAV_LETSPARTY);
 		break;
@@ -157,7 +157,7 @@ void update_player(int pl)
 	    case A_SCANNER:
 		guy->scanner_tics = GAME_SPEED * st_scanner_timeout;
 		map.ammo[ky][kx] = 0;
-		add_msg("DEAD MEAT TRACKER ON", pl);
+		add_msg("Dead meat tracker ON", pl);
 		snd_3d(WAV_INCOMING, 255, guy->x, guy->y);	/* dodgy! */
 		break;
 
@@ -165,7 +165,7 @@ void update_player(int pl)
 		guy->have[w_bow] = 1;
 		guy->num_arrows += st_bow_give;
 		map.ammo[ky][kx] = 0;
-		add_msg("DYNAMITE ON STICKS!", pl);
+		add_msg("Dynamite on sticks!", pl);
 		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
@@ -181,7 +181,7 @@ void update_player(int pl)
 		guy->num_bullets += st_minigun_give;
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, w_minigun);
-		add_msg("MINIGUN! FIND SOME MEAT!", pl);
+		add_msg("Minigun! Find some meat!", pl);
 		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
@@ -196,7 +196,7 @@ void update_player(int pl)
 		guy->have[w_bazooka] = 1;
 		guy->num_rockets += st_bazooka_give;
 		map.ammo[ky][kx] = 0;
-		add_msg("BAARRZOOKA!", pl);
+		add_msg("Baarrzooka!", pl);
 		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
