@@ -76,7 +76,7 @@ void    skSendString(unsigned char *);
 void    skWrite     (unsigned char *, int);
 void    skFlush     ();
 
-int     detect_UART (int);
+int     detect_UART (unsigned);
 int     skOpen      (int, int, int);
 int     skEnableFIFO();
 void    skClose     ();

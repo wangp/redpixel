@@ -1395,6 +1395,9 @@ void auto_weapon(int pl, int new_weapon)
 	}
 	i++;
     }
+
+    // nothing, just this bit of shit
+    players[pl].cur_weap = w_knife;
 }
 
 typedef struct {
@@ -1700,7 +1703,7 @@ void update_player(int pl)
 	switch (guy->cur_weap)
 	{
 	    case w_minigun:
-		if (--guy->num_bullets <= 0) {
+		if (--guy->num_bullets < 0) {
 		    fired = guy->num_bullets = 0;
 		    auto_weapon(pl, 0);
 		} else {
@@ -1710,7 +1713,7 @@ void update_player(int pl)
 		break;
 
 	    case w_m16:
-		if (--guy->num_bullets <= 0) {
+		if (--guy->num_bullets < 0) {
 		    fired = guy->num_bullets = 0;
 		    auto_weapon(pl, 0);
 		} else {
@@ -1720,7 +1723,7 @@ void update_player(int pl)
 		break;
 
 	    case w_uzi:
-		if (--guy->num_bullets <= 0) {
+		if (--guy->num_bullets < 0) {
 		    fired = guy->num_bullets = 0;
 		    auto_weapon(pl, 0);
 		} else {
@@ -1730,7 +1733,7 @@ void update_player(int pl)
 		break;
 
 	    case w_pistol:
-		if (--guy->num_bullets <= 0) {
+		if (--guy->num_bullets < 0) {
 		    fired = guy->num_bullets = 0;
 		    auto_weapon(pl, 0);
 		} else {
@@ -1740,7 +1743,7 @@ void update_player(int pl)
 		break;
 
 	    case w_shotgun:
-		if (--guy->num_shells <= 0) {
+		if (--guy->num_shells < 0) {
 		    fired = guy->num_shells = 0;
 		    auto_weapon(pl, 0);
 		}
@@ -1756,7 +1759,7 @@ void update_player(int pl)
 		break;
 
 	    case w_bazooka:
-		if (--guy->num_rockets <= 0) {
+		if (--guy->num_rockets < 0) {
 		    fired = guy->num_rockets = 0;
 		    auto_weapon(pl, 0);
 		}
@@ -2255,13 +2258,17 @@ void game_loop()
 
 int linkup()
 {
-    printf("linkup");
+    int x, y;
+
+    textout(screen, dat[MINI].dat, "LINKING UP", 16, 32, WHITE);
+    x = text_length(dat[MINI].dat, "LINKING UP") + 16;
+    y = 32;
 
     for (;;)
     {
 	skSend(SER_CONNECTPLS);
-	printf("."); 
-	fflush(stdout);
+	textout(screen, dat[MINI].dat, ".", x, y, WHITE);
+	if ((x+=4)>SCREEN_W-16) { y += 8; x = 16; }
 
 	if (skRecv() == SER_CONNECTPLS)
 	    break;
@@ -2277,7 +2284,7 @@ int linkup()
 	}
     }
 
-    printf("touched\n");
+    textout(screen, dat[MINI].dat, "TOUCHED", 16, y+8, WHITE);
     return 1;
 }
 
@@ -2289,7 +2296,27 @@ int connect_serial(int comport)
     srandom(seed);
 
     skOpen(comport, BAUD_19200, BITS_8 | PARITY_NONE | STOP_1);    // 8n1
-    skEnableFIFO();
+
+    switch (comport)
+    {
+	case COM1:
+	    textout(screen, dat[MINI].dat, "COM1 OPENED", 16, 16, WHITE);
+	    break;
+	case COM2:
+	    textout(screen, dat[MINI].dat, "COM2 OPENED", 16, 16, WHITE);
+	    break;
+	case COM3:
+	    textout(screen, dat[MINI].dat, "COM3 OPENED", 16, 16, WHITE);
+	    break;
+	case COM4:
+	    textout(screen, dat[MINI].dat, "COM4 OPENED", 16, 16, WHITE);
+	    break;
+    }
+
+    if (skEnableFIFO())
+	textout(screen, dat[MINI].dat, "16550A UART FIFO ENABLED", 16, 24, WHITE);
+    else
+	textout(screen, dat[MINI].dat, "FIFO NOT ENABLED", 16, 24, WHITE);
 
     if (!linkup(SER_CONNECTPLS))
 	return 0;

@@ -1,14 +1,8 @@
-/*  SK 0.7 - Serial Communications
+/*  SK - Serial Communications
  *      by Peter Wang  (tjaden@alphalink.com.au -or- tjaden@psynet.net)
  *
  *  These routines were originally basically just a port of Andre' LaMothes
  *  routines from 'Tricks of the Game Programming Gurus'. 
- *
- *  Now they feature (much) more:
- *      - use FIFO buffer of 16550A if possible
- *      - the ISR handles sending and receiving, and is more compliant
- *      - detect_UART() routine
- *      - a few general routines
  *
  *  Extra thanks:
  *
@@ -29,6 +23,8 @@
  *                                      started send buffer
  *  Modified:   16 June 1998    0.7     FIFO works! (i think) + better ISR
  *                                      send buffer finished
+ *  Modified:   17 June 1998    0.7a    fixed small bug in detect_UART()
+ *  Modified:   18 June 1998    0.7á    fixed the fix in detect_UART()
  */
 
 #include <dpmi.h>
@@ -40,7 +36,7 @@
 
 
 
-char sk_desc[] = "SK 0.7 by Peter Wang, June 1998.";
+char sk_desc[] = "SK 0.7á by Peter Wang, June 1998.";
 
 
 
@@ -338,33 +334,43 @@ void skFlush()
 
 /*  Ripped from ser_port.txt by Chris Blum.
  */
-int detect_UART(int port_base)
+int detect_UART(unsigned baseaddr)
 {
     // this function returns 0 if no UART is installed.
     // 1: 8250, 2: 16450 or 8250 with scratch reg., 3: 16550, 4: 16550A
-    int x,olddata;
+    int x, olddata;
 
     // check if a UART is present anyway
-    olddata = inportb(port_base+4);
-    outportb(port_base+4,0x10);
-    if ((inportb(port_base+6) & 0xf0)) return 0;
-    outportb(port_base+4,0x1f);
-    if ((inportb(port_base+6)&0xf0)!=0xf0) return 0;
-    outportb(port_base+4,olddata);
+    // if port is already opened, then we know it exists anyway...
+    if (open_port != baseaddr)
+    {
+	olddata = inportb(baseaddr + MCR);
+
+	// for some reason, this bit doesn't like the ISR being installed
+	// so we skip all of this
+	outportb(baseaddr + MCR, 0x10);
+	if ((inportb(baseaddr + MSR) & 0xf0)) return 0;
+
+	outportb(baseaddr + MCR, 0x1f);
+	if ((inportb(baseaddr + MSR) & 0xf0) != 0xf0) return 0;
+	outportb(baseaddr + MCR, olddata);
+    }
+
     // next thing to do is look for the scratch register
-    olddata=inportb(port_base+7);
-    outportb(port_base+7,0x55);
-    if (inportb(port_base+7)!=0x55) return UART_8250;
-    outportb(port_base+7,0xAA);
-    if (inportb(port_base+7)!=0xAA) return UART_8250;
-    outportb(port_base+7,olddata); // we don't need to restore it if it's not there
+    olddata = inportb(baseaddr + SCR);
+    outportb(baseaddr + SCR, 0x55);
+    if (inportb(baseaddr + SCR) != 0x55) return UART_8250;
+    outportb(baseaddr + SCR, 0xAA);
+    if (inportb(baseaddr + SCR) != 0xAA) return UART_8250;
+    outportb(baseaddr + SCR, olddata); // we don't need to restore it if it's not there
+
     // then check if there's a FIFO
-    outportb(port_base+2,1);
-    x=inportb(port_base+2);
+    outportb(baseaddr + FCR, 1);
+    x = inportb(baseaddr + IIR);
     // some old-fashioned software relies on this!
-    outportb(port_base+2,0x0);
-    if ((x&0x80)==0) return UART_16450;
-    if ((x&0x40)==0) return UART_16550;
+    outportb(baseaddr + IIR, 0x0);
+    if ((x & 0x80)==0) return UART_16450;
+    if ((x & 0x40)==0) return UART_16550;
     return UART_16550A;
 }
 
@@ -453,6 +459,7 @@ int skEnableFIFO()
 	return 0;
 
     // 16550 has a FIFO, but doesn't work!  Go figure...
+    // 16550A is ok tho...
     if (detect_UART(open_port) == UART_16550A)
     {
 	outportb(open_port + FCR, 0x87); // 8 byte trigger level should be good

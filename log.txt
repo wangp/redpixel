@@ -10,6 +10,8 @@
 	    forgotten
 15 june     mostly worked on sk
 16 june     uses new sk, quit bug fixed
+19 june     fixed off by one bug on ammo count, auto_weapon can now select 
+	    knife
 
 
 Red Pixel
