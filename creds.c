@@ -1,4 +1,5 @@
 #include <allegro.h>
+#include <mss.h>
 #include "common.h"
 #include "run.h"
 #include "blood.h"

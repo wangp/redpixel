@@ -42,3 +42,4 @@ now back to school, so less done
 	    improved serial connection routine
 	    faster serial game, w/o syncing problems!
 21 august   added death sequence: fountain
+25 august   checked with mss

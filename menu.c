@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <allegro.h>
+#include <mss.h>
 #include "common.h"
 #include "run.h"
 #include "skmod.h"

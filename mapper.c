@@ -2,6 +2,7 @@
  *  Tjaden 06 June, 1998 
  */
 
+#include <mss.h>
 #include "common.h"
 
 
@@ -29,7 +30,7 @@ enum {
 
 void (*selector)();
 
-int index[m_num];
+int first[m_num];
 int chosen[m_num];
 
 
@@ -50,15 +51,15 @@ void selector_tiles(int command)
 	case SEL_DRAW:
 	    for (i=0; i<SCREEN_W/16; i++)
 	    { 
-		if (index[m_tile]+i < tile_count &&
-		    tiles[index[m_tile]+i].pic != -1)
-		    draw_sprite(dbuf, dat[tiles[index[m_tile]+i].pic].dat, i*16, SCREEN_H-16);
+		if (first[m_tile]+i < tile_count &&
+		    tiles[first[m_tile]+i].pic != -1)
+		    draw_sprite(dbuf, dat[tiles[first[m_tile]+i].pic].dat, i*16, SCREEN_H-16);
 	    }
 	    break;
 
 	case SEL_CHOOSE:
-	    if (index[m_tile] + kx < tile_count)
-		chosen[m_tile] = tiles[index[m_tile]+kx].pic;
+	    if (first[m_tile] + kx < tile_count)
+		chosen[m_tile] = tiles[first[m_tile]+kx].pic;
 	    break;
 
 	case SEL_EDIT:
@@ -85,15 +86,15 @@ void selector_ammo(int command)
 	case SEL_DRAW:
 	    for (i=0; i<SCREEN_W/16; i++)
 	    { 
-		if (index[m_ammo]+i < ammo_count &&
-		    ammos[index[m_ammo]+i].pic != -1)
-		    draw_sprite(dbuf, dat[ammos[index[m_ammo]+i].pic].dat, i*16, SCREEN_H-16);
+		if (first[m_ammo]+i < ammo_count &&
+		    ammos[first[m_ammo]+i].pic != -1)
+		    draw_sprite(dbuf, dat[ammos[first[m_ammo]+i].pic].dat, i*16, SCREEN_H-16);
 	    }
 	    break;
 
 	case SEL_CHOOSE:
-	    if (index[m_ammo] + kx < ammo_count)
-		chosen[m_ammo] = ammos[index[m_ammo]+kx].pic;
+	    if (first[m_ammo] + kx < ammo_count)
+		chosen[m_ammo] = ammos[first[m_ammo]+kx].pic;
 	    break;
 
 	case SEL_EDIT:
@@ -178,10 +179,10 @@ void map_edit()
 
     while (!key[KEY_ESC])
     {
-	if (key[KEY_PGUP] && index[mode]) 
-	    index[mode]--;
+	if (key[KEY_PGUP] && first[mode]) 
+	    first[mode]--;
 	if (key[KEY_PGDN]) 
-	    index[mode]++;
+	    first[mode]++;
 
 	if (key[KEY_MINUS_PAD] && map.h>32) { map.h--; rest(50); }
 	if (key[KEY_PLUS_PAD] && map.h<127) { map.h++; rest(50); }

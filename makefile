@@ -10,8 +10,7 @@ OBJ = run.o common.o sk.o skmod.o rnd.o menu.o mapper.o creds.o intro.o
 red.exe: $(OBJ)
 	gcc $(OPT) -o $@ $(OBJ) -lalleg
 
-flushsmartdrv: 
-	@dump /q
+flushsmartdrv: ; -@dump /q > nul
 
 clean: 
 	rm -f *.exe *.o

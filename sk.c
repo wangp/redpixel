@@ -35,6 +35,7 @@
 #include <dos.h>
 #include <pc.h>
 #include <sys/segments.h>
+#include <mss.h>
 #include "sk.h"
 
 

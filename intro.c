@@ -1,6 +1,7 @@
 // converted from a seer script
 
 #include <allegro.h>
+#include <mss.h>
 #include "blood.h"
 
 extern DATAFILE *dat;

@@ -7,6 +7,7 @@
  */
 
 #include <string.h>
+#include <mss.h>
 #include "skmod.h"
 
 
