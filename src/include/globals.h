@@ -18,7 +18,5 @@ void unload_dat();
 
 void setup_lighting();
 
-long generate_seed();
-
 
 #endif

@@ -48,13 +48,3 @@ void setup_lighting()
 	for (y = 0; y < 256; y++)
 	    alpha_map.data[x][y] = MIN(x+y, 255);
 }
-
-
-
-long generate_seed()
-{
-    struct timeval tv;
-
-    gettimeofday(&tv, 0);
-    return tv.tv_sec + tv.tv_usec;
-}

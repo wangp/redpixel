@@ -127,8 +127,11 @@ void engine_init()
 {
     build_sqrt_table();
 
-    if (!bullets_init() || !mines_init() || !backpacks_init())
-	suicide("Bullets or mines or backpacks malloc failed");
+    if (!bullets_init() 
+	|| !mines_init() 
+	|| !backpacks_init()
+	|| !particles_init())
+	suicide("Initial memory allocation failed");
 
     /* install timer interrupts */
     LOCK_VARIABLE(speed_counter);
@@ -145,6 +148,7 @@ void engine_shutdown()
     remove_int(fps_timer);
     remove_int(speed_timer);
 
+    particles_shutdown();
     bullets_shutdown();
     mines_shutdown();
     backpacks_shutdown();

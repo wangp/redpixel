@@ -191,7 +191,20 @@ static int libnet_open(int listen, char *info)
 
     /* We're not supposed to use these constants, but the net driver
      * classes interface just seems too tedious right now.  */
+    drv = -1;
+    
+#ifdef TARGET_LINUX
     drv = NET_DRIVER_SOCKETS;
+#endif
+#ifdef TARGET_DJGPP
+    drv = NET_DRIVER_WSOCK_DOS;
+#endif
+#ifdef TARGET_WINDOWS
+    drv = NET_DRIVER_WSOCK_WIN;
+#endif
+
+    if (drv < 0)
+	return 0;
     
     if (!net_initdriver(drv))
 	return 0;

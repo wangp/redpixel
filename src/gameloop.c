@@ -347,8 +347,8 @@ void game_loop()
 	    touch_bullets();
 	    touch_backpacks();
 
-	    if (shake_factor > 40)
-		shake_factor = 40;
+	    if (shake_factor > 20)
+		shake_factor = 20;
 
 	    if (shake_factor) {
 		shake_factor--;

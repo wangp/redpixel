@@ -48,10 +48,8 @@ void add_msg(char *s, int to_player)
     if (!num_msgs)
 	msg_tics = MSG_ANIM;
 
-    if (num_msgs == MAX_MSGS) {
+    if (num_msgs == MAX_MSGS) 
 	scroll();
-	num_msgs--;
-    }
      
     strcpy(msg_queue[num_msgs++], s);
 }

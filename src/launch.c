@@ -47,6 +47,7 @@
 #include "skhelp.h"
 #include "stats.h"
 #include "statlist.h"
+#include "winhelp.h"
 
 
 #define big	dat[UNREAL].dat
@@ -175,7 +176,7 @@ typedef struct MAPFILE {
 
 static MAPFILE maphead, *curmap, *tmpmap;
 
-static int num_maps = 0;
+static int num_maps;
 
 
 static void get_map_filenames()
@@ -205,12 +206,14 @@ static void get_map_filenames()
 		return;
 	}
 	else {
-	    if (findnext(&f))
+	    if (findnext(&f)) {
+		findclose(&f);
 		return;
+	    }
 	}
 
 	tmpmap = malloc(sizeof(MAPFILE));
-	strcpy(tmpmap->fn, f.ff_name);
+	strcpy(tmpmap->fn, ff_name(f));
 	strupr(tmpmap->fn);	/* font only has uppercase */
 	curmap->next = tmpmap;
 	tmpmap->next = NULL;
@@ -649,6 +652,8 @@ static void do_session()
 	try_demo_write_open();
    
     demo_write_set_rng_seed(seed);
+    
+    reset_player_frags();
 
     while (1) {
 	show_mouse(NULL);
@@ -710,8 +715,7 @@ static int peerpeer_negotiate_environment()
 {
     int l, r;
 
-    seed = generate_seed();
-    srand(seed);
+    seed = rand();
 
     /* Throw dice.  */
     skSend(SER_THROWDICE);
@@ -763,7 +767,7 @@ static void peerpeer_trade_names()
 
     skSend(SER_MYNAMEIS);
     skSend(local);
-    skSendString(players[local].name);
+    skSendString(local_name);
     skSend(0);
 
     left = num_players - 1;
@@ -786,7 +790,7 @@ static void peerpeer_trade_names()
 
 static void peerpeer_session()
 {
-    strcpy(players[local].name, local_name);   
+    strcpy(players[local].name, local_name);
     peerpeer_trade_names();
 
     get_map_filenames();
@@ -808,6 +812,8 @@ static void peerpeer_session()
  * 
  *----------------------------------------------------------------------*/
 
+static int com_port = 1;	/* /dev/ttyS1; COM2 */
+
 static int serial_linkup()
 {
     int x, y;
@@ -822,7 +828,12 @@ static int serial_linkup()
 
     clear(screen);
     textprintf(screen, dat[MINI].dat, 16, 16, WHITE,
-	       "COM%d OPENED", com_port+1);
+#ifdef TARGET_LINUX
+	       "/DEV/TTYS%d OPENED", com_port
+#else
+	       "COM%d OPENED", com_port+1
+#endif
+	       );
 
     y = 24;
     textout(screen, dat[MINI].dat, msg, 16, y, WHITE);
@@ -873,6 +884,12 @@ static void serial_proc()
 }
 
 
+static void serial_port_0_proc() { com_port = 0; serial_proc(); }
+static void serial_port_1_proc() { com_port = 1; serial_proc(); }
+static void serial_port_2_proc() { com_port = 2; serial_proc(); }
+static void serial_port_3_proc() { com_port = 3; serial_proc(); }
+
+
 
 /*----------------------------------------------------------------------
  *
@@ -890,12 +907,11 @@ static void single_proc()
     local = 0;
     num_players = 1;
 
-    seed = generate_seed();
+    seed = rand();
     srnd(seed);
     sirnd(seed);
     next_position = irnd() % (24*24);
 
-    reset_engine();
     strcpy(players[local].name, local_name);
     
     get_map_filenames();
@@ -937,6 +953,7 @@ static int libnet_connect_callback()
     }
 
     sleep(0);
+    
     return 0;
 }
 
@@ -1050,6 +1067,27 @@ static void demo_playback_proc()
  * 
  *----------------------------------------------------------------------*/
 
+#ifndef TARGET_WINDOWS
+
+static BLUBBER serial_menu[] =
+{
+#ifdef TARGET_DJGPP
+    { menu_proc, "COM1", 	serial_port_0_proc },
+    { menu_proc, "COM2",	serial_port_1_proc },
+    { menu_proc, "COM3", 	serial_port_2_proc },
+    { menu_proc, "COM4",	serial_port_3_proc },
+#endif
+#ifdef TARGET_LINUX
+    { menu_proc, "/dev/ttyS0", 	serial_port_0_proc },
+    { menu_proc, "/dev/ttyS1",	serial_port_1_proc },
+    { menu_proc, "/dev/ttyS2", 	serial_port_2_proc },
+    { menu_proc, "/dev/ttyS3",	serial_port_3_proc },
+#endif
+    { prev_menu, "", 		startgame_menu }
+};
+
+#endif /* !TARGET_WINDOWS */
+
 #ifdef LIBNET_CODE
 
 static BLUBBER libnet_menu[] =
@@ -1064,7 +1102,9 @@ static BLUBBER libnet_menu[] =
 static BLUBBER startgame_menu[] = 
 {
     { menu_proc, "Solo", 	single_proc },
-    { menu_proc, "Serial", 	serial_proc },
+#ifndef TARGET_WINDOWS
+    { join_menu, "Serial", 	serial_menu },
+#endif
 #ifdef LIBNET_CODE
     { join_menu, "Sockets",	libnet_menu },
 #endif

@@ -4,6 +4,7 @@
  * Code taken from my Libnet serial driver.
  */
 
+
 #ifdef TARGET_LINUX
 
 
@@ -219,4 +220,4 @@ SK_DRIVER __sk__serial = {
 };
 
 
-#endif /* TARGET_LINUX */
+#endif

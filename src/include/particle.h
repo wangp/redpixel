@@ -25,6 +25,8 @@ void spawn_particles(int x, int y, int num, int grad);
 void spawn_casing(int x, int y, int facing);
 void update_particles();
 void draw_particles();
+int particles_init();
+void particles_shutdown();
 void reset_particles();
     
 

@@ -11,6 +11,7 @@
  */
 
 
+#include <string.h>
 #include <allegro.h>
 #include "backpack.h"
 #include "blod.h"
@@ -21,6 +22,7 @@
 #include "explo.h"
 #include "gameloop.h"
 #include "globals.h"
+#include "packet.h"
 #include "particle.h"
 #include "player.h"
 #include "map.h"
@@ -46,7 +48,8 @@ void respawn_player(int pl)
 {
     PLAYER *guy;
     int i;
-    for (;;) {
+
+    while (1) {
 	i = respawn_order[next_position++];
 	if (next_position > 24 * 24)
 	    next_position = 0;
@@ -88,6 +91,7 @@ void spawn_players()
 	respawn_player(i);
 }
 
+/*----------------------------------------------------------------------*/
 
 void hurt_player(int pl, int dmg, int protect, int tag, int deathseq)
 {
@@ -168,6 +172,7 @@ void hurt_player(int pl, int dmg, int protect, int tag, int deathseq)
     }
 }
 
+/*----------------------------------------------------------------------*/
 
 int gun_pic(int pl)
 {
@@ -456,11 +461,51 @@ void get_local_input()
 }
 
 
+void load_playerstat(char *packet)
+{
+    int pl, ch;
+
+    pl = packet[0];
+
+    ch = packet[1];
+    players[pl].up     	  = ch & INPUT_UP; 
+    players[pl].down  	  = ch & INPUT_DOWN;
+    players[pl].left  	  = ch & INPUT_LEFT;
+    players[pl].right 	  = ch & INPUT_RIGHT;
+    players[pl].fire  	  = ch & INPUT_FIRE;
+    players[pl].drop_mine = ch & INPUT_DROPMINE;
+    players[pl].respawn   = ch & INPUT_RESPAWN;
+    players[pl].facing 	  = (ch & INPUT_FACINGLEFT) ? left : right;
+
+    players[pl].select = packet[2];
+    players[pl].angle = packet[3] << 16;
+}
+
+
+void make_playerstat(char *packet, int pl)
+{
+    packet[0] = pl;
+
+    packet[1] = 0;
+    if (players[pl].up)			packet[1] |= INPUT_UP;
+    if (players[pl].down) 		packet[1] |= INPUT_DOWN;
+    if (players[pl].left)		packet[1] |= INPUT_LEFT;
+    if (players[pl].right) 		packet[1] |= INPUT_RIGHT;
+    if (players[pl].fire)		packet[1] |= INPUT_FIRE;
+    if (players[pl].drop_mine)		packet[1] |= INPUT_DROPMINE;
+    if (players[pl].respawn)		packet[1] |= INPUT_RESPAWN;
+    if (players[pl].facing == left)	packet[1] |= INPUT_FACINGLEFT;	
+
+    packet[2] = players[pl].select;
+    packet[3] = (players[pl].angle >> 16) & 0xff;
+}
+
+
+/*----------------------------------------------------------------------*/
+
 /* Removes player, and all mines and bullets he placed */
 void clean_player(int pl)
 {
-    int i;
-
     players[pl].health = players[pl].exist = players[pl].frags = 0;
 
     reset_bullets_with_tag(pl);
@@ -471,7 +516,6 @@ void clean_player(int pl)
 static char retain_names[MAX_PLAYERS][40];
 static int retain_frags[MAX_PLAYERS];
 
-
 void retain_players()
 {
     int i;
@@ -481,7 +525,6 @@ void retain_players()
 	retain_frags[i] = players[i].frags;
     }
 }
-
 
 void restore_players()
 {
@@ -496,6 +539,14 @@ void restore_players()
 void reset_players()
 {
     memset(players, 0, MAX_PLAYERS * sizeof(PLAYER));
+}
+
+void reset_player_frags()
+{
+    int i;
+    
+    for (i = 0; i < MAX_PLAYERS; i++)
+	players[i].frags = 0;
 }
 
 /*----------------------------------------------------------------------*/

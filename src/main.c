@@ -23,6 +23,7 @@
  */
 
 
+#include <time.h>
 #include <allegro.h>
 #include "main.h"
 #include "engine.h"
@@ -38,9 +39,8 @@
 #include "stats.h"
 #include "statlist.h"
 #include "version.h"
+#include "winhelp.h"
 
-
-int com_port = 1;		/* COM2 */
 
 int record_demos = 0;
 
@@ -52,14 +52,12 @@ static void usage(char *options)
 }
 
 
-static void show_version(int legal)
+static void show_version()
 {
     allegro_message("Red Pixel " VERSION_STR " by Psyk Software " VERSION_YEAR ".\n"
-		    "http://www.psynet.net/tjaden/\n%s",
-		    (legal 
-		     ? ("Licensed under the GNU Lesser General Public Licence.\n"
-			"See COPYING for details.\n")
-		     : ""));
+		    "http://www.psynet.net/tjaden/\n"
+		    "Licensed under the GNU Lesser General Public Licence.\n"
+		    "See COPYING for details.\n");
 }
 
 
@@ -79,54 +77,30 @@ int main(int argc, char *argv[])
     int skip_intro = 0;
     int lcd_cur = 0;
     int alt_stats = 0;
+    int mute = 0;
+    int editor = 0;
     int c;
 
-    /* init allegro */
+    srand(time(0));
+
     allegro_init();
     
-    if (install_mouse() <= 0) {
-#ifdef TARGET_DJGPP
-	allegro_message("\nRed Pixel requires a mouse to play.\n"
-			"Please install a mouse driver (e.g. mouse.com).\n\n");
-#else
-	allegro_message("\nRed Pixel requires a mouse to play.\n"
-			"Please check your Allegro mouse port settings\n"
-			"and make sure you have permissions to the device.\n\n");
-#endif
-	return 1;
-    }
-    
-    install_timer();
-    install_keyboard();
-    install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);
-
-    /* set up game path */
-    set_game_path(argv[0]);
-
-    /* load datafile */
-    if (load_dat() < 0) {
-	allegro_message("Error loading blood.dat\n");
-	return 1;
-    }
-
     /* command line args  */
     while (1) {
-	char *options = "hveqld1234s:";
+	char *options = "hveqldms:";
 	    
 	c = getopt(argc, argv, options);
 	if (c < 0) break;
 	    
 	switch (c) {
 	    case 'h': usage(options); return 0;
-	    case 'v': show_version(1); return 0;
-	    case 'e': return mapper();
+	    case 'v': 
+	    show_version(1); return 0;
+	    case 'e': editor = 1; break;
 	    case 'q': skip_intro = 1; break;
 	    case 'l': lcd_cur = 1; break;
 	    case 'd': record_demos = 1; break;
-	    case '1': com_port = 0; break;
-	    case '2': com_port = 1; break;
-	    case '3': com_port = 2; break;
-	    case '4': com_port = 3; break;
+	    case 'm': mute = 1; break;
 	    case 's': 
 		if (!optarg) {
 		    allegro_message("No stats file specified!\n");
@@ -147,6 +121,39 @@ int main(int argc, char *argv[])
 	}
     }
 
+    if (install_mouse() <= 0) {
+        allegro_message("\nRed Pixel requires a mouse to play.\n"
+#if defined(TARGET_DJGPP)
+			"Please install a mouse driver (e.g. mouse.com).\n\n"
+#elif defined(TARGET_LINUX)
+			"Please check your Allegro mouse port settings\n"
+			"and make sure you have permissions to the device.\n\n"
+#endif
+	               );
+	return 1;
+    }
+    
+    install_timer();
+    install_keyboard();
+    if (!mute)
+	install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);
+
+    /* set up game path */
+    set_game_path(argv[0]);
+
+    /* load datafile */
+    if (load_dat() < 0) {
+	allegro_message("Error loading blood.dat\n");
+	return 1;
+    }
+    
+    /* map editor option */
+    if (editor) {
+	int x = mapper();
+	shutdown();
+	return x;
+    }
+
     /* stats, if none read yet */
     if (!alt_stats) {
 	char *p = get_resource(R_SHARE, "stats");
@@ -164,6 +171,7 @@ int main(int argc, char *argv[])
     setup_lighting();
 
     /* init screen etc */
+    set_window_title("Red Pixel");
     if (set_gfx_mode(GFX_AUTODETECT, 320, 200, 0, 0) < 0) {
 	shutdown();
 	allegro_message("Error setting 320x200 video mode.\n"
@@ -175,7 +183,6 @@ int main(int argc, char *argv[])
 	return 1;
     }
     
-    set_window_title("Red Pixel");
     set_palette(dat[GAMEPAL].dat);
     dbuf = create_bitmap(SCREEN_W, SCREEN_H);
     light = create_bitmap(SCREEN_W, SCREEN_H);
@@ -189,8 +196,6 @@ int main(int argc, char *argv[])
     main_menu();
 
     shutdown();
-    
-    show_version(0);
 
     return 0;
 }

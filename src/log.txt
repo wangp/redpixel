@@ -99,7 +99,7 @@ now back to school, so less done
 		Removed modem code (not just #ifdef'd out)		
 		Renamed executable to `redpixel' under Linux.
 		Added keyboard control to menu system (up, down, enter)
-		Fixed path problems in map editor
+		Fixed path problems in map editor under Linux
 		Made screen only update when necessary in map editor
 			(for X11's sake, and less flicker)
 		Made alternative stats not read from exe directory
@@ -141,3 +141,19 @@ now back to school, so less done
 		Hacked around walking above map problem
 		Made `serial_proc' and `single_proc' share most of their code
 		Fixed a bug in `message.c', put in yesterday
+		Fixed some warnings compiling with djgpp
+		Renamed executable to `reddos.exe' under djgpp 
+			(anticipating `redwin.exe')
+		Made `inp_peer.c' and `inp_demo.c' share packet building
+			and decoding (which is in now in `player.c')
+		Added com port selection to menu
+		Removed com port select command line options
+		
+31 May		Windows port (uses external `getopt' implementation)
+		Removed use of `gettimeofday' function (windows doesn't have)
+		Fixed backpack reallocation bug
+		Reduced `shake_factor' from 40 to 20
+		Added `-m' mute option
+		
+01 June		Made `particle.c' use `vector.c'
+   		Added Allegro static linking option to makefile (linux)

@@ -29,6 +29,14 @@
 #include "vector.h"
 
 
+typedef struct {
+    char alive;
+    int x, y;
+    char frame, anim;
+    char tag, unactive;
+} MINE;
+
+
 static VECTOR(mines, MINE);
 
 
@@ -154,15 +162,14 @@ void touch_mines()
 
 int mine_in_range(int i, int x1, int y1, int x2, int y2)
 {
-    int u = mines[i].x + 3;
-    int v = mines[i].y;
-    return mines[i].alive && ((u >= x1) && (u <= x2) && (v >= y1) && (v <= y2));
+    int x = mines[i].x + 3, y = mines[i].y;
+    return mines[i].alive && (x >= x1) && (x <= x2) && (y >= y1) && (y <= y2);
 }
 
 
 int mines_init()
 {
-    return vector_resize(mines, 50);
+    return vector_resize(mines, 30);
 }
 
 

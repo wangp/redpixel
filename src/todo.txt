@@ -1,0 +1,3 @@
+Unix path stuff
+do not spawn in same place
+network error checking (should not be necessary because using RDM)

@@ -11,6 +11,7 @@
  */
 
 
+#include <string.h>
 #include <allegro.h>
 #include "corpse.h"
 #include "anim.h"
@@ -20,6 +21,15 @@
 #include "globals.h"
 #include "map.h"
 #include "tiles.h"
+
+
+typedef struct {
+    char alive;
+    int x, y;
+    char facing;
+    short first_frame;
+    unsigned char num_frames, cur, anim;
+} CORPSE;
 
 
 #define MAX_CORPSES     50

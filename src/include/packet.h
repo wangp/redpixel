@@ -4,6 +4,7 @@
 #define PACKET_QUITGAME    'x'
 #define PACKET_QUITOK      'X'
 
+/* PLAYERSTAT packet type */
 #define INPUT_UP          0x01
 #define INPUT_DOWN        0x02
 #define INPUT_LEFT        0x04

@@ -28,6 +28,13 @@
 #include "vector.h"
 
 
+typedef struct {
+    char alive, unactive;
+    int x, y;
+    int num_bullets, num_shells, num_rockets, num_arrows, num_mines;
+} BACKPACK;
+
+
 static VECTOR(backpacks, BACKPACK);
 
 #define max_backpacks	vector_size(backpacks)
@@ -64,11 +71,11 @@ void spawn_backpack(int x, int y, int b, int s, int r, int a, int m)
 	return;
     }
 
-    if (!vector_resize(backpacks, max_backpacks + 5))
+    if (!vector_resize(backpacks, max_backpacks + 2))
 	suicide("Backpack overflow");
     
-    reset_backpacks(max_backpacks - 5);
-    add_msg("ALLOCATED EXTRA 5 BACKPACKS", -1);
+    _reset_backpacks(max_backpacks - 2);
+    add_msg("ALLOCATED EXTRA 2 BACKPACKS", -1);
 
     spawn_backpack(x, y, b, s, r, a, m);
 }
@@ -142,7 +149,7 @@ void touch_backpacks()
 
 int backpacks_init()
 {
-    return vector_resize(backpacks, 20);
+    return vector_resize(backpacks, 5);
 }
 
 

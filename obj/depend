@@ -1,0 +1,132 @@
+obj/backpack.o: src/backpack.c src/include/anim.h src/include/backpack.h \
+ src/include/blood.h src/include/engine.h src/include/gameloop.h \
+ src/include/globals.h src/include/map.h src/include/message.h \
+ src/include/player.h src/include/weapon.h src/include/sound.h \
+ src/include/suicide.h src/include/tiles.h src/include/vector.h
+obj/blast.o: src/blast.c src/include/engine.h src/include/gameloop.h \
+ src/include/map.h src/include/mine.h src/include/player.h \
+ src/include/weapon.h src/include/tiles.h
+obj/blod.o: src/blod.c src/include/blod.h src/include/blood.h \
+ src/include/engine.h src/include/gameloop.h src/include/globals.h \
+ src/include/message.h src/include/rnd.h src/include/tiles.h
+obj/bullet.o: src/bullet.c src/include/particle.h src/include/bullet.h \
+ src/include/blast.h src/include/blood.h src/include/engine.h \
+ src/include/explo.h src/include/gameloop.h src/include/globals.h \
+ src/include/map.h src/include/message.h src/include/player.h \
+ src/include/weapon.h src/include/rnd.h src/include/sound.h \
+ src/include/suicide.h src/include/tiles.h src/include/vector.h
+obj/corpse.o: src/corpse.c src/include/corpse.h src/include/anim.h \
+ src/include/blood.h src/include/engine.h src/include/gameloop.h \
+ src/include/globals.h src/include/map.h src/include/tiles.h
+obj/credits.o: src/credits.c src/include/blood.h src/include/colours.h \
+ src/include/globals.h src/include/version.h
+obj/demintro.o: src/demintro.c src/include/blood.h src/include/colours.h \
+ src/include/demo.h src/include/demintro.h src/include/engine.h \
+ src/include/globals.h src/include/player.h src/include/weapon.h
+obj/demo.o: src/demo.c src/include/demo.h src/include/engine.h \
+ src/include/player.h src/include/weapon.h src/include/setweaps.h \
+ src/include/stats.h src/include/statlist.h src/include/statlist.inc
+obj/engine.o: src/engine.c src/fastsqrt/fastsqrt.h src/include/engine.h \
+ src/include/backpack.h src/include/blod.h src/include/bullet.h \
+ src/include/corpse.h src/include/explo.h src/include/globals.h \
+ src/include/message.h src/include/mine.h src/include/particle.h \
+ src/include/player.h src/include/weapon.h src/include/suicide.h
+obj/explo.o: src/explo.c src/include/anim.h src/include/blood.h \
+ src/include/explo.h src/include/engine.h src/include/gameloop.h \
+ src/include/globals.h src/include/message.h src/include/player.h \
+ src/include/weapon.h
+obj/gameloop.o: src/gameloop.c src/include/gameloop.h src/include/anim.h \
+ src/include/blood.h src/include/colours.h src/include/engine.h \
+ src/include/globals.h src/include/input.h src/include/map.h \
+ src/include/packet.h src/include/player.h src/include/weapon.h \
+ src/include/rnd.h src/sk/sk.h src/include/backpack.h \
+ src/include/blod.h src/include/bullet.h src/include/corpse.h \
+ src/include/explo.h src/include/message.h src/include/mine.h \
+ src/include/particle.h src/include/tiles.h
+obj/getopt.o: src/getopt.c
+obj/globals.o: src/globals.c src/include/blood.h src/include/globals.h \
+ src/include/resource.h
+obj/inp_demo.o: src/inp_demo.c src/include/demo.h src/include/demintro.h \
+ src/include/map.h src/include/packet.h src/include/player.h \
+ src/include/engine.h src/include/weapon.h
+obj/inp_peer.o: src/inp_peer.c src/include/demo.h src/include/demintro.h \
+ src/include/gameloop.h src/include/map.h src/include/message.h \
+ src/include/packet.h src/include/player.h src/include/engine.h \
+ src/include/weapon.h src/sk/sk.h
+obj/intro.o: src/intro.c src/include/blood.h src/include/globals.h
+obj/launch.o: src/launch.c src/include/menu.h src/include/launch.h \
+ src/include/credits.h src/include/blood.h src/include/colours.h \
+ src/include/demo.h src/include/demintro.h src/include/engine.h \
+ src/include/gameloop.h src/include/globals.h src/include/main.h \
+ src/include/map.h src/include/player.h src/include/weapon.h \
+ src/include/resource.h src/include/rnd.h src/include/setweaps.h \
+ src/sk/sk.h src/include/skhelp.h src/include/stats.h \
+ src/include/statlist.h src/include/statlist.inc src/include/winhelp.h
+obj/main.o: src/main.c src/include/main.h src/include/engine.h \
+ src/include/blood.h src/include/globals.h src/include/intro.h \
+ src/include/launch.h src/include/mapper.h src/include/menu.h \
+ src/include/resource.h src/include/setweaps.h src/sk/sk.h \
+ src/include/stats.h src/include/statlist.h src/include/statlist.inc \
+ src/include/version.h src/include/winhelp.h
+obj/map.o: src/map.c src/include/blood.h src/include/engine.h \
+ src/include/map.h src/include/resource.h src/include/stats.h \
+ src/include/statlist.h src/include/statlist.inc
+obj/mapper.o: src/mapper.c src/include/blood.h src/include/colours.h \
+ src/include/globals.h src/include/map.h src/include/resource.h
+obj/menu.o: src/menu.c src/include/blood.h src/include/globals.h \
+ src/include/menu.h
+obj/message.o: src/message.c src/include/anim.h src/include/blood.h \
+ src/include/engine.h src/include/colours.h src/include/gameloop.h \
+ src/include/globals.h
+obj/mine.o: src/mine.c src/include/anim.h src/include/blast.h \
+ src/include/blood.h src/include/engine.h src/include/explo.h \
+ src/include/gameloop.h src/include/globals.h src/include/map.h \
+ src/include/message.h src/include/mine.h src/include/player.h \
+ src/include/weapon.h src/include/sound.h src/include/suicide.h \
+ src/include/tiles.h src/include/vector.h
+obj/particle.o: src/particle.c src/include/blood.h src/include/engine.h \
+ src/include/gameloop.h src/include/globals.h src/include/map.h \
+ src/include/message.h src/include/particle.h src/include/rnd.h \
+ src/include/tiles.h src/include/vector.h
+obj/player.o: src/player.c src/include/backpack.h src/include/blod.h \
+ src/include/blood.h src/include/bullet.h src/include/corpse.h \
+ src/include/engine.h src/include/explo.h src/include/gameloop.h \
+ src/include/globals.h src/include/packet.h src/include/particle.h \
+ src/include/player.h src/include/weapon.h src/include/map.h \
+ src/include/message.h src/include/mine.h src/include/rnd.h \
+ src/include/sound.h
+obj/plupdate.o: src/plupdate.c src/include/anim.h src/include/blood.h \
+ src/include/bullet.h src/include/colours.h src/include/gameloop.h \
+ src/include/map.h src/include/message.h src/include/mine.h \
+ src/include/particle.h src/include/player.h src/include/engine.h \
+ src/include/weapon.h src/include/sound.h src/include/stats.h \
+ src/include/statlist.h src/include/statlist.inc src/include/tiles.h
+obj/resource.o: src/resource.c src/include/resource.h
+obj/rg_rand.o: src/rg_rand.c
+obj/rnd.o: src/rnd.c src/include/rg_rand.h src/include/rnd.h
+obj/setweaps.o: src/setweaps.c src/include/engine.h src/include/stats.h \
+ src/include/statlist.h src/include/statlist.inc src/include/weapon.h \
+ src/include/setweaps.h
+obj/skhelp.o: src/skhelp.c src/sk/sk.h src/include/skhelp.h
+obj/sound.o: src/sound.c src/include/blood.h src/include/engine.h \
+ src/include/gameloop.h src/include/globals.h src/include/player.h \
+ src/include/weapon.h src/include/sound.h
+obj/statlist.o: src/statlist.c src/include/stats.h \
+ src/include/statlist.inc
+obj/stats.o: src/stats.c src/include/stats.h
+obj/suicide.o: src/suicide.c src/include/suicide.h src/include/main.h \
+ src/sk/sk.h
+obj/tiles.o: src/tiles.c src/include/anim.h src/include/blast.h \
+ src/include/blood.h src/include/explo.h src/include/gameloop.h \
+ src/include/globals.h src/include/map.h src/include/player.h \
+ src/include/engine.h src/include/weapon.h src/include/stats.h \
+ src/include/statlist.h src/include/statlist.inc src/include/sound.h \
+ src/include/tiles.h
+obj/vector.o: src/vector.c src/include/vector.h
+obj/weapon.o: src/weapon.c src/include/blood.h src/include/player.h \
+ src/include/engine.h src/include/weapon.h
+obj/sk.o: src/sk/sk.c src/sk/sk.h src/sk/skintern.h
+obj/skdos.o: src/sk/skdos.c
+obj/skdummy.o: src/sk/skdummy.c src/sk/sk.h src/sk/skintern.h
+obj/sklibnet.o: src/sk/sklibnet.c src/sk/sk.h src/sk/skintern.h
+obj/sklinux.o: src/sk/sklinux.c src/sk/sk.h src/sk/skintern.h

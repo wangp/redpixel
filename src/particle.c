@@ -11,6 +11,7 @@
  */
 
 
+#include <string.h>
 #include <allegro.h>
 #include "blood.h"
 #include "engine.h"
@@ -21,11 +22,22 @@
 #include "particle.h"
 #include "rnd.h"
 #include "tiles.h"
+#include "vector.h"
 
 
-#define MAX_PARTICLES   5000
+#define DEFAULT_PARTICLES   	2000
+#define MAX_PARTICLES   	10000
 
-static PARTICLE particles[MAX_PARTICLES];
+static VECTOR(particles, PARTICLE);
+
+
+void _reset_particles(int lower)
+{
+    int i;
+    
+    for (i = lower; i < vector_size(particles); i++)
+	particles[i].life = 0;
+}
 
 
 void spawn_particles(int x, int y, int num, int grad)
@@ -59,7 +71,7 @@ void spawn_particles(int x, int y, int num, int grad)
 	    break;
     }
 
-    for (i = 0; i < MAX_PARTICLES; i++) {
+    for (i = 0; i < vector_size(particles); i++) {
 	if (particles[i].life) continue;
 	
 	spd = itofix((rnd() % 40) + 1);
@@ -79,8 +91,15 @@ void spawn_particles(int x, int y, int num, int grad)
 	
 	if (--num == 0) return;
     }
-
-    add_msg("PARTICLE OVERFLOW", local);
+    
+    if (vector_size(particles) >= MAX_PARTICLES)
+	return;
+    
+    if (!vector_resize(particles, vector_size(particles) + 50))
+	return;
+    
+    _reset_particles(vector_size(particles) - 50);
+    spawn_particles(x, y, num, grad);
 }
 
 
@@ -89,7 +108,7 @@ void spawn_casing(int x, int y, int facing)
 {
     int i;
 
-    for (i = 0; i < MAX_PARTICLES; i++) {
+    for (i = 0; i < vector_size(particles); i++) {
 	if (particles[i].life) continue;
 	
 	particles[i].x = itofix(x);
@@ -109,7 +128,7 @@ void update_particles()
 {
     int i, t;
 
-    for (i = 0; i < MAX_PARTICLES; i++) {
+    for (i = 0; i < vector_size(particles); i++) {
 	if (!particles[i].life) continue;
 	
 	particles[i].life--;
@@ -132,7 +151,7 @@ void draw_particles()
 {
     int i;
     
-    for (i = 0; i < MAX_PARTICLES; i++) {
+    for (i = vector_size(particles) - 1; i >= 0; i--) {
 	if (particles[i].life)
 	    putpixel(dbuf, fixtoi(particles[i].x) - px, fixtoi(particles[i].y) - py,
 		     particles[i].colour);
@@ -140,7 +159,19 @@ void draw_particles()
 }
 
 
+int particles_init()
+{
+    return vector_resize(particles, DEFAULT_PARTICLES);
+}
+
+
+void particles_shutdown()
+{
+    vector_resize(particles, 0);
+}
+
+
 void reset_particles()
 {
-    memset(particles, 0, MAX_PARTICLES * sizeof(PARTICLE));
+    _reset_particles(0);
 }

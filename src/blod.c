@@ -11,6 +11,7 @@
  */
 
 
+#include <string.h>
 #include <allegro.h>
 #include "blod.h"
 #include "blood.h"

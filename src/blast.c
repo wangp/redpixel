@@ -51,7 +51,7 @@ void blast(int x, int y, int dmg, int tag)
 
     /* mines */
     for (i = max_mines() - 1; i >= 0; i--)
-	if (mine_in_range(i, x - 40, x + 40, y - 40, y + 40))
+	if (mine_in_range(i, x - 40, y - 40, x + 40, y + 40))
 	    blow_mine(i);
 
     /* players */
@@ -74,7 +74,7 @@ void blast(int x, int y, int dmg, int tag)
 	    CLAMP(players[i].yv, -15, 15);
 	    CLAMP(players[i].xv, -15, 15);
 
-	    players[i].jump = (players[i].yv <= 0);
+	    players[i].jump = (players[i].yv < 0);
 	}
     }
 }

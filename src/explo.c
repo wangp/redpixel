@@ -11,6 +11,7 @@
  */
 
 
+#include <string.h>
 #include <allegro.h>
 #include "anim.h"
 #include "blood.h"
@@ -22,7 +23,16 @@
 #include "player.h"
 
 
-#define MAX_EXPLOSIONS  100
+typedef struct {
+    char alive;
+    int x, y;
+    char nopic;		/* if nopic, then it is just a light source */
+    short pic;
+    unsigned char cur, frames, anim; 
+} EXPLOSION;
+
+
+#define MAX_EXPLOSIONS  200
 
 static EXPLOSION explos[MAX_EXPLOSIONS];
 

@@ -425,7 +425,7 @@ static int dos_open(int num, char *dummy)
     }
 
     {
-	int x[4] { COM1, COM2, COM3, COM4 };
+	int x[4] = { COM1, COM2, COM3, COM4 };
 	
 	if ((num < 0) || (num > 3))
 	    return 0;
@@ -532,4 +532,4 @@ SK_DRIVER __sk__serial = {
 };
 
 
-#endif /* TARGET_DJGPP */
+#endif
