@@ -22,3 +22,4 @@
 	    + 3d sound + serial file select thing
 12 july     fixed bloodlust respawn + chicken respawn, etc +
 	    arrow/rocket hitting player now causes explosion and boom sound
+13 july     fixed respawn bug + sorts map filenames in solo mode

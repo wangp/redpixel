@@ -169,14 +169,14 @@ void load_map(char *fn)
     if (!fp)
 	return;
 
+    reset_map();
+
     pack_fgets(test, 9, fp);
     if (memcmp(test, file_hdr, 8))
     {
 	pack_fclose(fp);
 	return;
     }
-
-    reset_map();
 
     map.w = pack_getc(fp);
     map.h = pack_getc(fp); 
@@ -196,9 +196,13 @@ void load_map(char *fn)
 	    if (map.tile[v][u]==T_WOOD || map.tile[v][u]==T_CRATE ||
 		map.tile[v][u]==T_BAR)
 		map.tiletics[v][u] = TILE_HEALTH;
+	    else
+		map.tiletics[v][u] = 0;
 
 	    if (map.ammo[v][u])
 		map.ammotics[v][u] = ammo_respawn_rate(map.ammo[v][u]);
+	    else
+		map.ammotics[v][u] = 0;
 	}
 
     pack_fclose(fp);

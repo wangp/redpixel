@@ -9,6 +9,7 @@
 --- comms ---
 ûchoose comm port (FIX SOON)
 ûfile select
+modem-modem
 ipx
 tcp/ip
 
@@ -17,3 +18,6 @@ tcp/ip
 ûcreds - qwater type effect, with deaths at end
 define macros...cancelled
 sound setup...cancelled
+
+--- no ---
+single player

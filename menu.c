@@ -221,7 +221,8 @@ int get_colour()
 */
 
 
-// helpers to select maps
+
+// map filename things
 
 typedef struct MAPFILE
 {
@@ -278,6 +279,59 @@ void get_map_filenames()
     }
 }
 
+void sort_map_filenames()
+{
+    int finish = 0, order;
+    MAPFILE *a, *b, *c, *d;
+
+    do
+    {
+	finish = 1;
+	curmap = maphead.next;
+	tmpmap = &maphead;
+
+	while (curmap && curmap->next)
+	{
+	    order = strcmp(curmap->fn, curmap->next->fn);
+	    if (order>0)    // gotta swap
+	    {
+		finish = 0;
+
+		// tmpmap---->curmap---->curmap.next----->curmap.next.next
+		//    1         2             3                 4
+
+		// needs to go:
+		//      1       3             2                 4
+
+		// then end with curmap at ^^^^^^ here
+		// and tmpmap ^^^^^^ here (one before
+
+		a = tmpmap;
+		b = curmap;
+		c = curmap->next;
+		if (c)
+		    d = curmap->next->next;
+		else 
+		    d = NULL;
+
+		a->next = c;
+		c->next = b;
+		b->next = d;
+
+		curmap = b;
+		tmpmap = c;
+	    }
+	    else
+	    {
+		tmpmap = tmpmap->next;
+		curmap = curmap->next;
+	    }
+	}
+
+	//putpixel(screen, x++, 180, YELLOW);
+    } while (!finish);
+}
+
 void free_map_filenames()
 {
     curmap = maphead.next;
@@ -291,13 +345,18 @@ void free_map_filenames()
     num_maps = 0;
 }
 
+
+
+/* serial--
+ * send 
+ * recv and compare map filenames
+ * then sort
+ */
+
 #define MAPLIST_START   'M'
 #define MAPLIST_END     'm'
 
-// send 
-// recv and compare map filenames
-// then sort
-
+// helper
 MAPFILE *match(char *fn)
 {
     MAPFILE *t;
@@ -316,8 +375,7 @@ MAPFILE *match(char *fn)
 void trade_map_filenames()
 {
     char buf[80];
-    int pos, ch, finish, order;
-    MAPFILE *a, *b, *c, *d;
+    int pos, ch;
     int x = 16;
 
     // send first (no paths)
@@ -383,53 +441,10 @@ void trade_map_filenames()
     } 
 
     // shitty bubble sort 
-    do
-    {
-	finish = 1;
-	curmap = maphead.next;
-	tmpmap = &maphead;
-
-	while (curmap && curmap->next)
-	{
-	    order = strcmp(curmap->fn, curmap->next->fn);
-	    if (order>0)    // gotta swap
-	    {
-		finish = 0;
-
-		// tmpmap---->curmap---->curmap.next----->curmap.next.next
-		//    1         2             3                 4
-
-		// needs to go:
-		//      1       3             2                 4
-
-		// then end with curmap at ^^^^^^ here
-		// and tmpmap ^^^^^^ here (one before
-
-		a = tmpmap;
-		b = curmap;
-		c = curmap->next;
-		if (c)
-		    d = curmap->next->next;
-		else 
-		    d = NULL;
-
-		a->next = c;
-		c->next = b;
-		b->next = d;
-
-		curmap = b;
-		tmpmap = c;
-	    }
-	    else
-	    {
-		tmpmap = tmpmap->next;
-		curmap = curmap->next;
-	    }
-	}
-
-	putpixel(screen, x++, 180, YELLOW);
-    } while (!finish);
+    sort_map_filenames();
 }
+
+
 
 // allow map selection
 // w/ chat box 
@@ -652,6 +667,38 @@ char *select_map()
 
 
 
+// scores at end of match
+
+void score_sheet()
+{
+    int i, y;
+
+    show_mouse(NULL);
+    clear(screen);
+    textout_centre(screen, dat[MINI].dat, "FRAGS", 160, 50, RED);
+
+    y = 70;
+
+    for (i=0; i<16; i++)
+    {
+	if (players[i].exist)
+	{
+	    textprintf(screen, dat[MINI].dat, 100, y, WHITE, "%s: %d FRAGS", players[i].name, players[i].frags);
+	    y+=16;
+	}
+    }
+
+    speed_counter = 0;
+    while (speed_counter < GAME_SPEED);
+
+    clear_keybuf();
+    while (!keypressed() && !mouse_b);
+    clear_keybuf();
+    while (mouse_b);
+}
+
+
+
 /* connect via serial */
 
 #define SER_CONNECTPLS  '?'
@@ -802,34 +849,6 @@ void trade_names()
     } while (left);
 }
 
-void score_sheet()
-{
-    int i, y;
-
-    show_mouse(NULL);
-    clear(screen);
-    textout_centre(screen, dat[MINI].dat, "FRAGS", 160, 50, RED);
-
-    y = 70;
-
-    for (i=0; i<16; i++)
-    {
-	if (players[i].exist)
-	{
-	    textprintf(screen, dat[MINI].dat, 100, y, WHITE, "%s: %d FRAGS", players[i].name, players[i].frags);
-	    y+=16;
-	}
-    }
-
-    speed_counter = 0;
-    while (speed_counter < GAME_SPEED);
-
-    clear_keybuf();
-    while (!keypressed() && !mouse_b);
-    clear_keybuf();
-    while (mouse_b);
-}
-
 extern int com_port;    // run.c
 
 void serial_func()
@@ -912,6 +931,7 @@ void single_func()
 
     // select level
     get_map_filenames();
+    sort_map_filenames();
     fn = select_map();
     if (!fn) return;
     load_map(fn);
@@ -920,6 +940,9 @@ void single_func()
     spawn_players();
     play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
     game_loop();
+
+    score_sheet();
+    free_map_filenames();
 
     // back to root menu
     enter_menu(root_menu);
