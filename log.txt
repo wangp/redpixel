@@ -39,3 +39,6 @@ now back to school, so less done
 	    fixed ladder bug
 	    backpacks have a light
 	    minigun made shorter
+	    improved serial connection routine
+	    faster serial game, w/o syncing problems!
+21 august   added death sequence: fountain

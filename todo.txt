@@ -21,6 +21,7 @@ o tcp/ip
 o more deaths
 o save your name
 o save phone no.
+o trails
 û intro - metroid style start
 û creds - qwater type effect, with deaths at end
 X define macros...cancelled

@@ -724,6 +724,9 @@ int linkup()
 
     #define LINKUP_MSG  "LINKING UP (PRESS ESC TO ABORT)"
 
+    rest(500);
+    skClear();
+
     textout(screen, dat[MINI].dat, LINKUP_MSG, 16, 32, WHITE);
     x = text_length(dat[MINI].dat, LINKUP_MSG) + 16;
     y = 32;
@@ -798,7 +801,15 @@ int connect_serial(int comport)
     }
 
     skSend(SER_THROWDICE);
-    while (skRecv() != SER_THROWDICE);
+    while (skRecv() != SER_THROWDICE) 
+    {
+	if (key[KEY_ESC])
+	{
+	    while (key[KEY_ESC]);
+	    skClose();
+	    return 0;
+	}
+    }
 
     do
     {

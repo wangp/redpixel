@@ -1,6 +1,6 @@
 Wacko grot scenes
 
-done... Fromback - slip over, body covers in blood
+done...Fromback - slip over, body covers in blood
 
 done...Fromfront - blood shoots out of eye, head falls off backwards, neck spurts red pixels, body falls backwards on head, head bounces up then splat!  red pixels
 
@@ -10,14 +10,12 @@ done...Loselegs - legs fall off, body in air, immobile, then drops to ground
 
 done...spikes - impaled
 
-
-canceled...fountain - head looks up, splurts a fountain of blood, then body falls to ground, soaked in red pixels
-
+done...fountain - head looks up, splurts a fountain of blood, then body falls to ground, soaked in red pixels
 
 Missle - breaks apart
 
 losestomach - stomach goes missing, body drips blood galore, then legs and upper body drop on different places
 
-arrowheadless - head blows up, body drops to ground
+cancelled...arrowheadless - head blows up, body drops to ground
 
-gutdrop - body falls to ground but guts stay in air for a bit, then drop and red pixels everywhere
+cancelled...gutdrop - body falls to ground but guts stay in air for a bit, then drop and red pixels everywhere

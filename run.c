@@ -648,8 +648,6 @@ void spawn_backpack(int x, int y, int b, int s, int r, int a, int m)
 	    backpacks[i].num_rockets = r;
 	    backpacks[i].num_arrows = a;
 	    backpacks[i].num_mines = m;
-	    //backpacks[i].num_fuel = f;
-	    //backpacks[i].num_bottles = bot;
 	    backpacks[i].alive = 1;
 	    // FIXME: this is just average time it takes
 	    backpacks[i].unactive = 13*CORPSE_ANIM; 
@@ -997,7 +995,7 @@ void hurt_player(int pl, int dmg, int protect, int tag, int deathseq)
 	}
 	else
 	{
-	    switch (irnd()%4)
+	    switch (irnd()%5)
 	    {
 		case 0: /* arms */
 		    spawn_corpse(players[pl].x+3, players[pl].y+15, players[pl].facing, D_ARM0, 12);
@@ -1010,6 +1008,9 @@ void hurt_player(int pl, int dmg, int protect, int tag, int deathseq)
 		    break;
 		case 3: /* legs */
 		    spawn_corpse(players[pl].x+3, players[pl].y+15, players[pl].facing, D_LEGS000, 18);
+		    break;
+		case 4: /* fountain */
+		    spawn_corpse(players[pl].x+3, players[pl].y+15, players[pl].facing, D_FOUNTAIN000, 19);
 		    break;
 	    }
 	}
@@ -1637,6 +1638,15 @@ inline void select_weapon()
 
 void get_local_input()
 {
+    // pointing gun at?
+    players[local].angle = find_angle(players[local].x-px+3, players[local].y-py+4, mouse_x, mouse_y);
+
+    // facing left or right? 
+    if (mouse_x+px > players[local].x)
+	players[local].facing = right;
+    else
+	players[local].facing = left;
+
     players[local].up = key[KEY_UP] | key[KEY_T] | key[KEY_W];
     players[local].down = key[KEY_DOWN] | key[KEY_G] | key[KEY_S];
     players[local].left = key[KEY_LEFT] | key[KEY_F] | key[KEY_A];
@@ -2270,88 +2280,81 @@ void inline draw_spotlight()
     draw_trans_sprite(dbuf, light, 0, 0);
 }
 
-void render(int update)
+void calc()
 {
-    int bx, by;
+    /* find top-left */
+    mx = players[local].x / 16 - 10;
+    my = players[local].y / 16 - 6;
 
-    if (update)
+    offsetx = players[local].x % 16;
+    offsety = players[local].y % 16;
+
+    if (mx<0) mx = offsetx = 0;
+    if (my<0) my = offsety = 0;
+    if (mx>=map.w-20) { mx=map.w-20; offsetx = 0; }
+    if (my>map.h-13 || (my==map.h-13 && offsety>=8)) { my=map.h-13; offsety = 8; }
+
+    px = mx * 16 + offsetx;
+    py = my * 16 + offsety;
+}
+
+void render()
+{
+    static int bx, by;
+
+    calc();
+
+    /* tile backdrop */
+    bx = -(px%640)/2;
+    by = -(py%400)/2;
+
+    blit(dat[BACKDROP].dat, dbuf, 0, 0, bx,     by,     320, 200);
+    blit(dat[BACKDROP].dat, dbuf, 0, 0, bx,     by+200, 320, 200);
+    blit(dat[BACKDROP].dat, dbuf, 0, 0, bx+320, by,     320, 200);
+    blit(dat[BACKDROP].dat, dbuf, 0, 0, bx+320, by+200, 320, 200);
+
+    // ready light
+    clear_to_color(light, AMBIENT_LIGHT);
+    color_map = &alpha_map;
+
+    // now draw, boy!
+    draw_mines();
+    draw_tiles_an_stuff();
+    draw_backpacks();
+    draw_bullets();
+    draw_players();
+    draw_particles();
+    draw_blods();
+    draw_explo();
+    draw_corpses();
+
+    if (!players[local].visor_tics ||
+	(players[local].visor_tics < GAME_SPEED*3 && (players[local].visor_tics%2)==0))
+	draw_spotlight();
+
+    draw_status(); 
+    draw_msgs();
+
+    show_mouse(NULL);
+    blit(dbuf, screen, 0, 0, 0 + shakex, 0 + shakey, SCREEN_W, SCREEN_H);
+    if (players[local].health)
+	show_mouse(screen);
+
+    frame_counter++;
+
+    //-- screen shots --
+    #if 0
     {
-	/* tile backdrop */
-	bx = -(px%640)/2;
-	by = -(py%400)/2;
-	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx,     by,     320, 200);
-	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx,     by+200, 320, 200);
-	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx+320, by,     320, 200);
-	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx+320, by+200, 320, 200);
+	static char ss_name[80];
+	static int ss_num = 0;
 
-	/* find top-left */
-	mx = players[local].x / 16 - 10;
-	my = players[local].y / 16 - 6;
-
-	offsetx = players[local].x % 16;
-	offsety = players[local].y % 16;
-
-	if (mx<0) mx = offsetx = 0;
-	if (my<0) my = offsety = 0;
-	if (mx>=map.w-20) { mx=map.w-20; offsetx = 0; }
-	if (my>map.h-13 || (my==map.h-13 && offsety>=8)) { my=map.h-13; offsety = 8; }
-
-	px = mx * 16 + offsetx;
-	py = my * 16 + offsety;
-
-	// not a good place for this, but we need px and py
-	players[local].angle = find_angle(players[local].x-px+3, players[local].y-py+4, mouse_x, mouse_y);
-
-	// facing left or right? 
-	if (mouse_x+px > players[local].x)
-	    players[local].facing = right;
-	else
-	    players[local].facing = left;
-
-	// ready light
-	clear_to_color(light, AMBIENT_LIGHT);
-	color_map = &alpha_map;
-
-	// now draw, boy!
-	draw_mines();
-	draw_tiles_an_stuff();
-	draw_backpacks();
-	draw_bullets();
-	draw_players();
-	draw_particles();
-	draw_blods();
-	draw_explo();
-	draw_corpses();
-
-	if (!players[local].visor_tics ||
-	    (players[local].visor_tics < GAME_SPEED*3 && (players[local].visor_tics%2)==0))
-	    draw_spotlight();
-
-	draw_status(); 
-	draw_msgs();
-
-	show_mouse(NULL);
-	blit(dbuf, screen, 0, 0, 0 + shakex, 0 + shakey, SCREEN_W, SCREEN_H);
-	if (players[local].health)
-	    show_mouse(screen);
-
-	frame_counter++;
-
-
-	//-- screen shots --
-	#if 0
+	if (key[KEY_PAUSE])
 	{
-	    static char ss_name[80];
-	    static int ss_num = 0;
-
-	    if (key[KEY_PAUSE])
-	    {
-		sprintf(ss_name, "screen%02d.pcx", ss_num++);
-		save_pcx(ss_name, dbuf, dat[GAMEPAL].dat);
-	    }
+	    sprintf(ss_name, "screen%02d.pcx", ss_num++);
+	    save_pcx(ss_name, dbuf, dat[GAMEPAL].dat);
 	}
-	#endif
     }
+    #endif
 }
 
 void game_loop()
@@ -2372,6 +2375,7 @@ void game_loop()
 	{
 	    update = 1;
 
+	    calc();
 	    get_local_input();
 	    if (key[KEY_ESC]) goto quit_pls;
 
@@ -2381,8 +2385,11 @@ void game_loop()
 
 		while (!skReady())
 		{
-		    if (frames_dropped)
-			render(frames_dropped--);
+		    if (frames_dropped>1)
+		    {
+			frames_dropped--;
+			render();
+		    }
 
 		    if (key[KEY_ESC]) goto quit_pls;
 		}
@@ -2445,7 +2452,8 @@ void game_loop()
 	    frames_dropped++;
 	}
 
-	render(update);
+	if (update)
+	    render();
 
 	if (key[KEY_ESC])
 	{ 
