@@ -1,6 +1,6 @@
-/*  7 june 1998 
-    8 june 1998 
-    9 june 1998
+/*  6 june 1998 map editor
+    7-9 june 1998 initial game engine
+    10 june 1998 serial code
     Coding: Tjaden 
     Graphics: Air
  */
@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <time.h>
 #include "common.h"
+#include "sk.h"
 
 
 #define MAX_PLAYERS 8
@@ -103,7 +104,7 @@ MINE mine[MAX_MINES];
 
 
 enum {
-    w_knife = 0,
+    w_knife = 1,
     w_pistol,
     w_bow,
     w_shotgun,
@@ -122,6 +123,7 @@ struct
     int dmg;
 } weaps[] =
 {
+    { 0 },
     { 3, 20, 10 },  // knife
     { 4, 20, 13 },  // pistol
     { 4, 28, 30 },  // bow
@@ -149,6 +151,7 @@ typedef struct
     int health;
     int armour;
     fixed angle;
+    char facing;
 
     char leg_frame, leg_tics;
 
@@ -161,13 +164,15 @@ typedef struct
     int num_arrows;
 
     unsigned char up, down, left, right, fire, drop_mine;
-    unsigned char select[num_weaps];
+    unsigned char select;
 
     unsigned char have[num_weaps];
     unsigned char cur_weap;
 } PLAYER;
 
 PLAYER player[MAX_PLAYERS];
+
+int num_players = 2;
 
 
 
@@ -196,7 +201,7 @@ void suicide(char *s)
 {
     killall();
     printf("suicide(): %s\n", s);
-    exit(666);
+    exit(6);
 }
 
 
@@ -441,7 +446,7 @@ void respawn_player(int pl)
 	{
 	    guy = &player[pl];
 	    guy->alive = 1;
-	    guy->x = map.start[i].x * 16;
+	    guy->x = map.start[i].x * 16 + 4;
 	    guy->y = map.start[i].y * 16;
 	    guy->xv = guy->yv = guy->jump = 0;
 	    guy->health = 100;
@@ -478,7 +483,7 @@ void hurt_player(int pl, int dmg, int protect)
 
 void draw_players()
 {
-    int i, gun, facing;
+    int i, gun;
     int u, v, w, h;
     PLAYER *guy;
 
@@ -504,12 +509,7 @@ void draw_players()
 	    default: gun = 0; break;
 	}
 
-	if (mouse_x >= u+3)
-	    facing = right;
-	else 
-	    facing = left;
-
-	if (facing == left)
+	if (guy->facing == left)
 	    gun += 4;
 
 	// minigun is weird
@@ -521,7 +521,7 @@ void draw_players()
 	w = ((BITMAP *)dat[gun].dat)->w / 2;
 	h = ((BITMAP *)dat[gun].dat)->h / 2;
 
-	if (facing==right)
+	if (guy->facing==right)
 	{
 	    draw_sprite(dbuf, dat[P_BODY].dat, u, v);
 	    draw_sprite(dbuf, dat[P_LEG0+guy->leg_frame].dat, u-1, v);
@@ -730,13 +730,11 @@ void spawn_bullet(int tag, int x, int y, fixed angle, int speed, int dmg, int c,
 
 void move_bullets()
 {
-    int u, v, i;
+    int u, v, i, t;
     for (i=0; i<MAX_BULLETS; i++)
     {
 	if (bullets[i].alive)
 	{
-	    int t;
-
 	    bullets[i].x += bullets[i].xv;
 	    bullets[i].y += bullets[i].yv;
 
@@ -1013,7 +1011,7 @@ inline void select_weapon()
 		if (status_order[i].weap==w_mine && guy->num_mines>0)
 		    guy->drop_mine = 1;
 		else
-		    guy->select[status_order[i].weap] = 1;
+		    guy->select = status_order[i].weap;
 		return; 
 	    }
 	    y-=14; 
@@ -1024,10 +1022,6 @@ inline void select_weapon()
 
 void get_local_input()
 {
-    int i;
-    for (i=0; i<num_weaps; i++)
-	player[local].select[i] = 0;
-
     player[local].up = key[KEY_UP] | key[KEY_T] | key[KEY_W];
     player[local].down = key[KEY_DOWN] | key[KEY_G] | key[KEY_S];
     player[local].left = key[KEY_LEFT] | key[KEY_F] | key[KEY_A];
@@ -1035,10 +1029,66 @@ void get_local_input()
 
     player[local].fire = 0;
     player[local].drop_mine = 0;
+    player[local].select = 0;
 
     if (!player[local].next_fire) {
 	player[local].fire = (mouse_b & 1) | key[KEY_CONTROL];
 	select_weapon();
+    }
+}
+
+void inline send_long(long val)
+{
+    skSend(val & 0xff);
+    skSend((val>>8) & 0xff);
+    skSend((val>>16) & 0xff);
+    skSend((val>>24) & 0xff);
+}
+
+long inline recv_long()
+{
+    while (skReady() < 4);
+    return skRecv() | (skRecv()<<8) | (skRecv()<<16) | (skRecv()<<24);
+}
+
+void send_local_input()
+{
+    skSend('s');                        //1
+    skSend(local);                      //2
+    skSend(player[local].up);           //3
+    skSend(player[local].down);         //4
+    skSend(player[local].left);         //5
+    skSend(player[local].right);        //6
+    skSend(player[local].fire);         //7
+    skSend(player[local].drop_mine);    //8
+    skSend(player[local].select);       //9
+    send_long(player[local].angle);     //13
+};
+
+void recv_remote_inputs()
+{
+    int pl;
+
+    for (;;)
+    {
+	while (skReady()<12);
+	if (skRecv()=='s')
+	{
+	    pl = skRecv();
+	    player[pl].up = skRecv();
+	    player[pl].down = skRecv();
+	    player[pl].left = skRecv();
+	    player[pl].right = skRecv();
+	    player[pl].fire = skRecv();
+	    player[pl].drop_mine = skRecv();
+	    player[pl].select = skRecv();
+	    player[pl].angle = recv_long();
+	    return;
+	}
+	else
+	{
+	    suicide("Out of sync, maybe");
+	}
     }
 }
 
@@ -1051,14 +1101,8 @@ void move_player(int pl)
     guy = &player[pl];
 
     /* selecting weapon */
-    for (a=0; a<num_weaps; a++)
-    {
-	if (guy->select[a])
-	{
-	    guy->cur_weap = a;
-	    break;
-	}
-    }
+    if (guy->select)
+	guy->cur_weap = guy->select;
 
     /* picking up stuff */
     kx = (guy->x+3)/16;
@@ -1375,7 +1419,7 @@ void move_player(int pl)
 	    { 
 		x = guy->x + 3 + fixtoi(fcos(guy->angle)) * 5;
 		y = guy->y + 3 + fixtoi(fsin(guy->angle)) * 5;
-		spawn_casing(x, y, ((mouse_x+px>guy->x) ? right : left));
+		spawn_casing(x, y, guy->facing);
 	    } 
 
 	    guy->fire_tics = weaps[guy->cur_weap].anim;
@@ -1419,21 +1463,25 @@ void game_loop()
 {
     int shakex = 0, shakey = 0;
     int bx, by;
+    int i;
+    int drops;
 
     speed_counter = 0;
 
     while (!key[KEY_ESC])
     {
-	while (speed_counter > 0) 
+	drops = 0;
+	while (speed_counter > 0 && drops < 2) 
 	{
 	    respawn_tiles();
 	    respawn_ammo();
 	    tiles_in_pain();
 
 	    get_local_input();
-	    //send_local_input();
-	    //recv_remote_inputs();
-	    move_player(local);
+	    send_local_input();
+	    recv_remote_inputs();
+	    move_player(0);
+	    move_player(1);
 	    update_explo();
 	    move_mine();
 	    touch_mines();
@@ -1457,7 +1505,16 @@ void game_loop()
 	    }
 
 	    speed_counter--;
+	    drops++;
 	}
+
+	/* tile backdrop */
+	bx = -(px%640)/2;
+	by = -(py%400)/2;
+	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx,     by,     320, 200);
+	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx,     by+200, 320, 200);
+	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx+320, by,     320, 200);
+	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx+320, by+200, 320, 200);
 
 	/* find top-left */
 	mx = player[local].x / 16 - 10;
@@ -1477,13 +1534,11 @@ void game_loop()
 	// not a good place for this, but we need px and py
 	player[local].angle = find_angle(player[local].x-px+3, player[local].y-py+4, mouse_x, mouse_y);
 
-	/* tile backdrop */
-	bx = -(px%640)/2;
-	by = -(py%400)/2;
-	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx,     by,     320, 200);
-	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx,     by+200, 320, 200);
-	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx+320, by,     320, 200);
-	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx+320, by+200, 320, 200);
+	// facing left or right? 
+	if (mouse_x+px > player[local].x)
+	    player[local].facing = right;
+	else
+	    player[local].facing = left;
 
 	// now draw, boy!
 	draw_mines();
@@ -1511,6 +1566,7 @@ void game_loop()
 int main(int argc, char **argv)
 {
     int i;
+    time_t seed;
 
     /* init allegro */
     allegro_init();
@@ -1581,17 +1637,83 @@ int main(int argc, char **argv)
     /* temp */
     load_map("deathmat.wak");
 
-    srandom(time(NULL));
-    next_position = random()%(24*24);
-
-    local = 0;
-    respawn_player(local);
+    /* randomise */
+    seed = time(NULL);
+    srandom(seed);
 
     /* ready */
     install_int_ex(increment_speed_counter, BPS_TO_TIMER(GAME_SPEED));
 
+    /* connect serial */
+    skOpen(COM2, BAUD_19200, STOP_1 | BITS_8 | PARITY_NONE);
+    rest(500);
+    skClear();
+    printf("Comms port opened, connecting \n");
+    for (i=0; i<10; i++)
+    {
+	skSend('@');
+	printf(".");
+	fflush(stdout);
+	if (skRecv()=='@') break;
+	if (key[KEY_ESC])
+	    suicide("Aborted"); 
+	skClear();
+	rest(1000);
+    }
+
+    if (i==10)
+	suicide("Could not connect");
+
+    printf("\nConnected\n");
+
+    // connected, throw dice
+    {
+	int l = 0, r = 0;
+
+	while (l==r)
+	{
+	    do {
+		l = random()%256;
+	    } while (l=='@');
+
+	    skSend(l);
+	    printf("Local die %d\n", l); 
+	    do {
+		printf("Waiting for remote die\n");
+		while (!skReady());
+		r = skRecv();
+	    } while (r=='@');
+	    printf("Remote die %d\n", r); 
+	}
+
+	if (l>r)
+	{
+	    printf("We win!  Local 0  Remote 1  Seed %d\n", seed);
+	    local = 0;
+	    send_long(seed);
+	    srandom(seed);
+	}
+	else
+	{
+	    printf("They win :(  Local 1  Remote 0\n");
+	    local = 1;
+	    seed = recv_long();
+	    printf("Seed = %d\n", seed);
+	    srandom(seed);
+
+	}
+
+	next_position = random()%(24*24);
+
+	respawn_player(0);
+	respawn_player(1);
+    }
+
     /* set */
     //intro();
+
+    printf("Press space...\n");
+    while (!key[KEY_SPACE]);
 
     /* go */
     game_loop();
