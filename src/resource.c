@@ -42,7 +42,9 @@ static char path[MAX_PATH_LENGTH];
 char *get_resource(int type, char *name)
 {
     snprintf(path, sizeof path, "%s/%s",
-	     (type == R_SHARE) ? prefix_share : prefix_lib, name);
+	     ((type == R_SHARE) ? prefix_share :
+	      (type == R_LIB) ? prefix_lib :
+	      getenv("HOME")), name);
     return path;
 }
 

@@ -20,6 +20,7 @@
 #include "main.h"
 #include "map.h"
 #include "music.h"
+#include "options.h"
 #include "packet.h"
 #include "player.h"
 #include "rnd.h"
@@ -63,6 +64,7 @@ static volatile int kb_enter;
 static volatile int kb_f12;
 static volatile int kb_p;
 static volatile int want_quit;
+static volatile int want_help, helping;
 
 static void my_keyboard_lowlevel_callback(int scancode)
 {
@@ -73,9 +75,11 @@ static void my_keyboard_lowlevel_callback(int scancode)
         case KEY_F12: kb_f12 = pressed; break;
 	case KEY_P: kb_p = pressed; break;
         case KEY_ESC:
-	    if (pressed)
+	    if ((pressed) && (!helping))
 		want_quit = 1;
 	    break;
+        case KEY_F1:
+	    want_help = pressed;
         default:
     }
 }
@@ -91,11 +95,14 @@ static void install_my_keyboard_lowlevel_callback()
 	LOCK_VARIABLE(kb_f12);
 	LOCK_VARIABLE(kb_p);
 	LOCK_VARIABLE(want_quit);
+	LOCK_VARIABLE(want_help);
+	LOCK_VARIABLE(helping);
 	LOCK_FUNCTION(my_keyboard_lowlevel_callback);
 	first = 0;
     }
     kb_enter = kb_f12 = kb_p = 0;
     want_quit = 0;
+    want_help = helping = 0;
     keyboard_lowlevel_callback = my_keyboard_lowlevel_callback;
 }
 
@@ -353,7 +360,8 @@ void game_loop()
 		    while (!skReady()) {
 			if (frames_dropped > 1) {
 			    frames_dropped--;
-			    render();
+			    if (!helping)
+				render();
 			}
 		    }
 
@@ -466,8 +474,28 @@ void game_loop()
 
 	} /* end logic section */
 
-	if (update)
-	    render();
+	if (update) {
+	    if (want_help && !helping) {
+		helping = 1;
+		show_mouse(NULL);
+		clear_bitmap(screen);
+		set_palette(dat[Z_HELPPAL].dat);
+		if (comm == demo)
+		    blit_to_screen(dat[Z_HELPDEMO].dat);
+		else
+		    blit_to_screen(dat[Z_HELP].dat);
+	    }
+	    else if (!want_help && helping) {
+		helping = 0;
+		clear_bitmap(screen);
+		set_palette(dat[GAMEPAL].dat);
+		render();
+		show_mouse(screen);
+	    }
+	    else if (!helping) {
+		render();
+	    }
+	}
 
 	music_poll();
 

@@ -11,6 +11,7 @@
 #include "engine.h"
 #include "gameloop.h"
 #include "globals.h"
+#include "options.h"
 #include "player.h"
 #include "sound.h"
 

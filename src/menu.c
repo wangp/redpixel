@@ -172,6 +172,19 @@ static void do_blubber(BLUBBER *start)
 		    dirty = 1;
 		}
 	    }
+	    else if (k == KEY_HOME) {
+		if (selected != 0) {
+		    selected = 0;
+		    dirty = 1;
+		}
+	    }
+	    else if (k == KEY_END) {
+		int x = selected;
+		while (cur[selected+1].proc != prev_menu)
+		    selected++;
+		if (selected != x)
+		    dirty = 1;
+	    }
 	    else if (k == KEY_ENTER)
 		do_action = 1;
 	    else if (k == KEY_ESC)

@@ -14,6 +14,7 @@
 #include "gameloop.h"
 #include "globals.h"
 #include "map.h"
+#include "particle.h"
 #include "player.h"
 #include "stats.h"
 #include "statlist.h"
@@ -46,11 +47,16 @@ int hurt_tile(int u, int v, int dmg, int tag)
 	    spawn_explo(u * 16, v * 16, X_EXPLO0, 2);
 	    map.tiletics[v][u] = st_tile_respawn * GAME_SPEED;
 
+	    u = u * 16 + 8;
+	    v = v * 16 + 8;
+
 	    if (t == T_BAR) {
-		u = u * 16 + 8;
-		v = v * 16 + 8;
+		spawn_particles(u, v, 100, grad_orange);
 		blast(u, v, st_barrel_damage, tag);
 		snd_3d(WAV_EXPLODEBAR, 150, u, v);
+	    }
+	    else {
+		spawn_particles(u, v, 20, grad_orange);
 	    }
 	}
 

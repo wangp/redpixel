@@ -9,6 +9,7 @@
 
 #define R_SHARE		1
 #define R_LIB		2
+#define R_HOME		3
 
 
 char *get_resource(int type, char *name);

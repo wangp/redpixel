@@ -11,8 +11,8 @@
 #include "vidmode.h"
 
 
-int desired_video_mode = VID_320x200_FULLSCREEN;
-int want_scanlines = FALSE;
+int desired_video_mode;
+int want_scanlines;
 static BITMAP *scanlined_screen;
 
 

@@ -113,8 +113,8 @@ int read_stats(char *fn, STAT_VAR *block)
     struct stat buf;
     if ((stat(fn, &buf) < 0) || !S_ISREG(buf.st_mode))
 	return 0;
-    fp = fopen(fn, "r");
-    if (!fp) 
+    fp = fopen(fn, "rt");
+    if (!fp)
       return 0;
     stblock = block;
     read_stats_fp(fp);

@@ -17,6 +17,7 @@
 #include "explo.h"
 #include "gameloop.h"
 #include "globals.h"
+#include "options.h"
 #include "packet.h"
 #include "particle.h"
 #include "player.h"
@@ -104,7 +105,7 @@ void hurt_player(int pl, int dmg, int protect, int tag, int deathseq)
     }
 
     /* some nice graphics */
-    spawn_particles(players[pl].x + 3, players[pl].y + 6, dmg * 20, grad_red);
+    spawn_particles(players[pl].x + 3, players[pl].y + 6, dmg * (family ? 10 : 20), grad_red);
     if (dmg >= 5)
 	spawn_blods(players[pl].x - 4, players[pl].y, dmg * 2);
 

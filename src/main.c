@@ -20,6 +20,7 @@
 #include "menu.h"
 #include "mousespr.h"
 #include "music.h"
+#include "options.h"
 #include "resource.h"
 #include "rpagup.h"
 #include "setweaps.h"
@@ -131,6 +132,8 @@ int main(int argc, char *argv[])
 	skSetConfigPath(replace_filename(tmp, argv[0], "", sizeof tmp));
     }
 
+    load_settings();
+
     music_init();
 
     /* load datafile */
@@ -147,17 +150,18 @@ int main(int argc, char *argv[])
 	return x;
     }
 
-    {
-	char *p = get_resource(R_SHARE, "stats/stats");
+    if ((!read_stats(current_stats, stat_block)) &&
+	(!read_stats(get_resource(R_SHARE, current_stats), stat_block))) {
+	char *p = get_resource(R_SHARE, "stats/default.st");
 	
 	if (!read_stats(p, stat_block)) {
 	    allegro_message("Error reading %s.\n", p);
 	    return 1;
 	}
 
-	set_current_stats("stats/stats");
-	set_weapon_stats();
+	set_current_stats("stats/default.st");
     }
+    set_weapon_stats();
 
     /* video mode */
     vidmode_init();
@@ -185,7 +189,7 @@ int main(int argc, char *argv[])
     dbuf = create_bitmap(320, 200);
     light = create_bitmap(320, 200);
     set_stretched_mouse_sprite(dat[XHAIRLCD].dat, (SCREEN_W == 640) ? 2 : 1, 2, 2);
-    set_mouse_speed(1, 1);
+    set_mouse_speed(mouse_speed, mouse_speed);
 
     /* begin */
 
@@ -195,6 +199,8 @@ int main(int argc, char *argv[])
     main_menu();
 
     main_shutdown();
+
+    save_settings();
 
     return 0;
 }

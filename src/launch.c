@@ -387,9 +387,13 @@ static void trade_map_filenames()
 #define CHAT_INCOMING   1
 #define CHAT_KEYDOWN    2
 #define CHAT_KEYUP      3
-#define CHAT_NEWMAP     4 
-#define CHAT_LEAVE      5 
-#define CHAT_RETURN     6 
+#define CHAT_KEYHOME	4
+#define CHAT_KEYEND	5
+#define CHAT_KEYPGUP	6
+#define CHAT_KEYPGDN	7
+#define CHAT_NEWMAP     8 
+#define CHAT_LEAVE      9 
+#define CHAT_RETURN     10 
 
 static char return_str[] = "return me to my game NOW!";
 
@@ -494,7 +498,52 @@ static char *select_map(int *top, int *selected, char *current_map)
 	    if ((k >> 8) == KEY_UP && (comm == peerpeer)) 
 		skSend(CHAT_KEYUP);
 	}
+	
+	/* home key */
+	if ((k >> 8) == KEY_HOME || (remote == CHAT_KEYHOME)) {
+	    (*selected) = 0;
+	    (*top) = 0;
 
+	    if ((k >> 8) == KEY_HOME && (comm == peerpeer)) 
+		skSend(CHAT_KEYHOME);
+	}
+
+	/* end key */
+	if ((k >> 8) == KEY_END || (remote == CHAT_KEYEND)) {
+	    (*selected) = num_maps-1;
+	    (*top) = (*selected)-8;
+	    if ((*top) < 0)
+		(*top) = 0;
+
+	    if ((k >> 8) == KEY_END && (comm == peerpeer)) 
+		skSend(CHAT_KEYEND);
+	}
+
+	/* pgup key */
+	if ((k >> 8) == KEY_PGUP || (remote == CHAT_KEYPGUP)) {
+	    (*selected) -= 8;
+	    if ((*selected) < 0)
+		(*selected) = 0;
+	    *top = *selected;
+
+	    if ((k >> 8) == KEY_PGUP && (comm == peerpeer)) 
+		skSend(CHAT_KEYPGUP);
+	}
+
+	/* pgdn key */
+	if ((k >> 8) == KEY_PGDN || (remote == CHAT_KEYPGDN)) {
+	    (*selected) += 8;
+	    if ((*selected) >= num_maps)
+		(*selected) = num_maps-1;
+	    (*top) = (*selected)-8;
+	    if ((*top) < 0)
+		(*top) = 0;
+
+	    if ((k >> 8) == KEY_PGUP && (comm == peerpeer)) 
+		skSend(CHAT_KEYPGUP);
+	}
+
+	
 	/* escape key */
 	if ((k >> 8) == KEY_ESC || (remote == CHAT_RETURN)) {
 	    while (key[KEY_ESC])

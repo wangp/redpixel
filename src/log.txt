@@ -234,3 +234,16 @@ now back to school, so less done
 14 December	Windows icon
 		Windows installer using NSIS
 		Updated manual
+
+15 December	Minor stuff
+		Renamed stats files to *.st
+		"Family" mode, for slower machines (spews same amount
+			of blood as in 0.11)
+		Remember setting in config file
+		Updated manual again
+
+16 December	In-game help for game and demo keys (F1)
+		Made barrels spew particles when exploding
+			Other tiles spew less particles
+		Home/End keys for menu
+		Home/End/PageUp/PageDn keys for map selection screen

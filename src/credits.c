@@ -12,6 +12,7 @@
 #include "globals.h"
 #include "fblit.h"
 #include "main.h"
+#include "options.h"
 #include "version.h"
 #include "vidmode.h"
 

@@ -41,8 +41,8 @@
     <itemize>
       <item> two Pentium class machines
       <item> Linux, DOS or Windows
-      <item> serial cable or LAN with sockets/winsock
-      <item> 8 MB RAM
+      <item> serial cable or local area network
+      <item> 16 MB RAM
       <item> VGA-compliant card and monitor
       <item> mouse
       <item> tolerance for gore
@@ -55,7 +55,8 @@
   <p> New in 1.0:
 
     <itemize>
-      <item> An options screen
+      <item> An options screen (as a result, most command line options
+	      have been removed)
       <item> Different screen sizes for platforms that don't support 320x200
       <item> CD and module music support
       <item> Current player's name is shown at bottom of screen in demo playback
@@ -77,7 +78,7 @@
       <item> keyboard control in menu
       <item> experimental Windows port (unstable)
       <item> CD playing (not built by default)
-      <item> <ref id="sec-cmdline" name="filter"> command-line option (i.e. anti-aliasing)
+      <item> filter command-line option (i.e. anti-aliasing)
     </itemize>
 
   <p> New in 0.9:
@@ -87,7 +88,7 @@
       <item> added <ref id="sec-items" name="scanner"> powerup
       <item> added new death sequence (fountain)
       <item> added cool backdrop for frag count
-      <item> added <ref id="sec-cmdline" name="lcd cursor"> option
+      <item> added lcd cursor option
       <item> right mouse button now drops mine
       <item> Q/E and R/Y now select next/prev weapons
       <item> tweaked stats (see below)
@@ -106,10 +107,11 @@
     themselves.  If you downloaded an installer or precompiled binary,
     you can skip this part.
 
-    Firstly, the three platforms supported are djgpp under DOS, gcc
-    under Linux, and mingw32 under Windows.  You will also need to
-    install the Allegro game programming library, version 4.0.
-    Then, simply type `make' in the game's root directory.
+    The three platforms supported are djgpp under DOS, gcc under
+    Linux, and mingw32 under Windows.  You will also need to install
+    the Allegro game programming library, version 4.0.  Once those
+    prerequisites are installed and working, simply type `make' in the
+    game's root directory.
 
     Under Linux console you will need to run the binary with root
     permissions.  See `readme.lnx' in the Allegro distribution for
@@ -134,21 +136,10 @@
 
   <p> 
 
-    The concept is a platform deathmatch game.  You run around a
+    Red Pixel is a platform deathmatch game.  You run around a
     tile-based map, picking up various items and shooting your
-    opponent.  None too original concept, but still the best :-)
-
-
-<sect1> Story
-
-  <p>
-
-    You have been thrown in a dungeon with another prisoner.
-    Contained within the dungeon are various magical objects, mostly
-    weapons, which respawn after a certain time period.
-
-    Surrounded by such weapons of destruction, you cannot resist the
-    temptation to kill everyone around you.
+    opponent.  The aim is to kill your opponent as many times as
+    possible, until you both get bored.  Isn't simplicity wonderful?
 
 
 <sect1> Starting the game <label id="sec-starting">
@@ -163,21 +154,9 @@
 
     <descrip> <label id="sec-cmdline">
       <tag/-e/ Start the <ref id="sec-mapeditor" name="map editor">.
-    
       <tag/-q/ Skip introduction.
-    
       <tag/-v/ Display version number.
-
     </descrip>
-
-
-<sect1> The main menu
-
-  <p>
-
-    The main menu should be self explanatory, except for the little
-    writing in the lower right corner of the screen.  See the <ref id="sec-stats" name="stats section">
-    if you are curious about that.
 
 
 <sect1> Connecting via a serial cable
@@ -204,7 +183,7 @@
     map. When you are ready to play, press `F10'.
 
     If your game become unsynchronised, quit the level and restart.
-    If it ever says ``SYNC PROBLEM'', then you'd better restart from
+    If it ever says <tt>SYNC PROBLEM</tt>, then you'd better restart from
     the serial connection procedure.
 
 
@@ -232,27 +211,28 @@
     <item> Use the following keys to move around.  They are all equivalent.
     
       <tscreen> <verb>
-          W	            T		       Up
-      A - S - D       F - G - H		Left - Down - Right
+          W               T                    Up
+      A - S - D       F - G - H         Left - Down - Right
       </verb> </tscreen>
     
     <item> Aim the gun with the mouse, fire with the left mouse button.
     
-    <item> Select the weapon with the number keys, and with Q, E, R, Y.
-     	   The weapons you have collected will be displayed on the left.
+    <item> Select the weapon with the number keys, and with
+     	   <tt>Q</tt>, <tt>E</tt>, <tt>R</tt>, <tt>Y</tt>.  The
+     	   weapons you have collected will be displayed on the left.
     
-    <item> Press Enter or press the right mouse button to lay a mine.
+    <item> Press <tt>ENTER</tt> or press the right mouse button to lay a mine.
     
-    <item> If you have one and you are running under Linux or Windows,
-    	   you can switch weapons using a mouse wheel on an
-    	   Intellimouse compatible mouse.  Please read `readme.lnx' in
-    	   the Allegro distribution to see how to set this up under
-    	   Linux.  Your mileage may vary, so don't be disappointed if
-    	   it doesn't work.
+    <item> If you have one a wheel mouse and you are running Linux or
+    	   Windows, you can switch weapons using the wheel.  Please
+    	   read `readme.lnx' in the Allegro distribution to see how to
+    	   set this up under Linux.  Your mileage may vary, so don't
+    	   be disappointed if it doesn't work.
 
-    <item> TAB to see your scores.
-    <item> ESC to quit.
-    <item> F12 to see the frame rate counter.
+    <item> <tt>TAB</tt> to see your scores.
+    <item> <tt>ESCAPE</tt> to quit.
+    <item> <tt>F1</tt> to see a short summary of the controls.
+    <item> <tt>F12</tt> to see the frame rate counter.
 
     </itemize>
     
@@ -295,34 +275,40 @@
 
     There are a few things you can do in the options screen.
 
-    Under ``DESIRED RESOLUTION'', you can pick a screen mode you want
-    to use.  Be aware that not all of them may work on your system.
-    Higher resolutions are only recommended when the lower resolutions
-    do not work.  You will NOT receive higher quality graphics, but
-    rather a 320x200 image will be stretched up.  The video mode is
-    changed when you push ``ACCEPT''.
+    Under <tt>DESIRED RESOLUTION</tt>, you can pick a screen mode you
+    want to use.  Be aware that not all of them may work on your
+    system.  Higher resolutions are only recommended when the lower
+    resolutions do not work.  You will NOT receive higher quality
+    graphics, but rather a 320x200 image will be stretched up.  The
+    video mode is changed when you push <tt>ACCEPT</tt>.
 
-    If the ``SCANLINES'' option is enabled and you are in a high
+    If the <tt>SCANLINES</tt> option is enabled and you are in a high
     resolution video mode (either 640x400 or 640x480), then the game
     will try to create a ``scanline'' effect for you, where every
     second line is black.  This does not always work (in particular
     windowed modes often do not work).
 
-    If the ``FILTERED'' option is enabled, you will get slightly
+    If the <tt>FILTERED</tt> option is enabled, you will get slightly
     blurred image, which you may or may not like (nice for demos, in
     my opinion).  This requires a fast machine.
 
-    There are three options for music playback.  You can have ``NO
-    MUSIC'', which is the classic way to play Red Pixel.  You can also
-    put some .MOD, .S3M and .XM files into the `music' directory, and
-    select ``PLAY MODULES''.  The game will select songs to play at
-    random.  Or, you can put a music CD into your CD drive and select
-    ``PLAY CD''.
+    If the <tt>"FAMILY" MODE</tt> option is enabled, there will be
+    less blood on screen.  You may want to switch this on if the game
+    jerks when a player is shot.
 
-    The ``RECORD DEMOS'' option is explained in the <ref id="sec-demo" name="demo section">.
+    There are three options for music playback.  You can have <tt>NO
+    MUSIC</tt>, which is the classic way to play Red Pixel.  You can
+    also put some .mod, .s3m and .xm files into the `music' directory,
+    and select <tt>PLAY MODULES</tt>.  The game will select songs to
+    play at random.  Or, you can put a music CD into your CD drive and
+    select <tt>PLAY CD</tt>.
+
+    The <tt>RECORD DEMOS</tt> option is explained in the
+    <ref id="sec-demo" name="demo section">.
 
     In the bottom left corner there is a button (usually labelled
-    ``stats'' or similar).  This is explained in the <ref id="sec-stats" name="next section">.
+    ``stats'' or similar).  This is explained in the
+    <ref id="sec-stats" name="next section">.
 
 
 <sect1> Stats <label id="sec-stats">
@@ -340,12 +326,15 @@
     with another player, you must both select the same stats file (or
     you will receive an error message).
 
-    Included with the game are three files `stats', `stats.07' and
-    `stats.09'.  `stats' is the more up to date version, providing
-    more powerful weapons with quicker reload and respawn rates.
-    `stats.07' and `stats.09' provide values from older versions, kept
-    only for historic reasons.  You can create your own stats by
-    copying one of them, and editing it with a text editor.
+    Included with the game are four stats files.  `default.st' is the
+    more up to date version, providing more powerful weapons with
+    quicker reload and respawn rates than previous versions.
+    `red07.st' and `red09.st' provide values from older versions, kept
+    only for historic reasons.  See inside `quick.st' for details
+    about that (it's quite fun).
+
+    You can create your own stats by copying one of them, and editing
+    it with a text editor.
 
 
 <sect1> Demos <label id="sec-demo">
@@ -353,22 +342,22 @@
   <p> 
 
     You can record your deathmatches into demo files.  To do this,
-    switch on the ``Record demos'' option in the Options screen.
+    switch on the <tt>RECORD DEMOS</tt> option in the Options screen.
 
     When you start a new game, it will automatically save a demo into
     the current directory, named `demoXXXX.rec'.  Under Linux it will
     also try your home directory.
 
-    To play a demo, simply choose the ``Play Demo'' menu item under
-    ``Start'', then select a demo recording file.
+    To play a demo, simply choose the <tt>PLAY DEMO</tt> menu item
+    under <tt>START</tt>, then select a demo recording file.
 
     Special keys available only in demo playback mode:
 
     <itemize>
-      <item> Enter - switch which player camera focuses on
-      <item> S - hold this down for slow motion mode
-      <item> F - hold this down for fast forward mode
-      <item> P - take screen shot
+      <item> <tt>ENTER</tt> - switch which player camera focuses on
+      <item> <tt>S</tt> - hold this down for slow motion mode
+      <item> <tt>F</tt> - hold this down for fast forward mode
+      <item> <tt>P</tt> - take screen shot
     </itemize>
 
     Please note that if you exit a demo before its completion, it will
@@ -383,6 +372,26 @@
     track down bugs to prevent this sort of thing in the future.  If
     you really hate losing demos, try recording on both machines.
     Chances are, one of the recordings will be correct.
+
+
+<sect1> Performance
+
+  <p>
+
+    If the game is running too slowly, there are a few things you can
+    try.
+
+    <itemize>
+      <item> Switch off module music as it takes a lot of CPU
+	      processing.  Use CD audio or no music instead.
+      <item> Enable "family" mode if the game jerks when players
+	      generate blood.
+      <item> Don't use high resolution video modes if you can avoid it.
+      <item> Under the X Window System, try starting the X server in 8
+	      bits per pixel mode, or running the game as root (the
+	      usual security concerns apply, of course).  If you are
+	      running Linux, the console may be a better choice.
+    </itemize>
 
 
 <sect1> Tips
@@ -417,19 +426,19 @@
 
   <p>
 
-    After starting the map editor with `red -e' you will be
-    presented with a blank screen.  On the bottom there is a palette
-    and on the top there is a description of the current map, showing
-    the top-left map coordinates and size.
+    After starting the map editor (with the <tt>-e</tt> command line
+    option) you will be presented with a blank screen.  On the bottom
+    there is a palette and on the top there is a description of the
+    current map, showing the top-left map coordinates and size.
 
     <itemize>
       <item> arrow keys to pan around
-      <item> 1, 2, 3 to change editing modes (tiles, items, starting locations)
-      <item> I, J, K, L to change map size
-      <item> Ctrl-N to clear
-      <item> Ctrl-S to save
-      <item> Ctrl-L to load
-      <item> Ctrl-Q to quit (warning: does not prompt!)
+      <item> <tt>1</tt>, <tt>2</tt>, <tt>3</tt> to change editing modes (tiles, items, starting locations)
+      <item> <tt>I</tt>, <tt>J</tt>, <tt>K</tt>, <tt>L</tt> to change map size
+      <item> <tt>Ctrl-N</tt> to clear
+      <item> <tt>Ctrl-S</tt> to save
+      <item> <tt>Ctrl-L</tt> to load
+      <item> <tt>Ctrl-Q</tt> to quit (warning: does not prompt!)
     </itemize>
 
     Select an item or tile with the left mouse button, place it on
@@ -453,9 +462,11 @@
 
 
 
-<!-- Next Section: History -->
+<!-- Next Section: Other stuff -->
 
-<sect> Game history
+<sect> Other stuff
+
+<sect1> Game history
 
   <p> August 1999:
 
@@ -497,10 +508,7 @@
       <item> you can jump through tiles placed diagonally
     </itemize>
 
-
-<!-- Next Section: Licence -->
-
-<sect> Licensing details
+<sect1> Licensing details
 
   <p> 
   Copyright (C) 2001 Peter Wang and contributing authors.
@@ -538,10 +546,7 @@
   retains its license and copyright.
 
 
-
-<!-- Next Section: Contact -->
-
-<sect> Contacting Psyk Software
+<sect1> Contacting Psyk Software
 
 <p> <tscreen> <verb>
 Email: tjaden@users.sf.net

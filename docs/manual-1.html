@@ -7,14 +7,14 @@
 
  <LINK HREF="manual.html#toc1" REL=contents>
 </HEAD>
-<BODY>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
 <A HREF="manual-2.html">Next</A>
 Previous
 <A HREF="manual.html#toc1">Contents</A>
 <HR>
-<H2><A NAME="s1">1. Preliminary stuff</A></H2>
+<BR><H2><A NAME="s1">1. Preliminary stuff</A></H2>
 
-<H2><A NAME="ss1.1">1.1 Disclaimer</A>
+<BR><H2><A NAME="ss1.1">1.1 Disclaimer</A>
   </H2>
 
 <P> 
@@ -28,7 +28,7 @@ Previous
 </PRE>
 <P>
 <P>
-<H2><A NAME="ss1.2">1.2 System Requirements</A>
+<BR><H2><A NAME="ss1.2">1.2 System Requirements</A>
   </H2>
 
 <P> 
@@ -36,8 +36,8 @@ Previous
 <UL>
 <LI> two Pentium class machines</LI>
 <LI> Linux, DOS or Windows</LI>
-<LI> serial cable or LAN with sockets/winsock</LI>
-<LI> 8 MB RAM</LI>
+<LI> serial cable or local area network</LI>
+<LI> 16 MB RAM</LI>
 <LI> VGA-compliant card and monitor</LI>
 <LI> mouse</LI>
 <LI> tolerance for gore</LI>
@@ -45,13 +45,14 @@ Previous
 </UL>
 <P>
 <P>
-<H2><A NAME="ss1.3">1.3 What's new?</A>
+<BR><H2><A NAME="ss1.3">1.3 What's new?</A>
   </H2>
 
 <P> New in 1.0:
 <P>
 <UL>
-<LI> An options screen</LI>
+<LI> An options screen (as a result, most command line options
+have been removed)</LI>
 <LI> Different screen sizes for platforms that don't support 320x200</LI>
 <LI> CD and module music support</LI>
 <LI> Current player's name is shown at bottom of screen in demo playback</LI>
@@ -75,8 +76,7 @@ Previous
 <LI> keyboard control in menu</LI>
 <LI> experimental Windows port (unstable)</LI>
 <LI> CD playing (not built by default)</LI>
-<LI> 
-<A HREF="manual-2.html#sec-cmdline">filter</A> command-line option (i.e. anti-aliasing)</LI>
+<LI> filter command-line option (i.e. anti-aliasing)</LI>
 </UL>
 <P>
 <P> New in 0.9:
@@ -87,8 +87,7 @@ Previous
 <A HREF="manual-2.html#sec-items">scanner</A> powerup</LI>
 <LI> added new death sequence (fountain)</LI>
 <LI> added cool backdrop for frag count</LI>
-<LI> added 
-<A HREF="manual-2.html#sec-cmdline">lcd cursor</A> option</LI>
+<LI> added lcd cursor option</LI>
 <LI> right mouse button now drops mine</LI>
 <LI> Q/E and R/Y now select next/prev weapons</LI>
 <LI> tweaked stats (see below)</LI>
@@ -99,17 +98,18 @@ Previous
 <LI> this manual</LI>
 </UL>
 <P>
-<H2><A NAME="ss1.4">1.4 Compiling from source</A>
+<BR><H2><A NAME="ss1.4">1.4 Compiling from source</A>
   </H2>
 
 <P> 
 <P>This is only for the people wanting to compile the source for
 themselves.  If you downloaded an installer or precompiled binary,
 you can skip this part.
-<P>Firstly, the three platforms supported are djgpp under DOS, gcc
-under Linux, and mingw32 under Windows.  You will also need to
-install the Allegro game programming library, version 4.0.
-Then, simply type `make' in the game's root directory.
+<P>The three platforms supported are djgpp under DOS, gcc under
+Linux, and mingw32 under Windows.  You will also need to install
+the Allegro game programming library, version 4.0.  Once those
+prerequisites are installed and working, simply type `make' in the
+game's root directory.
 <P>Under Linux console you will need to run the binary with root
 permissions.  See `readme.lnx' in the Allegro distribution for
 more information.

@@ -1,13 +1,8 @@
-family mode
-save state in config file
-display switching (in map selection screen, in game?)
-	also with scanlines
+volumes
 fblend stretcher
-in game help
+shortcut to manual in windows installer
+shortcut to map editor
 
-speed tips
-html manual
-mouse under linux console manual
 
 MAYBES:
 small description of each demo

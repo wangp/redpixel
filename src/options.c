@@ -22,6 +22,15 @@
 #include "vidmode.h"
 
 
+
+int mouse_speed = 2;
+int record_demos = 0;
+int filtered;
+int family;
+int mute_sfx = 0;
+
+
+
 static FONT *old_font;
 static char stats_filename[1024];
 static char stats_path[1024];
@@ -64,7 +73,7 @@ static int push_stats_button(DIALOG *d)
 
     strncpy(path, get_resource(R_SHARE, "stats/"), sizeof path);
 
-    if (file_select_ex("Use stats file...", path, NULL, sizeof path, 0, 0)) {
+    if (file_select_ex("Use stats file...", path, "st", sizeof path, 0, 0)) {
 	if (!read_stats(path, stat_block)) {
 	    alert("Error reading", path, "Reverting to previous stats", "Ok", NULL, 13, 27);
 	    pop_stat_block();
@@ -84,36 +93,37 @@ DIALOG config_dlg[] =
 {
     /* proc                   x     y     w    h    fg    bg    key  flags        d1    d2  dp                dp2    dp3 */
     { d_clear_proc,           0,    0,    0,   0,   0,    0,    0,   0,           0,    0,  NULL,             NULL,  NULL },/* 0 */
-    { d_text_proc,            10,   10,   0,   0,   0,    0,    0,   0,           0,    0,  "DESIRED RESOLUTION", NULL,  NULL }, /* 1 */
-    { d_agup_list_proc,       10,   20,   140, 36,  0,    0,    0,   0,           0,    0,  res_list,         NULL,  NULL }, /* 2 */
+    { d_text_proc,            14,   5,    0,   0,   0,    0,    0,   0,           0,    0,  "DESIRED RESOLUTION", NULL,  NULL }, /* 1 */
+    { d_agup_list_proc,       10,   15,   140, 46,  0,    0,    0,   0,           0,    0,  res_list,         NULL,  NULL }, /* 2 */
 
-    { d_agup_box_proc,        165,  10,   130, 46,  0,    0,    0,   0,           0,    0,  NULL,             NULL,  NULL }, /* 3 */
-    { d_agup_check_proc,      170,  15,   120, 16,  0,    0,    0,   D_SELECTED,  0,    0,  "SCANLINES (HI-RES)", NULL,  NULL }, /* 4 */
-    { d_agup_check_proc,      170,  32,   120, 16,  0,    0,    0,   0,           0,    0,  "FILTERED",       NULL,  NULL }, /* 5 */
+    { d_agup_box_proc,        165,  2,    130, 60,  0,    0,    0,   0,           0,    0,  NULL,             NULL,  NULL }, /* 3 */
+    { d_agup_check_proc,      170,  7,    120, 16,  0,    0,    0,   D_SELECTED,  0,    0,  "SCANLINES (HI-RES)", NULL,  NULL }, /* 4 */
+    { d_agup_check_proc,      170,  24,   120, 16,  0,    0,    0,   0,           0,    0,  "FILTERED",       NULL,  NULL }, /* 5 */
+    { d_agup_check_proc,      170,  40,   120, 16,  0,    0,    0,   0,           0,    0,  "\"FAMILY\" MODE",NULL,  NULL }, /* 6 */
 
-    { d_agup_box_proc,        10,   60,   300, 100, 0,    0,    0,   0,           0,    0,  NULL,             NULL,  NULL }, /* 6 */
+    { d_agup_box_proc,        10,   65,   300, 100, 0,    0,    0,   0,           0,    0,  NULL,             NULL,  NULL }, /* 7 */
 
-    { d_agup_check_proc,      15,   65,   130, 20,  0,    0,    0,   0,           0,    0,  "MUTE SOUND EFFECTS", NULL,  NULL }, /* 7 */
-    { d_agup_radio_proc,      15,   90,   130, 20,  0,    0,    0,   0,           1,    0,  "NO MUSIC",       NULL,  NULL }, /* 8 */
-    { d_agup_radio_proc,      15,   110,  130, 20,  0,    0,    0,   0,           1,    0,  "PLAY MODULES",   NULL,  NULL }, /* 9 */
-    { d_agup_radio_proc,      15,   130,  130, 20,  0,    0,    0,   0,           1,    0,  "PLAY CD",        NULL,  NULL }, /* 10 */
+    { d_agup_check_proc,      15,   70,   130, 20,  0,    0,    0,   0,           0,    0,  "MUTE SOUND EFFECTS", NULL,  NULL }, /* 8 */
+    { d_agup_radio_proc,      15,   95,   130, 20,  0,    0,    0,   0,           1,    0,  "NO MUSIC",       NULL,  NULL }, /* 9 */
+    { d_agup_radio_proc,      15,   115,  130, 20,  0,    0,    0,   0,           1,    0,  "PLAY MODULES",   NULL,  NULL }, /* 10 */
+    { d_agup_radio_proc,      15,   135,  130, 20,  0,    0,    0,   0,           1,    0,  "PLAY CD",        NULL,  NULL }, /* 11 */
 
-    { d_agup_check_proc,      180,  65,   100, 20,  0,    0,    0,   0,           0,    0,  "RECORD DEMOS",   NULL,  NULL }, /* 11 */
+    { d_agup_check_proc,      180,  70,   100, 20,  0,    0,    0,   0,           0,    0,  "RECORD DEMOS",   NULL,  NULL }, /* 12 */
 
-    { d_text_proc,            160,  90,   40,  8,   0,    0,    0,   0,           10,   0,  "MOUSE SPEED",    NULL,  NULL }, /* 12 */
-    { d_agup_slider_proc,     225,  88,   60,  12,  0,    0,    0,   0,           3,    0,  NULL,             mouse_speed_callback,  NULL }, /* 13 */
+    { d_text_proc,            160,  95,   40,  8,   0,    0,    0,   0,           10,   0,  "MOUSE SPEED",    NULL,  NULL }, /* 13 */
+    { d_agup_slider_proc,     225,  93,   60,  12,  0,    0,    0,   0,           3,    0,  NULL,             mouse_speed_callback,  NULL }, /* 14 */
 
-    { d_text_proc,            160,  112,  20,  8,   0,    0,    0,   0,           10,   0,  "SFX",            NULL,  NULL }, /* 14 */
-    { d_agup_slider_proc,     185,  110,  100, 12,  0,    0,    0,   0,           10,   0,  NULL,             NULL,  NULL }, /* 15 */
-    { d_text_proc,            160,  127,  20,  8,   0,    0,    0,   0,           10,   0,  "MODS",           NULL,  NULL }, /* 16 */
-    { d_agup_slider_proc,     185,  125,  100, 12,  0,    0,    0,   0,           10,   0,  NULL,             NULL,  NULL }, /* 17 */
-    { d_text_proc,            160,  142,  20,  8,   0,    0,    0,   0,           10,   0,  "CD",             NULL,  NULL }, /* 18 */
-    { d_agup_slider_proc,     185,  140,  100, 12,  0,    0,    0,   0,           10,   0,  NULL,             NULL,  NULL }, /* 19 */
+    { d_text_proc,            160,  117,  20,  8,   0,    0,    0,   0,           10,   0,  "SFX",            NULL,  NULL }, /* 15 */
+    { d_agup_slider_proc,     185,  115,  100, 12,  0,    0,    0,   0,           10,   0,  NULL,             NULL,  NULL }, /* 16 */
+    { d_text_proc,            160,  132,  20,  8,   0,    0,    0,   0,           10,   0,  "MODS",           NULL,  NULL }, /* 17 */
+    { d_agup_slider_proc,     185,  130,  100, 12,  0,    0,    0,   0,           10,   0,  NULL,             NULL,  NULL }, /* 18 */
+    { d_text_proc,            160,  147,  20,  8,   0,    0,    0,   0,           10,   0,  "CD",             NULL,  NULL }, /* 19 */
+    { d_agup_slider_proc,     185,  145,  100, 12,  0,    0,    0,   0,           10,   0,  NULL,             NULL,  NULL }, /* 20 */
 
-    { d_agup_push_proc,       20,   170,  130, 20,  0,    0,    0,   0,           0,    0,  stats_filename,   NULL,  push_stats_button }, /* 20 */
+    { d_agup_push_proc,       20,   170,  130, 20,  0,    0,    0,   0,           0,    0,  stats_filename,   NULL,  push_stats_button }, /* 21 */
 
-    { d_agup_button_proc,     170,  170,  60,  20,  0,    0,    0,   D_EXIT,      0,    0,  "ACCEPT",         NULL,  NULL }, /* 21 */
-    { d_agup_button_proc,     245,  170,  60,  20,  0,    0,    27,  D_EXIT,      0,    0,  "REJECT",         NULL,  NULL }, /* 22 */
+    { d_agup_button_proc,     170,  170,  60,  20,  0,    0,    0,   D_EXIT,      0,    0,  "ACCEPT",         NULL,  NULL }, /* 22 */
+    { d_agup_button_proc,     245,  170,  60,  20,  0,    0,    27,  D_EXIT,      0,    0,  "REJECT",         NULL,  NULL }, /* 23 */
 
     { d_yield_proc,           0,    0,    0,   0,   0,    0,    0,   0,           0,    0,  NULL,             NULL,  NULL },
     { NULL,                   0,    0,    0,   0,   0,    0,    0,   0,           0,    0,  NULL,             NULL,  NULL },
@@ -123,15 +133,16 @@ DIALOG config_dlg[] =
 #define I_RESLIST	2
 #define I_SCANLINES	4
 #define I_FILTERED	5
-#define I_MUTESFX	7
-#define I_NOMUSIC	8
-#define I_PLAYMODULES	9
-#define I_PLAYCD	10
-#define I_RECORDREMOS	11
-#define I_MOUSESPEED	13
-#define I_STATS		20
-#define I_ACCEPT	21
-#define I_REJECT	22
+#define I_FAMILY	6
+#define I_MUTESFX	8
+#define I_NOMUSIC	9
+#define I_PLAYMODULES	10
+#define I_PLAYCD	11
+#define I_RECORDREMOS	12
+#define I_MOUSESPEED	14
+#define I_STATS		21
+#define I_ACCEPT	22
+#define I_REJECT	23
 
 
 static void set_D_SELECTED(DIALOG *d, int yes)
@@ -160,6 +171,7 @@ void options(void)
 	config_dlg[I_RESLIST].d1 = desired_video_mode;
 	set_D_SELECTED(config_dlg + I_SCANLINES, want_scanlines);
 	set_D_SELECTED(config_dlg + I_FILTERED, filtered);
+	set_D_SELECTED(config_dlg + I_FAMILY, family);
 
 	set_D_SELECTED(config_dlg + I_MUTESFX, mute_sfx);
 
@@ -195,6 +207,7 @@ void options(void)
 	desired_video_mode = config_dlg[I_RESLIST].d1;
 	want_scanlines = config_dlg[I_SCANLINES].flags & D_SELECTED;
 	filtered = config_dlg[I_FILTERED].flags & D_SELECTED;
+	family = config_dlg[I_FAMILY].flags & D_SELECTED;
 	
 	mute_sfx = config_dlg[I_MUTESFX].flags & D_SELECTED;
 	
@@ -238,4 +251,62 @@ void options(void)
     /* In modes where not the full screen is used, we don't want the
      * top and bottom parts to be gray. */
     clear_bitmap(screen);
+}
+
+
+/* file settings */
+
+static void open_cfg(void)
+{
+    push_config_state();
+#ifdef TARGET_LINUX
+    set_config_file(get_resource(R_HOME, ".redpixelrc"));
+#else
+    set_config_file(get_resource(R_HOME, "redpixel.cfg"));
+#endif
+}
+
+
+static void close_cfg(void)
+{
+    pop_config_state();
+}
+
+
+static char *section = "redpixel";
+
+
+void load_settings()
+{
+    open_cfg();
+    
+    desired_video_mode = get_config_int(section, "video_mode", VID_320x200_FULLSCREEN);
+    want_scanlines = get_config_int(section, "scanlines", FALSE);
+    filtered = get_config_int(section, "filtered", FALSE);
+    family = get_config_int(section, "family", FALSE);
+    mute_sfx = get_config_int(section, "mute_sfx", FALSE);
+    music_set_format(get_config_int(section, "music_format", MUSIC_FMT_MOD));
+    record_demos = get_config_int(section, "record_demos", FALSE);
+    mouse_speed = get_config_int(section, "mouse_speed", 1);
+    set_current_stats((char *)get_config_string(section, "stats_file", "stats/default.st"));
+    
+    close_cfg();
+}
+
+
+void save_settings()
+{
+    open_cfg();
+
+    set_config_int(section, "video_mode", desired_video_mode);
+    set_config_int(section, "scanlines", want_scanlines);
+    set_config_int(section, "filtered", filtered);
+    set_config_int(section, "family", family);
+    set_config_int(section, "mute_sfx", mute_sfx);
+    set_config_int(section, "music_format", music_get_format());
+    set_config_int(section, "record_demos", record_demos);
+    set_config_int(section, "mouse_speed", mouse_speed);
+    set_config_string(section, "stats_file", current_stats);
+
+    close_cfg();
 }

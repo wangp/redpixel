@@ -1,6 +1,6 @@
-/* Allegro datafile object indexes, produced by grabber v3.9.20 (WIP), djgpp */
-/* Datafile: c:\psyk\red09\blood.dat */
-/* Date: Fri Aug 13 21:38:19 1999 */
+/* Allegro datafile object indexes, produced by grabber v4.0.0, Unix */
+/* Datafile: /home/tjaden/coding/redpixel/blood.dat */
+/* Date: Sun Dec 16 13:06:47 2001 */
 /* Do not hand edit! */
 
 #define _COPYR_                          0        /* DATA */
@@ -276,4 +276,7 @@
 #define X_EXPLO1                         270      /* BMP  */
 #define XHAIR                            271      /* BMP  */
 #define XHAIRLCD                         272      /* BMP  */
+#define Z_HELP                           273      /* BMP  */
+#define Z_HELPDEMO                       274      /* BMP  */
+#define Z_HELPPAL                        275      /* PAL  */
 

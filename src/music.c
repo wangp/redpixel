@@ -55,7 +55,10 @@ int music_get_format(void)
 
 void music_set_format(int music_format)
 {
-    format = music_format;
+    if ((music_format == MUSIC_FMT_MOD) || (music_format == MUSIC_FMT_CD))
+	format = music_format;
+    else
+	format = MUSIC_FMT_NONE;
 }
 
 
