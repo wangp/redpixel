@@ -461,7 +461,7 @@ void get_local_input()
 }
 
 
-void load_playerstat(char *packet)
+int load_playerstat(char *packet)
 {
     int pl, ch;
 
@@ -479,6 +479,8 @@ void load_playerstat(char *packet)
 
     players[pl].select = packet[2];
     players[pl].angle = packet[3] << 16;
+    
+    return pl;
 }
 
 

@@ -23,6 +23,7 @@ int skOpen (int, char *);
 void skClose ();
 
 int skSetDriver (int);
+void skSetConfigPath (const char *);
 
 
 #ifdef LIBNET_CODE

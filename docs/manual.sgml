@@ -14,7 +14,7 @@
 
 <author> Peter Wang, <tt> tjaden@psynet.net </tt>
 
-<date> Second edition for Red Pixel v0.11, May 2000
+<date> Second edition for Red Pixel v0.11, June 2000
 <!-- First edition for Red Pixel v0.9, August 1999 -->
 
 <abstract>
@@ -52,8 +52,8 @@ the original `redpixel.txt'.
       <item> two Pentium class machines
       <item> Linux, DOS or Windows
       <item> serial cable or LAN with sockets/winsock
-      <item> VGA-compliant card and monitor
       <item> 8 MB RAM
+      <item> VGA-compliant card and monitor
       <item> mouse
       <item> tolerance for gore
       <item> headphones recommended
@@ -66,12 +66,14 @@ the original `redpixel.txt'.
 
     <itemize>
       <item> Linux port, and maps, by Peter Sundling (kaffepeter@telia.com)
-      <item> <ref id="sec-demo" name="demo"> recording and playback 
+      <item> <ref id="sec-demo" name="demo"> recording and playback
       <item> experimental <ref id="sec-sockets" name="sockets"> support
       <item> faster weapon stats
       <item> three maps by Mike 
       <item> mouse wheel support (Linux only)
       <item> keyboard control in menu
+      <item> experimental Windows port (unstable)
+      <item> CD playing (not built by default)
     </itemize>
 
   <p> New in 0.9:
@@ -125,19 +127,36 @@ the original `redpixel.txt'.
 
   <p> 
 
-    If you are playing under DOS using the binary distribution, you
-    can skip this section.
+    If you are planning to use a precompiled executable, you can skip
+    this section.
 
-    You will need to firstly install Allegro (WIP 3.9.x or above), and
-    either djgpp or gcc.  If you want sockets support, you will also
-    need to install Libnet.
+    Firstly you need a working C compiler.  I use gcc under Linux
+    (obviously), djgpp under DOS, and mingw32 under Windows.
 
-    From there you should be able to simply type ``make'' in the game's
-    root directory.  If you don't have Libnet, type ``make WITHOUT_LIBNET=1''
+    Then you need to install the Allegro game programming library (WIP
+    3.9.32 or above).  If you want sockets support, you will also need to
+    install Libnet.  If you want CD playing support, you will also need to
+    install libcda.  (see below for URLs)
+
+    From there you should be able to simply type `make' in the game's root
+    directory.  If you don't have Libnet, type `make WITHOUT_LIBNET=1'.
+    If you want CD playing supprt, add `WITH_LIBCDA=1' to the command
+    line.  If you are compiling with mingw32, add `MINGW32=1'.
 
     Under Linux console you will need to run the binary with root
     permissions.  See `readme.lnx' in the Allegro distribution for
     more information.
+    
+  <sect2> Relevant links:
+ 
+    <p> <itemize>
+      <item> gcc: http://www.gnu.org/
+      <item> djgpp: http://www.delorie.com/djgpp/
+      <item> mingw32: http://www.mingw.org/
+      <item> Allegro: http://www.talula.demon.co.uk/allegro/
+      <item> Libnet: http://www.canvaslink.com/libnet/
+      <item> libcda: http://www.psynet.net/tjaden/
+    </itemize>
 
 
 <sect1> Starting the game <label id="sec-starting">
@@ -156,52 +175,45 @@ the original `redpixel.txt'.
     
       <tag/-s/ Use alternative <ref id="sec-stats" name="stats"> for items.
     
-      <tag/-1, -2, -3, -4/ Use COMx for serial communications.  Default is COM2.
-    
       <tag/-q/ Skip introduction (quick!).
     
       <tag/-v/ Display version number.
 
       <tag/-d/ Enable <ref id="sec-demo" name="demo"> recording.
+      
+      <tag/-m/ Mute sound.
 
     </descrip>
 
-    You can collate the options together, e.g. `red -1ql'.
-
-    Linux users: COM1 = /dev/ttyS0; COM2 = /dev/ttyS1; etc.
+    You can collate the options together, e.g. `red -qld'.
 
 
 <sect1> Connecting via a serial cable
 
-  <p> 
+  <p>
 
-    Link two computers via a serial cable in COM 1-4, using the
-    correct command line options as shown in section <ref
-    id="sec-starting" name="Starting the game">).  Select Start -->
-    Serial.  Enter your name, then wait for the computers to connect.
+    Link two computers via a serial cable and start the game.  Select
+    Start --> Serial, and then the correct COM port.  Enter your name, then wait
+    for the computers to connect.
 
-    If it says ``Error opening COM port'', check to make sure you used
-    the right command line option.  If you're are running Windows 9x,
-    try running under pure DOS.  (If you have a Logitech mouse you
-    could also also try what I did, and get updated mouse drivers
-    (MouseWare) for it from their web site.)
+    If an error occurs, check to make sure you used the right
+    command line option.  If you're are running a DOS executable
+    under Windows, try running under pure DOS.  (If you have a
+    Logitech mouse you could also also try what I did, and get
+    updated mouse drivers (MouseWare) for it from their web site.)
 
-    From here on, you will be shown a map selection screen.  Only the
-    maps existing on both computers will be displayed.  Please make
-    sure the maps are identical, otherwise your games will be
-    unsynchronised. Press the up and down arrow keys to select a map.
-    You may also have a conversation of here if you wish.  Feel free
-    to use any obscene words you desire.
-
-    (Note: The chat box was designed in case the game ever supported
-    Internet play.  However it may be also useful in other areas,
-    e.g. library)
-
-    When you are ready to play, press `F10'.
+    From here on, you will be shown a map selection screen.  Only
+    the maps existing on both computers will be displayed.  Please
+    make sure the maps are identical, otherwise your games will be
+    unsynchronised. Press the up and down arrow keys to select a
+    map. When you are ready to play, press `F10'.
 
     If your game become unsynchronised, quit the level and restart.
     If it ever says ``SYNC PROBLEM'', then you'd better restart from
     the serial connection procedure.
+
+    Note: serial connection is currently not implemented in the
+    native Windows port.
 
 
 <sect1> Connecting via Berkeley sockets or Winsock <label id="sec-sockets">
@@ -218,7 +230,10 @@ the original `redpixel.txt'.
 
     After connection, the game acts as it would with a serial connection.
 
-    Note: this driver only supports two player games.   
+    Note: as this driver simply emulates a perfect serial link via a
+    network, you can still only play two player games.  Also, you need a
+    fast connection between the machines, since the game still runs
+    synchronously.
 
 
 <sect1> Controls
@@ -240,17 +255,16 @@ the original `redpixel.txt'.
     
     <item> Press Enter or press the right mouse button to lay a mine.
     
-    <item> If you have one and you are running under Linux, you can
-    	   switch weapons using a mouse wheel on an
-    	   Intellimouse-compatible mouse.  Please read `readme.lnx' in
-    	   the Allegro distribution to see how to set this up.
-    
+    <item> If you have one and you are running under Linux or Windows, you can
+    	   switch weapons using a mouse wheel on an Intellimouse
+	   compatible mouse.  Please read `readme.lnx' in the
+	   Allegro distribution to see how to set this up under
+	   Linux.  Your mileage may vary, so don't be disappointed
+	   if it doesn't work.
+
     <item> TAB to see your scores.  
     <item> ESC to quit.
-    
-    <item> F12 to see the frame rate counter.  This is a development
-    	   feature, so it's not supposed to work properly.  Just push
-    	   it quickly and see.
+    <item> F12 to see the frame rate counter. 
 
     </itemize>
     
@@ -324,6 +338,8 @@ the original `redpixel.txt'.
     <itemize>
       <item> Enter - switch which player camera focuses on
       <item> S - hold this down for slow motion mode
+      <item> F - hold this down for fast forward mode
+      <item> P - take screen shot
     </itemize>
 
     Please note that if you exit a demo before its completion, it will
@@ -332,15 +348,20 @@ the original `redpixel.txt'.
     If you record a cool demo, whether a demostration of a cool move
     in solo mode, or a nice, bloody deathmatch, please send it to me!
 
+    If a demo does not play back properly, sent it to me for
+    debugging.  I won't be able to save the demo, but it may help me
+    track down bugs to prevent this sort of thing in the future.  If
+    you really hate losing demos, try recording on both machines.
+
 
 <sect1> Tips
 
   <p> 
 
     <itemize>
-      <item> Use the 3D sound to find where your opponent is.  Also, eating food 
-      	     does not make a noise, but picking up things does.
-    
+      <item> Use the 3D sound to find where your opponent is.  Also, eating
+             food does not make a noise, but picking up things does.
+
       <item> After you pick up an item, place a mine there.  Works also for
              regenerating walls (will not flash).
     
@@ -380,11 +401,11 @@ the original `redpixel.txt'.
       <item> Ctrl-Q to quit (warning: does not prompt!)
     </itemize>
 
-    Select an item or tile with the left mouse button, place it on the map
-    with the LMB.  Right mouse button clears.  
+    Select an item or tile with the left mouse button, place it on
+    the map with the left mouse button.  Right mouse button clears.
 
-    There is a set maximum of 24 starting locations on a single map.  These
-    appear as white flags (edit mode 3).
+    There is a set maximum of 24 starting locations on a single map.
+    These appear as white flags (edit mode 3).
 
 
 <sect1> Custom maps
@@ -394,30 +415,39 @@ the original `redpixel.txt'.
     If you wish to play your custom maps, make sure that you have
     exactly the same file on both machines!  And make sure you send
     them to me so I can put them up on my web page.
-    
+
+    For compatibility reasons, filenames MUST be all lowercase on
+    case-sensitive operating systems (i.e. Linux), and everyone should
+    stick to the DOS 8.3 filename limits.
+
 
 
 <!-- Next Section: History -->
 
 <sect> Game history
 
-  <p> (written August 1999)
+  <p> August 1999:
 
     I originally thought of the idea for this game about half a year
     before I developed it (Jan 1999).  At the time I was trying to write a
     top-down shooter called `Raid II' (dropped about 5 times!) so I
     delayed it, while my brother worked on the tiny little sprites.
 
-    The development (starting June that year) took three months.  The
-    basic engine was working in a week, the rest of the time was used
-    getting the serial connection to go, and to tweak things a little.  It
-    has been a year since.
+    The development (starting June that year) took three months.
+    The basic engine was working in a week, the rest of the time was
+    used getting the serial connection to go, and to tweak things a
+    little.  It has been a year since.
 
-    Yesterday I fixed some really annoying bugs (see log.txt), and tweaked
-    the stats to increase the frag counts.  Now I am writing this SGML
-    manual to learn SGML.  It has been a successful project.
+    Yesterday I fixed some really annoying bugs (see log.txt), and
+    tweaked the stats to increase the frag counts.  Now I am writing
+    this SGML manual to learn SGML.  It has been a successful project.
 
     But the code sucks. :-)
+    
+  <p> June 2000
+
+    The code has been cleaned up a lot, so is better now.  It's
+    still not worth a 1.0 though.  :-)
 
 
 <sect1> Known Bugs
@@ -426,8 +456,9 @@ the original `redpixel.txt'.
 
     <itemize>
       <item> the blood particles drip through the walls.  This is too cool to fix!
-      <item> the guy sometimes gets stuck inside a wall.  
+      <item> the guy sometimes gets stuck inside a wall (often after explosion)
       <item> a ladder directly below a tile will allow the guy to pop up into the tile
+      <item> you can jump through tiles placed diagonally
     </itemize>
 
 
@@ -436,15 +467,13 @@ the original `redpixel.txt'.
   <p> Here are some things that I have not bothered to finish.
 
   <itemize>
-    <item> clean up and modularise the code 
     <item> proper networking (client-server, packet loss detection, etc.)
     <item> use a scripting language
-    <item> use linked-lists rather than arrays, where appropriate
-    <item> config file (COM port settings, LCD cursor, etc.)
     <item> 3 or more player support
   </itemize>
 
-  Most of these are highly unlikely.
+  Most of these probably will not see the light of day unless
+  someone else does it.
 
 
 
@@ -462,6 +491,9 @@ the original `redpixel.txt'.
 
   The slightly modified random number generator `rg_rand.c' was taken
   from the Snippets collection, and remains in the public domain.
+
+  `getopt.c' was taken from some mailing archive somewhere.  It
+  retains its license and copyright.
 
 
 

@@ -123,7 +123,7 @@ static void linux_send(unsigned char ch)
 static void linux_send_string(unsigned char *str)
 {
     int len = strlen(str);
-    write(fd, str, len);
+    write(fd, str, len + 1);	/* want trailing \0 */
 }
 
 

@@ -4,10 +4,11 @@
 # Special options:
 #   make with mingw32:   make MINGW32=1
 #   make without Libnet: make WITHOUT_LIBNET=1
+#   make with libcda:    make WITH_LIBCDA=1
 #
 
 CC = gcc
-CFLAGS = -Wall -O3 -m486 -Isrc -Isrc/include -Isrc/sk
+CFLAGS = -Wall -O3 -m486 -Isrc -Isrc/include -Isrc/sk 
 
 ifdef MINGW32
 	PLATFORM = WINDOWS
@@ -15,6 +16,7 @@ ifdef MINGW32
 	LDFLAGS = -mwindows
 	ALLEGRO = -lalleg
 	LIBNET = -lnet -lwsock32
+	LIBCDA = -lcda
 	PLATFORM_MODULES = getopt skdummy
 	OBJDIR = obj/win
 else
@@ -23,6 +25,7 @@ ifdef DJDIR
 	GAME = reddos.exe
 	ALLEGRO = -lalleg
 	LIBNET = -lnet
+	LIBCDA = -lcda
 	PLATFORM_MODULES = skdos
 	OBJDIR = obj/djgpp
 else
@@ -32,10 +35,11 @@ else
 		ALLEGRO = `allegro-config --libs`
 	else
 	    	# Personal use only.
-		ALLEGRO = $(HOME)/static/liballeg.a \
+		ALLEGRO = $(HOME)/allegro-3.9.32x/lib/unix/liballeg.a -lm \
 			-L/usr/X11R6/lib -lXxf86dga -lXxf86vm -lXext -lX11
 	endif
 	LIBNET = -lnet
+	LIBCDA = -lcda
 	PLATFORM_MODULES = sklinux
 	OBJDIR = obj/linux
 endif
@@ -47,6 +51,11 @@ LIBS = $(ALLEGRO)
 ifndef WITHOUT_LIBNET
 	CFLAGS += -DLIBNET_CODE
 	LIBS += $(LIBNET)
+endif
+
+ifdef WITH_LIBCDA
+	CFLAGS += -DLIBCDA_CODE
+	LIBS += $(LIBCDA)
 endif
 
 COMMON_MODULES = \
@@ -79,6 +88,7 @@ COMMON_MODULES = \
 	resource	\
 	rg_rand		\
 	rnd		\
+	rpcd		\
 	setweaps	\
 	sk		\
 	sklibnet	\
@@ -108,7 +118,7 @@ obj/depend:
 	gcc $(CFLAGS) -MM src/*.c src/sk/*.c | sed 's,^\(.*[.]o:\),obj/\1,' > $@
 
 
-.PHONY = depend compress suidroot clean cleaner
+.PHONY = depend compress suidroot strip clean cleaner 
 
 depend: obj/depend
 
@@ -118,6 +128,9 @@ compress: $(GAME)
 suidroot:
 	chown root.allegro $(GAME)
 	chmod 4750 $(GAME)
+	
+strip:
+	strip $(GAME)
 
 clean: 
 	rm -f $(OBJS) core

@@ -248,17 +248,6 @@ static void render()
 	show_mouse(screen);
 
     frame_counter++;
-
-    /* screenshots: dodgy web design stuff */
-    {
-	static char ss_name[80];
-	static int ss_num = 0;
-
-	if (key[KEY_PAUSE]) {
-	    sprintf(ss_name, "screen%02d.pcx", ss_num++);
-	    save_pcx(ss_name, dbuf, dat[GAMEPAL].dat);
-	}
-    }
 }
 
 
@@ -304,10 +293,16 @@ void game_loop()
 		case demo:
 		    if (recv_demo_inputs() < 0)
 			return;
+		
+		    /* Special demo-mode keys.  */
 
 		    if (key[KEY_S]) {
 			rest(10);
 			speed_counter = 0;
+		    }
+		    else if (key[KEY_F]) {
+			if (speed_counter < 2)
+			    speed_counter += 2;
 		    }
 
 		    if (key[KEY_ENTER] && num_players == 2) {
@@ -315,6 +310,25 @@ void game_loop()
 			add_msgv(-1, "< NOW WATCHING %s >", players[local].name);
 
 			key[KEY_ENTER] = 0;	/* bleh */
+		    }
+		
+		    /* screenshots: dodgy web design stuff */
+		    {
+			static char ss_name[80];
+			static int ss_num = 0;
+
+			if (key[KEY_P]) {
+			    while (ss_num <= 9999) {
+				sprintf(ss_name, "shot%04d.pcx", ss_num++);
+				if (exists(ss_name))
+				    continue;
+				save_pcx(ss_name, dbuf, dat[GAMEPAL].dat);
+				break;
+			    }
+			    
+			    speed_counter = 1;
+			    key[KEY_P] = 0;
+			}
 		    }
 
 		    break;

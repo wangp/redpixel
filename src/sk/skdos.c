@@ -271,26 +271,6 @@ static void dos_send(unsigned char ch)
 }
 
 
-/*  Send a NULL terminated string.
- */
-static void dos_send_string(unsigned char *str)
-{
-    DISABLE();
-
-    /* while not terminated */
-    while (*str) {
-	send_buf[send_head] = *str++;
-	if (++send_head == BUFFER_SIZE)
-	    send_head = 0;
-    }
-
-    /* enable THRE int */
-    enable_interrupt(THREINT);
-
-    ENABLE();
-}
-
-
 /*  Sends len bytes.
  */
 static void dos_write(unsigned char *str, int len)
@@ -308,6 +288,15 @@ static void dos_write(unsigned char *str, int len)
     enable_interrupt(THREINT);
 
     ENABLE();
+}
+
+
+/*  Send a NULL terminated string.
+ */
+static void dos_send_string(unsigned char *str)
+{
+    int len = strlen(str);
+    dos_write(str, len + 1);	       /* want trailing \0 */
 }
 
 

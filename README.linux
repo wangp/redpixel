@@ -1,0 +1,43 @@
+This Linux binary was compiled on a Red Hat 6.0 system (i386), using the
+following libraries:
+
+      Statically linked:
+	  * Allegro 3.9.32
+	  * Libnet 0.10.8 (CVS).
+	  
+      Dynamically linked:
+	  * XFree86 3.3.3
+	  * glibc 2.1
+
+Allegro was configured:
+
+	./configure --disable-alsadigi --disable-esddigi --disable-ossmidi \
+		    --disable-svgalib --disable-ggi --disable-vbeaf	   \
+		    --enable-static --disable-shared
+		    
+
+INSTALLING
+
+When running under Linux console or under XFree86 + DGA fullscreen mode,
+the program will need to run with root permissions.  e.g. create a new
+group called `allegro' and put trusted users in it.  Then, as root, type:
+
+	# chown root.allegro redpixel
+	# chmod 4750 redpixel
+
+If you are too lazy to do that, run as root and type: (not recommended)
+
+	# chown root redpixel
+	# chmod 4755 redpixel
+	
+Or simply run the game as root.
+	
+Note: Red Pixel is not security-conscious at all.  Play at your own risk.
+
+
+NOTE FOR PEOPLE USING 3DFX - XFREE86 SERVER
+
+There is a bug in the server, which shows up when in DGA fullscreen mode
+(DGA mouse does not work properly).  The next Allegro version will have a
+workaround for this.  In the meantime you should play in console mode or
+in an X window.

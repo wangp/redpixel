@@ -258,6 +258,6 @@ int load_map_wrapper(char *fn)
   
     strlwr(strcpy(tmp, fn));
     strcat(path, tmp);
-
+    
     return load_map(path);
 }

@@ -22,4 +22,7 @@ typedef struct {
 } SK_DRIVER;
 
 
+extern char __sk__config_path[];
+
+
 #endif

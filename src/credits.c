@@ -30,8 +30,7 @@
 #include "version.h"
 
 
-static char *text[] =
-{
+static char *text[] = {
     "", "", "", "", "", "", "", "", "", "",
     "", "", "", "", "", "", "", "", "", "",
     "", "", "", "", "", "", "",
@@ -39,11 +38,7 @@ static char *text[] =
     "",
     "",
     "COPYRIGHT PSYK SOFTWARE " VERSION_YEAR,
-#if 0    
-    "ALL RIGHTS RESERVED",		       /* what was I thinking? */
-#else
     "LICENSED UNDER GNU LGPL", 
-#endif
     "",
     "",
     "",
@@ -89,14 +84,18 @@ static char *text[] =
     "rSPECIAL THANKS",
     "",
     "",
-    "DJ DELORIE FOR DJGPP",
+    "SHAWN HARGREAVES AND ALLEGRO CONTRIBUTORS",
     "",
-    "SHAWN HARGREAVES FOR ALLEGRO",
+    "GEORGE FOOT AND LIBNET CONTRIBUTORS",
+    "",
+    "DJ DELORIE AND DJGPP CONTRIBUTORS",
     "",
     "ANDRE LAMOTHE FOR BASIS OF SERIAL CODE",
     "",
     "BRENNAN UNDERWOOD FOR FAST SQRT ROUTINES",
-    "", "", "", "", "", "", "", "", "", "",                    /* :) */
+    "",
+    "FREE SOFTWARE PEOPLE IN GENERAL",
+    "", "", "", "", "", "", "", "", "", "",
     "", "", "", "", "", "", "", "", "", "",
     "", "", "", "", "", "",
     "x"
@@ -115,22 +114,18 @@ void credits()
 
     h = text_height(dat[MINI].dat);
 
-    while (!keypressed() && !mouse_b && !theend)
-    {
-	if (--offset<0)
-	{
+    while (!keypressed() && !mouse_b && !theend) {
+	if (--offset < 0) {
 	    offset = h;
 	    line++;
 	}
 
 	clear(dbuf);
-	for (i=-1; i<200/h; i++)
-	{
-	    if (!theend)
-	    {
+	for (i = -1; i < 200 / h; i++) {
+	    if (!theend) {
 		if (text[line+i][0]=='x')
 		    theend = 1;
-		else if (text[line+i][0]=='r')
+		else if (text[line+i][0] == 'r')
 		    textout_centre(dbuf, dat[MINI].dat, text[line+i]+1, 160, i*h + offset, RED);
 		else
 		    textout_centre(dbuf, dat[MINI].dat, text[line+i], 160, i*h + offset, WHITE);
@@ -146,5 +141,6 @@ void credits()
     clear(screen);
     set_palette(dat[GAMEPAL].dat);
 
-    while (key[KEY_ESC] || mouse_b);
+    while (key[KEY_ESC] || mouse_b)
+	;
 }

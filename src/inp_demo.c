@@ -18,6 +18,7 @@
 #include "map.h"
 #include "packet.h"
 #include "player.h"
+#include "rpcd.h"
 
 
 int recv_demo_inputs()
@@ -30,8 +31,8 @@ int recv_demo_inputs()
 
 	if (x == DEMO_FRAME_DATA) {
 	    demo_read_packet(packet, 4);
-	    load_playerstat(packet);
-	    num--;
+	    if (load_playerstat(packet) == num - 1)
+		break;
 	}
 	else if (x == DEMO_MAP_CHANGE) {
 	    char filename[1024], *f;
@@ -41,6 +42,8 @@ int recv_demo_inputs()
 		alert("Error loading map", filename, "", "Damn", NULL, 13, 27);
 		return -1;
 	    }
+
+	    rpcd_play_random_track();
 
 	    retain_players();
 	    reset_engine();

@@ -107,3 +107,12 @@ int skSetDriver(int driver)
     
     return 0;
 }
+
+/*------------------------------------------------------------*/
+
+char __sk__config_path[1024];
+
+void skSetConfigPath(const char *path)
+{
+    strcpy(__sk__config_path, path);
+}

@@ -48,7 +48,7 @@ obj/globals.o: src/globals.c src/include/blood.h src/include/globals.h \
  src/include/resource.h
 obj/inp_demo.o: src/inp_demo.c src/include/demo.h src/include/demintro.h \
  src/include/map.h src/include/packet.h src/include/player.h \
- src/include/engine.h src/include/weapon.h
+ src/include/engine.h src/include/weapon.h src/include/rpcd.h
 obj/inp_peer.o: src/inp_peer.c src/include/demo.h src/include/demintro.h \
  src/include/gameloop.h src/include/map.h src/include/message.h \
  src/include/packet.h src/include/player.h src/include/engine.h \
@@ -59,15 +59,16 @@ obj/launch.o: src/launch.c src/include/menu.h src/include/launch.h \
  src/include/demo.h src/include/demintro.h src/include/engine.h \
  src/include/gameloop.h src/include/globals.h src/include/main.h \
  src/include/map.h src/include/player.h src/include/weapon.h \
- src/include/resource.h src/include/rnd.h src/include/setweaps.h \
- src/sk/sk.h src/include/skhelp.h src/include/stats.h \
- src/include/statlist.h src/include/statlist.inc src/include/winhelp.h
+ src/include/resource.h src/include/rnd.h src/include/rpcd.h \
+ src/include/setweaps.h src/sk/sk.h src/include/skhelp.h \
+ src/include/stats.h src/include/statlist.h src/include/statlist.inc \
+ src/include/winhelp.h
 obj/main.o: src/main.c src/include/main.h src/include/engine.h \
  src/include/blood.h src/include/globals.h src/include/intro.h \
  src/include/launch.h src/include/mapper.h src/include/menu.h \
- src/include/resource.h src/include/setweaps.h src/sk/sk.h \
- src/include/stats.h src/include/statlist.h src/include/statlist.inc \
- src/include/version.h src/include/winhelp.h
+ src/include/resource.h src/include/rpcd.h src/include/setweaps.h \
+ src/sk/sk.h src/include/stats.h src/include/statlist.h \
+ src/include/statlist.inc src/include/version.h src/include/winhelp.h
 obj/map.o: src/map.c src/include/blood.h src/include/engine.h \
  src/include/map.h src/include/resource.h src/include/stats.h \
  src/include/statlist.h src/include/statlist.inc
@@ -104,6 +105,7 @@ obj/plupdate.o: src/plupdate.c src/include/anim.h src/include/blood.h \
 obj/resource.o: src/resource.c src/include/resource.h
 obj/rg_rand.o: src/rg_rand.c
 obj/rnd.o: src/rnd.c src/include/rg_rand.h src/include/rnd.h
+obj/rpcd.o: src/rpcd.c
 obj/setweaps.o: src/setweaps.c src/include/engine.h src/include/stats.h \
  src/include/statlist.h src/include/statlist.inc src/include/weapon.h \
  src/include/setweaps.h

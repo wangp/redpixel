@@ -42,6 +42,7 @@
 #include "player.h"
 #include "resource.h"
 #include "rnd.h"
+#include "rpcd.h"
 #include "setweaps.h"
 #include "sk.h"
 #include "skhelp.h"
@@ -58,9 +59,8 @@ static BLUBBER root_menu[];
 static BLUBBER startgame_menu[];
 
 
-static char local_name[16 + 1] = "NO NAME";
-
-static char target_addr[32 + 1] = "";
+static char local_name[16 + 1];
+static char target_addr[32 + 1];
 
 
 
@@ -157,7 +157,12 @@ static int prompt(char *string, char *dest, int maxlen)
 
 static int get_name()
 {
-    return prompt("ENTER YOUR HANDLE:", local_name, sizeof local_name - 1);
+    int x;
+    
+    do {
+	x = prompt("ENTER YOUR HANDLE:", local_name, sizeof local_name - 1);
+    } while (x && !local_name[0]);
+    return x;
 }
 
 
@@ -302,42 +307,52 @@ static MAPFILE *match(char *fn)
 static void trade_map_filenames()
 {
     char buf[1024];
-    int pos, ch;
-    int x = 16;
-
-    /* Send first (no paths).  */
-    curmap = maphead.next;
-    while (curmap) {
-	skSend(MAPLIST_START);
-	skSendString(get_filename(curmap->fn));
-	skSend(0);
-	
-	curmap->marked = 0;
-	curmap = curmap->next;
-	putpixel(screen, x++, 180, RED);
-    }
+    int x = 16, ch;
+    int done_recv;
     
-    skSend(MAPLIST_END);
-
-    /* Now receive.  */
-    while (1) {
-	ch = skRecv();
-	if (ch == MAPLIST_START) {
-	    pos = 0;
-	    do {
-		while (!skReady());
-		ch = skRecv();
-		buf[pos++] = ch;
-	    } while (ch);
-
-	    putpixel(screen, x++, 180, LBLUE);
-
-	    tmpmap = match(buf);
-	    if (tmpmap)
-	      tmpmap->marked = 1;
+    /* Clear `marked' flag.  */
+    curmap = maphead.next;
+    while (curmap)
+	curmap->marked = 0, curmap = curmap->next;
+        
+    /* Send and receive map filenames (no paths).  */
+    curmap = maphead.next;
+    done_recv = 0;
+    
+    while (!done_recv || curmap) {
+	/* send */
+	if (curmap) {
+	    sprintf(buf, "%c%s", MAPLIST_START, get_filename(curmap->fn));
+	    skSendString(buf);
+	    
+	    curmap = curmap->next;
+	    putpixel(screen, x++, 180, RED);
+	    
+	    if (!curmap)
+		skSend(MAPLIST_END);
+	    
+	    rest(5);
 	}
-	else if (ch == MAPLIST_END)
-	    break;
+	
+	/* receive */
+	if (!done_recv) {
+	    ch = skRecv();
+	    if (ch == MAPLIST_START) {
+		receive_string(buf);
+		putpixel(screen, x++, 180, LBLUE);
+		
+		tmpmap = match(buf);
+		if (tmpmap) 
+		    tmpmap->marked = 1;
+
+		rest(5);
+	    }
+	    else if (ch == MAPLIST_END)
+		done_recv = 1;
+	}
+	
+	/* Hack to keep libnet polling.  */
+	skReady();
     }
 
     /* Delete locals that aren't marked.  */
@@ -528,7 +543,6 @@ static char *select_map()
 		if (comm == peerpeer) {
 		    skSend(CHAT_INCOMING);
 		    skSendString(temp);
-		    skSend(0);
 		}
 	    }
 	}
@@ -674,19 +688,13 @@ static void do_session()
 	if (load_map_wrapper(fn) < 0)
 	    break;
 	demo_write_change_map(fn);
+	rpcd_play_random_track();
 
 	/* Init players.  */
 	retain_players();
 	reset_engine(); 
 	restore_players();
 	spawn_players();
-
-#if 0
-	/* Final synchronisation.  */
-	skSend(SER_CONNECTOK);
-	while (skRecv() != SER_CONNECTOK)
-	    ;
-#endif
 	
 	/* Go!  */
 	play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
@@ -711,6 +719,9 @@ static void do_session()
  * 
  *----------------------------------------------------------------------*/
 
+#define PEERPEER_THROWDICE   '@'
+#define PEERPEER_MYNAMEIS    1	/* happy face :) */
+
 static int peerpeer_negotiate_environment()
 {
     int l, r;
@@ -718,8 +729,8 @@ static int peerpeer_negotiate_environment()
     seed = rand();
 
     /* Throw dice.  */
-    skSend(SER_THROWDICE);
-    while (skRecv() != SER_THROWDICE) {
+    skSend(PEERPEER_THROWDICE);
+    while (skRecv() != PEERPEER_THROWDICE) {
 	if (key[KEY_ESC]) {
 	    while (key[KEY_ESC]);
 	    skClose();
@@ -765,15 +776,14 @@ static void peerpeer_trade_names()
 {
     int pos, player, ch, left;
 
-    skSend(SER_MYNAMEIS);
+    skSend(PEERPEER_MYNAMEIS);
     skSend(local);
     skSendString(local_name);
-    skSend(0);
 
     left = num_players - 1;
 
     do {
-	while (skRecv() != SER_MYNAMEIS);
+	while (skRecv() != PEERPEER_MYNAMEIS);
 	while (!skReady());
 	player = skRecv();
 
@@ -811,6 +821,9 @@ static void peerpeer_session()
  * 	Serial connection
  * 
  *----------------------------------------------------------------------*/
+
+#define SER_CONNECTPLS  '?'
+#define SER_CONNECTOK   '!'
 
 static int com_port = 1;	/* /dev/ttyS1; COM2 */
 

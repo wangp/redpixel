@@ -107,7 +107,7 @@ static void libnet_send_string(unsigned char *str)
 {
     if (conn) {
 	int len = strlen(str);
-	net_send_rdm(conn, str, len);
+	net_send_rdm(conn, str, len + 1);   /* want trailing \0 */
     }
 }
 
@@ -187,7 +187,7 @@ static int libnet_open(int listen, char *info)
     int drv;
     
     net_init();
-    net_loadconfig(NULL);
+    net_loadconfig(__sk__config_path);
 
     /* We're not supposed to use these constants, but the net driver
      * classes interface just seems too tedious right now.  */

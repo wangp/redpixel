@@ -157,3 +157,17 @@ now back to school, so less done
 		
 01 June		Made `particle.c' use `vector.c'
    		Added Allegro static linking option to makefile (linux)
+
+02 June		Added (optional) libcda support
+   		Added fast forward in demo mode: `f' key
+   		Hacked around unfound bug in demo recording
+		        (sometimes demos are recorded with two consecutive
+			packets by the same player)
+		Made screen shots demo playback only, and now `p' key
+
+
+03 June		Made name default to nothing, rather than `NO NAME'
+   		Rewrote flakey `trade_map_filenames' routine
+			(now send/receive intertwined)
+   		Released as version 0.11
+		

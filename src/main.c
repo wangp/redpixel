@@ -34,6 +34,7 @@
 #include "mapper.h"
 #include "menu.h"
 #include "resource.h"
+#include "rpcd.h"
 #include "setweaps.h"
 #include "sk.h"
 #include "stats.h"
@@ -68,6 +69,8 @@ void shutdown()
     unload_dat();
     destroy_bitmap(dbuf);
     destroy_bitmap(light);
+    
+    rpcd_shutdown();
     allegro_exit();
 }
 
@@ -84,6 +87,7 @@ int main(int argc, char *argv[])
     srand(time(0));
 
     allegro_init();
+    rpcd_init();
     
     /* command line args  */
     while (1) {
@@ -121,6 +125,9 @@ int main(int argc, char *argv[])
 	}
     }
 
+    install_timer();
+    install_keyboard();
+
     if (install_mouse() <= 0) {
         allegro_message("\nRed Pixel requires a mouse to play.\n"
 #if defined(TARGET_DJGPP)
@@ -133,13 +140,16 @@ int main(int argc, char *argv[])
 	return 1;
     }
     
-    install_timer();
-    install_keyboard();
     if (!mute)
 	install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);
 
     /* set up game path */
     set_game_path(argv[0]);
+    
+    {
+	char tmp[MAX_PATH_LENGTH];
+	skSetConfigPath(replace_filename(tmp, argv[0], "", sizeof tmp));
+    }
 
     /* load datafile */
     if (load_dat() < 0) {
@@ -170,7 +180,7 @@ int main(int argc, char *argv[])
    
     setup_lighting();
 
-    /* init screen etc */
+    /* init visuals */
     set_window_title("Red Pixel");
     if (set_gfx_mode(GFX_AUTODETECT, 320, 200, 0, 0) < 0) {
 	shutdown();
