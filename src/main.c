@@ -22,21 +22,22 @@
  *  Main.
  */
 
+
 #include <allegro.h>
 #include "main.h"
 #include "engine.h"
-#include "resource.h"
+#include "blood.h"
 #include "globals.h"
-#include "menu.h"
-#include "setweaps.h"
 #include "intro.h"
 #include "launch.h"
 #include "mapper.h"
+#include "menu.h"
+#include "resource.h"
+#include "setweaps.h"
 #include "sk.h"
 #include "stats.h"
 #include "statlist.h"
 #include "version.h"
-#include "blood.h"
 
 
 int com_port = 1;		/* COM2 */
@@ -167,7 +168,7 @@ int main(int argc, char *argv[])
 	shutdown();
 	allegro_message("Error setting 320x200 video mode.\n"
 #ifdef TARGET_LINUX
-			"Perhaps the executable is not suid root?\n"
+			"Perhaps the executable does not have root permissions?\n"
 #endif
 			);
 	

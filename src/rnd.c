@@ -1,5 +1,5 @@
 /*
- *  Wrap rg_rand.c with old function names.
+ * Wrap rg_rand.c with old function names.
  */
 
 #include "rg_rand.h"

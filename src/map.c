@@ -26,18 +26,22 @@
 #include <stdio.h>
 #include <string.h>
 #include <allegro.h>
-#include "map.h"
 #include "blood.h"
 #include "engine.h"
+#include "map.h"
+#include "resource.h"
 #include "stats.h"
 #include "statlist.h"
-#include "resource.h"
 
 
 MAP map;    
 
 
-//------------------------------------------------------------------- lists --
+/*----------------------------------------------------------------------
+ * 
+ * 	Lists
+ * 
+ *----------------------------------------------------------------------*/
 
 LIST tiles[] =
 {
@@ -81,7 +85,7 @@ LIST ammos[] =
 int num2pic(LIST *l, int num)
 {
     int i = 0;
-    if (num==0) return 0;
+    if (!num) return 0;
     while (l[i].num != num && l[i].pic != -1) 
 	i++;
     if (l[i].pic<0)
@@ -91,23 +95,26 @@ int num2pic(LIST *l, int num)
 
 int pic2num(LIST *l, int pic)
 {
-    int i = 0;
-    if (pic==0) return 0;
-    while (l[i].pic != pic && l[i].pic != -1) 
-	i++;
-    if (l[i].num<0)
-	return 0;
-    return l[i].num;
+    int i;
+    
+    if (!pic) return 0;
+    
+    for (i = 0; (l[i].pic != pic && l[i].pic != -1); i++) 
+	;
+    return (l[i].num < 0) ? 0 : l[i].num;
 }
 
 
-//---------------------------------------------------[ pickup respawn times ]-
+/*----------------------------------------------------------------------
+ * 
+ * 	Pickup respawn times
+ * 
+ *----------------------------------------------------------------------*/
 
 int ammo_respawn_rate(int pic)
 {
     /* yuck */
-    switch (pic)
-    {
+    switch (pic) {
 	case A_CHICKEN:   return GAME_SPEED * st_chicken_respawn;
 	case A_COKE:      return GAME_SPEED * st_coke_respawn;
 	case A_ARMOUR:    return GAME_SPEED * st_armour_respawn;
@@ -134,21 +141,23 @@ int ammo_respawn_rate(int pic)
 }
 
 
-//---------------------------------------------------------- file io ---------
+/*----------------------------------------------------------------------
+ * 
+ * 	Map load/save
+ * 
+ *----------------------------------------------------------------------*/
 
-char file_hdr[] = { 0xad, 'W', 'A', 'C', 'K', 'E', 'D', 0xad, '\0' };
+static char file_hdr[] = { 0xad, 'W', 'A', 'C', 'K', 'E', 'D', 0xad, '\0' };
 
 void reset_map()
 {
     int u, v;
 
-    for (u=0; u<24; u++)
+    for (u = 0; u < 24; u++)
 	map.start[u].x = 255;
 
-    for (v=0; v<128; v++)
-    {
-	for (u=0; u<128; u++)
-	{
+    for (v = 0; v < 128; v++) {
+	for (u = 0; u < 128; u++) {
 	    map.tile[v][u] = 0;
 	    map.ammo[v][u] = 0;
 	}
@@ -157,6 +166,7 @@ void reset_map()
     map.w = 64;
     map.h = 32;
 }
+
 
 int save_map(char *fn)
 {
@@ -171,15 +181,13 @@ int save_map(char *fn)
     pack_putc(map.w, fp);
     pack_putc(map.h, fp);
 
-    for (u=0; u<24; u++)
-    {
+    for (u = 0; u < 24; u++) {
 	pack_putc(map.start[u].x, fp);
 	pack_putc(map.start[u].y, fp); 
     }
 
-    for (v=0; v<map.h; v++)
-	for (u=0; u<map.w; u++)
-	{
+    for (v = 0; v < map.h; v++)
+	for (u = 0; u < map.w; u++) {
 	    pack_iputw(pic2num(tiles, map.tile[v][u]), fp);
 	    pack_iputw(pic2num(ammos, map.ammo[v][u]), fp);
 	}
@@ -188,6 +196,7 @@ int save_map(char *fn)
     return 0;
 }
 
+
 int load_map(char *fn)
 { 
     PACKFILE *fp;
@@ -195,8 +204,7 @@ int load_map(char *fn)
     char test[9];
     
     fp = pack_fopen(fn, F_READ_PACKED);
-    if (!fp) 
-	return -1;
+    if (!fp) return -1;
     
     reset_map();
 
@@ -209,20 +217,19 @@ int load_map(char *fn)
     map.w = pack_getc(fp);
     map.h = pack_getc(fp); 
 
-    for (u=0; u<24; u++)
-    {
+    for (u = 0; u < 24; u++) {
 	map.start[u].x = pack_getc(fp);
 	map.start[u].y = pack_getc(fp);
     }
 
-    for (v=0; v<map.h; v++)
-	for (u=0; u<map.w; u++)
-	{
+    for (v = 0; v < map.h; v++)
+	for (u = 0; u < map.w; u++) {
 	    map.tileorig[v][u] = map.tile[v][u] = num2pic(tiles, pack_igetw(fp));
 	    map.ammoorig[v][u] = map.ammo[v][u] = num2pic(ammos, pack_igetw(fp));
 
-	    if (map.tile[v][u]==T_WOOD || map.tile[v][u]==T_CRATE ||
-		map.tile[v][u]==T_BAR)
+	    if (map.tile[v][u] == T_WOOD ||
+		map.tile[v][u] == T_CRATE || 
+		map.tile[v][u] == T_BAR)
 		map.tiletics[v][u] = st_tile_health;
 	    else
 		map.tiletics[v][u] = 0;

@@ -124,6 +124,20 @@ now back to school, so less done
 		run.c renamed to engine.c!
 		Big clean up of launch.c
 		Experiment SK <-> Libnet interface!
-			   (hardwired: sockets only for now)
+		        (hardwired: sockets only for now)
 		Fixed some quit game bugs
 		Updated manual and cleaned it 
+
+29 May		Split `engine.c' into a hundred million files!
+			(not perfect split yet, but it's a start)
+		A few bug fixes
+		Made bullets not disappear when off map unless travelling in
+			off screen direction
+		Fixed stupid bugs related to realloc'ing
+
+30 May		Created vector module and made `bullet.c', `mine.c',
+			`backpack.c' use it
+		Removed all C++ comments
+		Hacked around walking above map problem
+		Made `serial_proc' and `single_proc' share most of their code
+		Fixed a bug in `message.c', put in yesterday

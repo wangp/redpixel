@@ -24,9 +24,9 @@
 
 
 #include <allegro.h>
-#include "globals.h"
-#include "colours.h"
 #include "blood.h"
+#include "colours.h"
+#include "globals.h"
 #include "version.h"
 
 
@@ -123,7 +123,6 @@ void credits()
 	    line++;
 	}
 
-	// draw me
 	clear(dbuf);
 	for (i=-1; i<200/h; i++)
 	{

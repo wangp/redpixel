@@ -7,26 +7,26 @@
 #define SK_LIBNET	2
 
 
-int     skReady     ();
-int     skRecv      ();
-void    skRead      (unsigned char *, int);
-void    skPutback   ();
-void    skClear     ();
+int skReady ();
+int skRecv ();
+void skRead (unsigned char *, int);
+void skPutback ();
+void skClear ();
 
-void    skSend      (unsigned char);
-void    skSendString(unsigned char *);
-void    skWrite     (unsigned char *, int);
-void    skFlush     ();
-void    skHand      (unsigned int);
+void skSend (unsigned char);
+void skSendString (unsigned char *);
+void skWrite (unsigned char *, int);
+void skFlush ();
+void skHand (unsigned int);
 
-int     skOpen      (int, char *);
-void    skClose     ();
+int skOpen (int, char *);
+void skClose ();
 
-int 	skSetDriver (int);
+int skSetDriver (int);
 
 
 #ifdef LIBNET_CODE
-extern int (*_sk_libnet_open_callback)();
+extern int (*_sk_libnet_open_callback) ();
 #endif
 
 

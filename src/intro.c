@@ -23,9 +23,10 @@
  *  Code converted from a SeeR script.
  */
 
+
 #include <allegro.h>
-#include "globals.h"
 #include "blood.h"
+#include "globals.h"
 
 
 static int raster_words(char *s)

@@ -4,9 +4,9 @@
 
 #include <sys/time.h>
 #include <allegro.h>
-#include "resource.h"
-#include "globals.h"
 #include "blood.h"
+#include "globals.h"
+#include "resource.h"
 
 
 DATAFILE *dat;

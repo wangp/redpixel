@@ -7,6 +7,7 @@
 #include "engine.h"
 #include "stats.h"
 #include "statlist.h"
+#include "weapon.h"
 #include "setweaps.h"
 
 

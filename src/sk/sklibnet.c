@@ -1,4 +1,4 @@
-/*
+ /*
  * Hack!  Libnet pretending to be serial 
  * 
  * Currently hard-wired to use socket drivers.
@@ -134,58 +134,47 @@ int (*_sk_libnet_open_callback)();
 
 static int do_listen(int drv)
 {
-    NET_CONN *listen = net_openconn(drv, "");
-    if (!listen) goto error;
+    NET_CONN *listen;
     
-    if (net_listen(listen) != 0)
-	goto error;
-    
-    while (1) {
-	conn = net_poll_listen(listen);
-	if (conn) {
-	    net_closeconn(listen);
-	    return 1;
-	}
+    listen = net_openconn(drv, "");
+    conn = 0;
 
-	if (_sk_libnet_open_callback)
-	    if (_sk_libnet_open_callback())
-		goto error;
-	
-	sleep(0);
+    if (listen && !net_listen(listen)) {
+	while (1) {
+	    conn = net_poll_listen(listen);
+	    if (conn) break;
+	    
+	    if (_sk_libnet_open_callback)
+		if (_sk_libnet_open_callback())
+		    break;
+	}
     }
+
+    if (listen)
+	net_closeconn(listen);
     
-  error:
-    
-    if (listen) net_closeconn(listen);
-    return 0;
+    return (conn) ? 1 : 0;
 }
 
 static int do_connect(int drv, char *addr)
 {
     conn = net_openconn(drv, NULL);
-    if (!conn) goto error;
-    
-    if (net_connect(conn, addr) != 0) 
-	goto error;
-    
-    while (1) {
-	int x = net_poll_connect(conn);
-	if (x > 0) 
-	    return 1;
-	else if (x < 0)
-	    goto error;
-
-	if (_sk_libnet_open_callback)
-	    if (_sk_libnet_open_callback())
-		goto error;
-	
-	sleep(0);
-    }
-    
-  error:
-    
     if (conn) {
-	net_closeconn(conn);
+	if (net_connect(conn, addr) == 0) {
+	    while (1) {
+		int x = net_poll_connect(conn);
+		if (x > 0) 
+		    return 1;
+		else if (x < 0)
+		    break;
+
+		if (_sk_libnet_open_callback)
+		    if (_sk_libnet_open_callback()) 
+			break;
+	    }
+	}
+
+    	net_closeconn(conn);
 	conn = 0;
     }
     

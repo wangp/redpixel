@@ -22,11 +22,12 @@
  *  Menu system.
  */
 
+
 #include <string.h>
 #include <allegro.h>
-#include "menu.h"
-#include "globals.h"
 #include "blood.h"
+#include "globals.h"
+#include "menu.h"
 
 
 #define big	dat[UNREAL].dat

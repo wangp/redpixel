@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -O3 -m486 -Isrc/include -Isrc/sk
+CFLAGS = -Wall -O3 -m486 -Isrc -Isrc/include -Isrc/sk
 
 ifdef DJDIR
 	# djgpp.
@@ -19,18 +19,32 @@ ifndef WITHOUT_LIBNET
 endif
 
 MODULES = \
+	backpack	\
+	blast		\
+	blod		\
+	bullet		\
+	corpse		\
 	credits		\
 	demintro	\
 	demo		\
 	engine		\
+	explo		\
 	fastsqrt	\
+	gameloop	\
 	globals		\
+	inp_demo	\
+	inp_peer	\
 	intro		\
 	launch		\
 	main		\
 	map		\
 	mapper		\
 	menu		\
+	message		\
+	mine		\
+	particle	\
+	player		\
+	plupdate	\
 	resource	\
 	rg_rand		\
 	rnd		\
@@ -39,21 +53,32 @@ MODULES = \
 	skdos		\
 	sklibnet	\
 	sklinux		\
+	skhelp		\
+	sound		\
 	stats		\
-	statlist
+	statlist	\
+	suicide		\
+	tiles		\
+	vector		\
+	weapon		
 
 OBJS = $(addprefix obj/,$(addsuffix .o,$(MODULES)))
 
-vpath %.c src src/sk src/fastsqrt
+vpath %.c src src/engine src/sk src/fastsqrt
 
 obj/%.o: %.c
 	$(COMPILE.c) -o $@ $<
 
 $(GAME): $(OBJS)
 	$(CC) -o $@ $(OBJS) $(LIBS)
+	
+obj/depend:
+	gcc $(CFLAGS) -MM src/*.c src/sk/*.c | sed 's,^\(.*[.]o:\),obj/\1,' > $@
+	
 
+.PHONY = depend compress suidroot clean 
 
-.PHONY = compress suidroot clean
+depend: obj/depend
 
 compress: $(GAME)
 	upx $<
@@ -63,5 +88,7 @@ suidroot:
 	chmod 4750 $(GAME)
 
 clean: 
-	rm -f $(GAME) $(OBJS) core
-
+	rm -f $(GAME) $(OBJS) obj/depend core
+	
+	
+include obj/depend

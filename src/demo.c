@@ -30,9 +30,10 @@
 #include <allegro.h>
 #include "demo.h"
 #include "engine.h"
+#include "player.h"
+#include "setweaps.h"
 #include "stats.h"
 #include "statlist.h"
-#include "setweaps.h"
 
 
 char demo_description[128];

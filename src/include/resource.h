@@ -1,6 +1,7 @@
 #ifndef __included_resource_h
 #define __included_resource_h
 
+
 #ifndef MAX_PATH_LENGTH
 #define MAX_PATH_LENGTH	1024
 #endif

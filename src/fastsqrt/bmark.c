@@ -1,8 +1,8 @@
-// quick benchmarking util by Peter Wang 3 august 1998
+/* quick benchmarking util by Peter Wang 3 august 1998 */
 
 #include <stdio.h>
 #include <math.h>
-#include <allegro.h>    // :-)
+#include <allegro.h>  
 #include "fastsqrt.h"
 
 volatile int last_count = 0, counter = 0;

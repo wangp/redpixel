@@ -1,5 +1,6 @@
-  Map		  Name			  Author
+Map		Name			Author
 ---------------------------------------------------
+arena		Arena			dw
 around		Around			ps
 barrlfun	Barrel Fun		bh
 castle		Castle			dw
@@ -31,8 +32,8 @@ turret		Turret			dw
 warehous	Ware House		mike
 ---------------------------------------------------
 
-"Tute levels" - run in Solo mode, using `-s stats.fst' and find 
-your way around, going RIGHT first.  Hint: rocket jumps.
+"Tute levels" - run in Solo mode and find your way around, going RIGHT
+first.  Hint: rocket jumps.  Hint 2: watch the demo :-)
 
 ---------------------------------------------------
 

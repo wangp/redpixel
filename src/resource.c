@@ -1,6 +1,10 @@
-/*
- *  TODO: This will one day implement proper Unix file system handling.
+/* resource.c
+ *
+ * Peter Wang <tjaden@psynet.net>
  */
+
+/* TODO: This will one day implement proper Unix file system handling.  */
+
 
 #include <allegro.h>
 #include "resource.h"

@@ -19,8 +19,9 @@
  *  Email: tjaden@psynet.net
  *  WWW:   http://www.psynet.net/tjaden/
  * 
- *  Game frontend and game launch code.
+ *  Game launching.
  */
+
 
 #include <ctype.h>
 #include <stdio.h>
@@ -28,20 +29,24 @@
 #include <allegro.h>
 #include "menu.h"
 #include "launch.h"
-#include "sk.h"
-#include "engine.h"
-#include "map.h"
+#include "credits.h"
+#include "blood.h"
+#include "colours.h"
 #include "demo.h"
 #include "demintro.h"
+#include "engine.h"
+#include "gameloop.h"
 #include "globals.h"
-#include "stats.h"
-#include "statlist.h"
+#include "main.h"
+#include "map.h"
+#include "player.h"
 #include "resource.h"
-#include "credits.h"
 #include "rnd.h"
 #include "setweaps.h"
-#include "colours.h"
-#include "blood.h"
+#include "sk.h"
+#include "skhelp.h"
+#include "stats.h"
+#include "statlist.h"
 
 
 #define big	dat[UNREAL].dat
@@ -253,7 +258,7 @@ static void sort_map_filenames()
     } while (!finish);
 }
 
-void free_map_filenames()
+static void free_map_filenames()
 {
     curmap = maphead.next;
     while (curmap) {
@@ -311,8 +316,6 @@ static void trade_map_filenames()
     
     skSend(MAPLIST_END);
 
-    printf("Sent stuff\n");
-    
     /* Now receive.  */
     while (1) {
 	ch = skRecv();
@@ -334,8 +337,6 @@ static void trade_map_filenames()
 	    break;
     }
 
-    printf("Received stuff\n");
-
     /* Delete locals that aren't marked.  */
     curmap = maphead.next;
     tmpmap = &maphead;
@@ -354,15 +355,13 @@ static void trade_map_filenames()
 
 	putpixel(screen, x++, 180, GREEN);
     } 
-
-    sort_map_filenames();
 }
 
 
 
 /*----------------------------------------------------------------------
  *
- * 	Map selection
+ * 	Map selection with chat box
  * 
  *----------------------------------------------------------------------*/
 
@@ -384,6 +383,9 @@ static char *select_map()
     char chatbox[6][80] = { "", "", "", "", "", "" };
     char cur[80] = "", temp[80], ch;
     int remote;
+    
+    while (keypressed())
+	readkey();
 
     while (1) {
 	clear(dbuf);
@@ -560,7 +562,7 @@ static char *select_map()
 	    }
 	}
 
-	/* else, into chat box */
+	/* else, type into chat box */
 	ch = toupper(k & 0xff);
 	if (ch >= ' ' && ch <= '~') {
 	    i = strlen(cur);
@@ -598,10 +600,7 @@ static void score_sheet()
 	y += 16;
     }
 
-    speed_counter = GAME_SPEED / 2;
-    while (speed_counter < GAME_SPEED)
-	;
-
+    rest(500);
     clear_keybuf();
     while (!keypressed() && !mouse_b);
     clear_keybuf();
@@ -612,7 +611,7 @@ static void score_sheet()
 
 /*----------------------------------------------------------------------
  *
- * 	Record demos
+ * 	Game session
  * 
  *----------------------------------------------------------------------*/
 
@@ -641,6 +640,65 @@ static void try_demo_write_open()
 }
 
 
+static void do_session()
+{
+    char *fn;
+    int played = 0;
+    
+    if (record_demos) 
+	try_demo_write_open();
+   
+    demo_write_set_rng_seed(seed);
+
+    while (1) {
+	show_mouse(NULL);
+
+	/* Pick a level.  */
+      loop:
+	fn = select_map();
+	if (!fn) break;
+	
+	if (fn == return_str) {
+	    if (played)
+		goto returntogame;
+	    else
+		goto loop;
+	}
+
+	/* Load level.  */
+	if (load_map_wrapper(fn) < 0)
+	    break;
+	demo_write_change_map(fn);
+
+	/* Init players.  */
+	retain_players();
+	reset_engine(); 
+	restore_players();
+	spawn_players();
+
+#if 0
+	/* Final synchronisation.  */
+	skSend(SER_CONNECTOK);
+	while (skRecv() != SER_CONNECTOK)
+	    ;
+#endif
+	
+	/* Go!  */
+	play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
+
+      returntogame:   
+	game_loop();
+
+	played = 1;
+    }
+
+    if (played) 
+	score_sheet();
+
+    demo_write_close();
+}
+
+
 
 /*----------------------------------------------------------------------
  *
@@ -655,8 +713,6 @@ static int peerpeer_negotiate_environment()
     seed = generate_seed();
     srand(seed);
 
-    printf("Throwing dice.\n");
-    
     /* Throw dice.  */
     skSend(SER_THROWDICE);
     while (skRecv() != SER_THROWDICE) {
@@ -730,68 +786,16 @@ static void peerpeer_trade_names()
 
 static void peerpeer_session()
 {
-    char *fn;
-    int first_play = 1;
-    
-    no_germs();
     strcpy(players[local].name, local_name);   
     peerpeer_trade_names();
 
-    if (record_demos) 
-	try_demo_write_open();
-    
-    demo_write_set_rng_seed(seed);
-
-    /* Get list of maps from local and remote.  */
     get_map_filenames();
     trade_map_filenames();
-
-    printf("Begin LOOP\n");
+    if (!num_maps) 
+	return;
+    sort_map_filenames();
     
-    while (1) {
-	if (!num_maps) break;
-
-	show_mouse(NULL);
-
-	/* Pick a level.  */
-      loop:
-	fn = select_map();
-	if (!fn) break;
-	if (fn == return_str) {
-	    if (!first_play)
-		goto returntogame;
-	    else
-		goto loop;
-	}
-
-	/* Load level.  */
-	load_map_wrapper(fn);
-	demo_write_change_map(fn);
-
-	/* Init players.  */
-	retain_players();
-	no_germs(); 
-	restore_players();
-	spawn_players();
-
-	/* Final synchronisation.  */
-	skSend(SER_CONNECTOK);
-	while (skRecv() != SER_CONNECTOK)
-	    ;
-
-	/* Go!  */
-	play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
-
-      returntogame:   
-	game_loop();
-
-	first_play = 0;
-    }
-
-    if (!first_play) 
-	score_sheet();
-    
-    demo_write_close();
+    do_session();
 
     free_map_filenames();
 }
@@ -878,82 +882,29 @@ static void serial_proc()
 
 static void single_proc()
 {
-    char *fn;
-    int first_play = 1;
-    
-    // name
     if (!get_name())
 	return;
 
-    // set up few things
+    /* set up environment */
     comm = single;
     local = 0;
     num_players = 1;
-    players[1].exist = 0;	   /* just to be sure */
-
-    if (record_demos) {
-	strcpy(players[local].name, local_name);
-	try_demo_write_open();
-    }
 
     seed = generate_seed();
     srnd(seed);
     sirnd(seed);
     next_position = irnd() % (24*24);
-    demo_write_set_rng_seed(seed);    
-    
-    no_germs();
-    strcpy(players[local].name, local_name);
 
+    reset_engine();
+    strcpy(players[local].name, local_name);
+    
     get_map_filenames();
     sort_map_filenames();
-
-    for (;;)
-    {
-	show_mouse(NULL);
-
-	// select level
-      loop:
-	fn = select_map();
-	if (!fn) break;
-	if (fn==return_str) 
-	{
-	    if (!first_play)
-		goto returntogame;
-	    else
-		goto loop;
-	}
-
-	// load level
-	if (load_map_wrapper(fn) < 0)
-	    break;
-	demo_write_change_map(fn);
-	
-	// init players 
-	retain_players();
-	no_germs();
-	restore_players();
-	spawn_players();
-	
-	// go!
-	play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
-
-      returntogame:
-	game_loop();
-
-	first_play = 0;
-    }
-
-    if (!first_play) {
-	// disconnected, show who won
-	score_sheet();
-    }
     
-    demo_write_close();
+    do_session();
 
     free_map_filenames();
 
-    // back to root menu
     enter_menu(root_menu); 
 }
 
@@ -985,6 +936,7 @@ static int libnet_connect_callback()
 	return -1;
     }
 
+    sleep(0);
     return 0;
 }
 
@@ -1063,7 +1015,7 @@ static void demo_playback_proc()
     comm = demo;
     local = 0;
 
-    no_germs();
+    reset_engine();
 
     demo_read_header();		/* sets num_players and names */
 

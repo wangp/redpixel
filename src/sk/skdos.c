@@ -13,7 +13,7 @@
  */
 
 /*  Started:    14 March 1998
- *  Modified:   15 March 1998   0.51á   skClear() more efficient
+ *  Modified:   15 March 1998   0.51b   skClear() more efficient
  *                                      added #define DEBUGME
  *  Modified:   13 June 1998    0.51c   skPutback()
  *                                      removed DEBUGME
@@ -25,12 +25,12 @@
  *  Modified:   16 June 1998    0.7     FIFO works! (i think) + better ISR
  *                                      send buffer finished
  *  Modified:   17 June 1998    0.7a    fixed small bug in detect_UART()
- *  Modified:   18 June 1998    0.7á    fixed the fix in detect_UART()
+ *  Modified:   18 June 1998    0.7b    fixed the fix in detect_UART()
  *  Modified:   14 July 1998    0.7c    added skHand()
  *  Modified:   25 July 1998    0.7d    added skRead()
  * ----------------------------------------------------------------------
- *  Modified:   20 May 2000		Red Pixel-specificised.
- * 					from here, check `log.txt'
+ *  Modified:   20 May 2000             Red Pixel-specificised.
+ *                                      from here, check `log.txt'
  */
 
 
@@ -64,21 +64,21 @@
 
 /* a heap of globals */
 
-#define BUFFER_SIZE     2048    // resize if required
+#define BUFFER_SIZE     2048	
 
-static volatile unsigned char recv_buf[BUFFER_SIZE];    // the receive buffer
-static volatile int recv_head, recv_tail;               //  and indexes
+static volatile unsigned char recv_buf[BUFFER_SIZE];
+static volatile int recv_head, recv_tail;
 
-static volatile unsigned char send_buf[BUFFER_SIZE];    // the send buffer
-static volatile int send_head, send_tail;               //  and indexes
+static volatile unsigned char send_buf[BUFFER_SIZE];
+static volatile int send_head, send_tail;	
 
 static _go32_dpmi_seginfo old_vector;
 static _go32_dpmi_seginfo new_vector;
 
-static int old_int_mask;        // the old interrupt mask on the PIC
+static int old_int_mask;	/* the old interrupt mask on the PIC */
 
-static int open_port = 0;       // the currently open port
-static int fifo_enabled = 0;    // whether 16550A FIFO is enabled
+static int open_port = 0;	
+static int fifo_enabled = 0;	
 
 static int virgin = 1;
 
@@ -95,7 +95,7 @@ static inline void enable_interrupt(unsigned char i)
     if (!(ch & i)) outportb(open_port + IER, ch | i);
 }
 
-static END_OF_FUNCTION(enable_interrupt)
+static END_OF_FUNCTION(enable_interrupt);
 
 static inline void disable_interrupt(unsigned char i)
 {
@@ -115,48 +115,39 @@ static void dos_isr()
 {
     int cause, chars;
 
-    // loop till all interrupts handled
-    for (;;)
-    {
-	cause = inportb(open_port + IIR) & 0x07;    // only use lower 3 bits
+    /* loop till all interrupts handled */
+    while (1) {
+	cause = inportb(open_port + IIR) & 0x07; /* only use lower 3 bits */
 
-	if ((cause & 0x01)==1)  // no interrupt
-	{
-	    // re-enable interrupts
+	if ((cause & 0x01) == 1) {	/* no interrupt */
+	    /* re-enable interrupts */
 	    outportb(PIC_ICR, 0x20);
 	    return;
 	}
 
-	switch (cause)
-	{
-	    case 0x06:  // read the LSR and discard
+	switch (cause) {
+	    case 0x06:		/* read the LSR and discard */
 		inportb(open_port + LSR);
 		break;
 
-	    case 0x04:  // receive character
-		// wrap buffer index around
+	    case 0x04:		/* receive character */
+		/* wrap buffer index around */
 		if (++recv_head == BUFFER_SIZE)
 		    recv_head = 0;
 
-		// move character into recv_buf
+		/* move character into recv_buf */
 		recv_buf[recv_head] = inportb(open_port + RBF);
 		break;
 
-	    case 0x02:  // send chars in queue
-		if (send_head == send_tail) 
-		{
-		    // nothing in queue, disable THRE interrupt
+	    case 0x02:		/* send chars in queue */
+		if (send_head == send_tail) {
+		    /* nothing in queue, disable THRE interrupt */
 		    disable_interrupt(THREINT);
 		}
-		else
-		{
-		    if (fifo_enabled) 
-			chars = 16;
-		    else 
-			chars = 1;
+		else {
+		    chars = (fifo_enabled) ? 16 : 1;
 
-		    while (send_head != send_tail && chars)
-		    {
+		    while (send_head != send_tail && chars) {
 			outportb(open_port + THR, send_buf[send_tail]);
 			if (++send_tail == BUFFER_SIZE)
 			    send_tail = 0;
@@ -165,14 +156,14 @@ static void dos_isr()
 		}
 		break;
 
-	    case 0x00:  // read MSR and discard
+	    case 0x00:		/* read MSR and discard */
 		inportb(open_port + MSR);
 		break;
 	}
     }
 }
 
-static END_OF_FUNCTION(dos_isr)
+static END_OF_FUNCTION(dos_isr);
 
 
 
@@ -192,7 +183,7 @@ static int dos_ready()
  *  and returns it to the caller.
  */
 static int dos_recv()
-{ 
+{
     int ch;
 
     if (recv_tail == recv_head)
@@ -200,16 +191,16 @@ static int dos_recv()
 
     DISABLE();
 
-    // wrap buffer index if needed 
+    /* wrap buffer index if needed  */
     if (++recv_tail == BUFFER_SIZE)
-       recv_tail = 0;
+	recv_tail = 0;
 
-    // get the character out of buffer
+    /* get the character out of buffer */
     ch = recv_buf[recv_tail];
 
     ENABLE();
 
-    // send data back to caller
+    /* send data back to caller */
     return ch;
 }
 
@@ -223,13 +214,12 @@ static void dos_read(unsigned char *dest, int num)
 
     DISABLE();
 
-    while (num--)
-    { 
-	// wrap buffer index if needed 
+    while (num--) {
+	/* wrap buffer index if needed  */
 	if (++recv_tail == BUFFER_SIZE)
-	   recv_tail = 0;
+	    recv_tail = 0;
 
-	// get the character out of buffer
+	/* get the character out of buffer */
 	dest[i++] = recv_buf[recv_tail];
     }
 
@@ -274,7 +264,7 @@ static void dos_send(unsigned char ch)
     if (++send_head == BUFFER_SIZE)
 	send_head = 0;
 
-    // enable THRE int
+    /* enable THRE int */
     enable_interrupt(THREINT);
 
     ENABLE();
@@ -287,15 +277,14 @@ static void dos_send_string(unsigned char *str)
 {
     DISABLE();
 
-    // while not terminated
-    while (*str)
-    {
+    /* while not terminated */
+    while (*str) {
 	send_buf[send_head] = *str++;
 	if (++send_head == BUFFER_SIZE)
 	    send_head = 0;
     }
 
-    // enable THRE int
+    /* enable THRE int */
     enable_interrupt(THREINT);
 
     ENABLE();
@@ -308,15 +297,14 @@ static void dos_write(unsigned char *str, int len)
 {
     DISABLE();
 
-    // send len bytes
-    while (len--)
-    {
+    /* send len bytes */
+    while (len--) {
 	send_buf[send_head] = *str++;
 	if (++send_head == BUFFER_SIZE)
 	    send_head = 0;
     }
 
-    // enable THRE int
+    /* enable THRE int */
     enable_interrupt(THREINT);
 
     ENABLE();
@@ -330,15 +318,14 @@ static void dos_flush()
 {
     DISABLE();
 
-    while (send_head != send_tail)
-    {
-	// wait for transmit buffer to be empty 
-	while (!(inportb(open_port + LSR) & 0x20));
+    while (send_head != send_tail) {
+	/* wait for transmit buffer to be empty  */
+	while (!(inportb(open_port + LSR) & 0x20)) ;
 
-	// send the character
+	/* send the character */
 	outportb(open_port + THR, send_buf[send_tail]);
 
-	// next character please
+	/* next character please */
 	if (++send_tail == BUFFER_SIZE)
 	    send_tail = 0;
     }
@@ -351,18 +338,17 @@ static void dos_flush()
  */
 static int detect_UART(unsigned baseaddr)
 {
-    // this function returns 0 if no UART is installed.
-    // 1: 8250, 2: 16450 or 8250 with scratch reg., 3: 16550, 4: 16550A
+    /* this function returns 0 if no UART is installed. */
+    /* 1: 8250, 2: 16450 or 8250 with scratch reg., 3: 16550, 4: 16550A */
     int x, olddata;
 
-    // check if a UART is present anyway
-    // if port is already opened, then we know it exists anyway...
-    if (open_port != baseaddr)
-    {
+    /* check if a UART is present anyway */
+    /* if port is already opened, then we know it exists anyway... */
+    if (open_port != baseaddr) {
 	olddata = inportb(baseaddr + MCR);
 
-	// for some reason, this bit doesn't like the ISR being installed
-	// so we skip all of this
+	/* for some reason, this bit doesn't like the ISR being installed */
+	/* so we skip all of this */
 	outportb(baseaddr + MCR, 0x10);
 	if ((inportb(baseaddr + MSR) & 0xf0)) return 0;
 
@@ -371,21 +357,21 @@ static int detect_UART(unsigned baseaddr)
 	outportb(baseaddr + MCR, olddata);
     }
 
-    // next thing to do is look for the scratch register
+    /* next thing to do is look for the scratch register */
     olddata = inportb(baseaddr + SCR);
     outportb(baseaddr + SCR, 0x55);
     if (inportb(baseaddr + SCR) != 0x55) return UART_8250;
     outportb(baseaddr + SCR, 0xAA);
     if (inportb(baseaddr + SCR) != 0xAA) return UART_8250;
-    outportb(baseaddr + SCR, olddata); // we don't need to restore it if it's not there
+    outportb(baseaddr + SCR, olddata);	/* we don't need to restore it if it's not there */
 
-    // then check if there's a FIFO
+    /* then check if there's a FIFO */
     outportb(baseaddr + FCR, 1);
     x = inportb(baseaddr + IIR);
-    // some old-fashioned software relies on this!
+    /* some old-fashioned software relies on this! */
     outportb(baseaddr + IIR, 0x0);
-    if ((x & 0x80)==0) return UART_16450;
-    if ((x & 0x40)==0) return UART_16550;
+    if ((x & 0x80) == 0) return UART_16450;
+    if ((x & 0x40) == 0) return UART_16550;
     return UART_16550A;
 }
 
@@ -394,20 +380,18 @@ static int detect_UART(unsigned baseaddr)
  */
 static int enable_fifo()
 {
-    if (!open_port)
-	return 0;
+    if (!open_port) return 0;
 
-    // 16550 has a FIFO, but doesn't work!  Go figure...
-    // 16550A is ok tho...
-    if (detect_UART(open_port) == UART_16550A)
-    {
-	outportb(open_port + FCR, 0x87); // 8 byte trigger level should be good
-					 // use C7h for 14 byte trigger level
+    /* 16550 has a FIFO, but doesn't work!  Go figure... */
+    /* 16550A is ok tho... */
+    if (detect_UART(open_port) == UART_16550A) {
+	outportb(open_port + FCR, 0x87);	/* 8 byte trigger level should be good */
+	/* use C7h for 14 byte trigger level */
 	fifo_enabled = 1;
 	return 1;
-    } 
+    }
 
-    // otherwise disable
+    /* otherwise disable */
     outportb(open_port + FCR, 0);
     fifo_enabled = 0;
     return 0;
@@ -423,10 +407,9 @@ static int dos_open(int num, char *dummy)
     int port_base;
     int baud = BAUD_19200;
     int config = STOP_1 | BITS_8 | PARITY_NONE;
-    
-    // lock down ISR and variables?
-    if (virgin)
-    {
+
+    /* lock down ISR and variables? */
+    if (virgin) {
 	LOCK_VARIABLE(recv_buf);
 	LOCK_VARIABLE(recv_head);
 	LOCK_VARIABLE(recv_tail);
@@ -438,68 +421,67 @@ static int dos_open(int num, char *dummy)
 	LOCK_FUNCTION(dos_isr);
 	LOCK_FUNCTION(enable_interrupt);
 	LOCK_FUNCTION(disable_interrupt);
-	virgin = 0; 
-    }
-    
-    switch (num) {
-	case 0: port_base = COM1; break;
-	case 1: port_base = COM2; break;
-	case 2: port_base = COM3; break;
-	case 3: port_base = COM4; break;
-	default: return 0;
+	virgin = 0;
     }
 
+    {
+	int x[4] { COM1, COM2, COM3, COM4 };
+	
+	if ((num < 0) || (num > 3))
+	    return 0;
+	
+	port_base = x[num];
+    }
+    
     if (!detect_UART(port_base))
 	return 0;
 
-    // clear buffers
+    /* clear buffers */
     recv_head = recv_tail = 0;
     send_head = send_tail = 0;
 
-    // save the port for other functions
+    /* save the port for other functions */
     open_port = port_base;
 
-    // first set the baud rate
+    /* first set the baud rate */
 
-    // turn on divisor latch registers
+    /* turn on divisor latch registers */
     outportb(port_base + LCR, DIV_LATCH_ON);
 
-    // send low and high bytes to divisor latches
+    /* send low and high bytes to divisor latches */
     outportb(port_base + DLL, baud);
     outportb(port_base + DLH, 0);
 
-    // set the configuration for the port
+    /* set the configuration for the port */
     outportb(port_base + LCR, config);
 
-    // enable the interrupts
+    /* enable the interrupts */
     outportb(port_base + MCR, GP02);
     outportb(port_base + IER, 1);
 
-    // disable THRE interrupt 
+    /* disable THRE interrupt  */
     disable_interrupt(THREINT);
 
-    // install ISR
+    /* install ISR */
     new_vector.pm_selector = _go32_my_cs();
     new_vector.pm_offset = (int)dos_isr;
     _go32_dpmi_allocate_iret_wrapper(&new_vector);
 
-    if (port_base == COM1 || port_base == COM3)
-    {
+    if (port_base == COM1 || port_base == COM3) {
 	_go32_dpmi_get_protected_mode_interrupt_vector(INT_SER_PORT_0, &old_vector);
 	_go32_dpmi_set_protected_mode_interrupt_vector(INT_SER_PORT_0, &new_vector);
     }
-    else    /* COM2 || COM4 */
-    {
+    else {	  /* COM2 || COM4 */
 	_go32_dpmi_get_protected_mode_interrupt_vector(INT_SER_PORT_1, &old_vector);
 	_go32_dpmi_set_protected_mode_interrupt_vector(INT_SER_PORT_1, &new_vector);
     }
 
-    // enable interrupt on PIC
+    /* enable interrupt on PIC */
     old_int_mask = inportb(PIC_IMR);
-    outportb(PIC_IMR, (port_base==COM1 || port_base==COM3) ? (old_int_mask & 0xEF) : (old_int_mask & 0xF7));
+    outportb(PIC_IMR, (port_base == COM1 || port_base == COM3) ? (old_int_mask & 0xEF) : (old_int_mask & 0xF7));
 
     enable_fifo();
-	
+
     return 1;
 }
 
@@ -508,47 +490,43 @@ static int dos_open(int num, char *dummy)
  */
 static void dos_close()
 {
-    if (open_port)
-    {
-	// disable FIFOs
-	outportb(open_port + FCR, 0);
-	fifo_enabled = 0;
+    if (!open_port) return;
+    
+    /* disable FIFOs */
+    outportb(open_port + FCR, 0);
+    fifo_enabled = 0;
 
-	// disable the interrupts
-	outportb(open_port + MCR, 0);
-	outportb(open_port + IER, 0);
-	outportb(PIC_IMR, old_int_mask);
+    /* disable the interrupts */
+    outportb(open_port + MCR, 0);
+    outportb(open_port + IER, 0);
+    outportb(PIC_IMR, old_int_mask);
 
-	_go32_dpmi_free_iret_wrapper(&new_vector);
+    _go32_dpmi_free_iret_wrapper(&new_vector);
 
-	// reset old ISR handler
-	if (open_port == COM1 || open_port == COM3)
-	    _go32_dpmi_set_protected_mode_interrupt_vector(INT_SER_PORT_0,
-							   &old_vector);
-	else    /* COM2 || COM4 */
-	    _go32_dpmi_set_protected_mode_interrupt_vector(INT_SER_PORT_1,
-							   &old_vector);
+    /* reset old ISR handler */
+    if (open_port == COM1 || open_port == COM3)
+	_go32_dpmi_set_protected_mode_interrupt_vector(INT_SER_PORT_0, &old_vector);
+    else		
+	_go32_dpmi_set_protected_mode_interrupt_vector(INT_SER_PORT_1, &old_vector);
 
-	open_port = 0;
-    }
+    open_port = 0;
 }
 
 
 SK_DRIVER __sk__serial = {
     	"DOS serial driver",
-	/* char sk_desc[] = "SK 0.7d by Peter Wang, July 1998."; */
 
 	dos_ready,
 	dos_recv,
 	dos_read,
 	dos_putback,
 	dos_clear,
-	
+
 	dos_send,
 	dos_send_string,
 	dos_write,
 	dos_flush,
-	
+
 	dos_open,
 	dos_close
 };

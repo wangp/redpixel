@@ -25,11 +25,11 @@
 
 
 #include <allegro.h>
+#include "blood.h"
+#include "colours.h"
+#include "globals.h"
 #include "map.h"
 #include "resource.h"
-#include "globals.h"
-#include "colours.h"
-#include "blood.h"
 
 
 

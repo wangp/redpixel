@@ -24,12 +24,13 @@
 
 
 #include <allegro.h>
+#include "blood.h"
+#include "colours.h"
 #include "demo.h"
 #include "demintro.h"
 #include "engine.h"
-#include "blood.h"
-#include "colours.h"
-
+#include "globals.h"
+#include "player.h"
 
 
 static void fade_in_and_out(BITMAP *buf, int wait, int allow_int)

@@ -13,14 +13,13 @@ typedef struct {
 
     int w, h;
 
-    struct 
-    {
+    struct {
 	int x, y;
     } start[24];
 } MAP;
 
-typedef struct
-{
+
+typedef struct {
     int pic;
     int num;
 } LIST;

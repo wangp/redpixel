@@ -1,0 +1,1 @@
+void suicide(char *s);
