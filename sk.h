@@ -1,27 +1,37 @@
 #ifndef SK_H
 #define SK_H
 
+// for detect_UART
+
+#define UART_8250   1
+#define UART_16450  2
+#define UART_16550  3
+#define UART_16550A 4
+
 // registers in UART
 
-#define skRBF   0   // the read buffer
-#define skTHR   0   // the write buffer
-#define skIER   1   // the int. enable register
-#define skIIR   2   // the int. identification register
-#define skLCR   3   // control data config. and divisor latch
-#define skMCR   4   // modem control reg.
-#define skLSR   5   // line status reg.
-#define skMSR   6   // modem status of cts, ring etc.
-#define skDLL   0   // the low byte of baud rate divisor
-#define skDLH   1   // the hi byte of divisor latch
+#define RBF   0   // the read buffer
+#define THR   0   // the write buffer
+#define IER   1   // the int. enable register
+#define IIR   2   // the int. identification register
+#define FCR   2   // FIFO control register
+#define LCR   3   // control data config. and divisor latch
+#define MCR   4   // modem control reg.
+#define LSR   5   // line status reg.
+#define MSR   6   // modem status of cts, ring etc.
+#define SCR   7   // the scratch register
+#define DLL   0   // the low byte of baud rate divisor
+#define DLH   1   // the hi byte of divisor latch
 
 // bit patterns for control registers
 
-#define BAUD_1200       96      // baud rate divisors for 1200 baud -> 19200
+#define BAUD_1200       96      // baud rate divisors
 #define BAUD_2400       48
 #define BAUD_9600       12
 #define BAUD_19200      6
-
-#define skGP02          8       // enable interrupt
+#define BAUD_28400      3
+#define BAUD_57600      2
+#define BAUD_115200     1
 
 #define COM1            0x3F8   // base port address of port 0
 #define COM2            0x2F8   // base port address of port 1
@@ -40,29 +50,35 @@
 #define PARITY_ODD      8       // odd parity
 #define PARITY_EVEN     24      // even parity
 
-#define skDIV_LATCH_ON  128     // used to turn reg 0,1 into divisor latch
+#define GP02          8       // enable interrupt
 
-#define skPIC_IMR       0x21    // pic's interrupt mask reg.
-#define skPIC_ICR       0x20    // pic's interupt control reg.
+#define DIV_LATCH_ON  128     // used to turn reg 0,1 into divisor latch
 
-#define skINT_SER_PORT_0  0x0C  // port 0 interrupt com 1 & 3
-#define skINT_SER_PORT_1  0x0B  // port 0 interrupt com 2 & 4
+#define PIC_IMR       0x21    // pic's interrupt ma reg.
+#define PIC_ICR       0x20    // pic's interupt control reg.
 
-#define skBUFFER_SIZE   2048
+#define INT_SER_PORT_0  0x0C  // port 0 interrupt com 1 & 3
+#define INT_SER_PORT_1  0x0B  // port 0 interrupt com 2 & 4
 
+
+/* the important stuff */
 
 extern char sk_desc[];
-
 
 int     skReady     ();
 int     skRecv      ();
 void    skPutback   ();
+void    skClear     ();
+
+int     skWaiting   ();
 void    skSend      (unsigned char);
 void    skSendString(unsigned char *);
 void    skWrite     (unsigned char *, int);
-void    skClear     ();
+void    skFlush     ();
 
-void    skOpen      (int, int, int);
+int     detect_UART (int);
+int     skOpen      (int, int, int);
+int     skEnableFIFO();
 void    skClose     ();
 
 #endif

@@ -1,1 +1,18 @@
+--- engine ---
 use bb_collide
+flamer
+grenades
+tiles on fire
+players on fire
+bloodlust
+
+--- comms ---
+ipx
+tcp/ip
+
+--- fancy shit ---
+intro - metroid style start
+creds - qwater type effect, with deaths at end
+gui shit
+define macros
+sound setup

@@ -590,7 +590,7 @@ void hurt_player(int pl, int dmg, int protect, int tag);
 void blast(int x, int y, int dmg, int tag)
 {
     int u, v, d;
-    int i, j;
+    register int i, j;
     fixed angle;
 
     u = x/16;
@@ -686,15 +686,15 @@ int hurt_tile(int u, int v, int dmg, int tag)
 
 void respawn_tiles()
 {
-    int v, u, i;
-    for (v=0; v<map.h; v++)
+    int v, u;
+    int i;
+    for (v=map.h-1; v>=0; v--)
     {
-	for (u=0; u<map.w; u++)
+	for (u=map.w-1; u>=0; u--)
 	{
 	    if (!map.tile[v][u] && map.tiletics[v][u])
 	    {
-		map.tiletics[v][u]--;
-		if (!map.tiletics[v][u]) 
+		if (--map.tiletics[v][u]==0)
 		{
 		    map.tile[v][u] = map.tileorig[v][u];
 		    map.tiletics[v][u] = TILE_HEALTH;
@@ -1268,9 +1268,12 @@ void touch_bullets()
 void respawn_ammo()
 {
     int v, u;
-    for (v=0; v<map.h; v++)
-	for (u=0; u<map.w; u++)
-	    if (!map.ammo[v][u] && map.ammotics[v][u]) {
+    for (v=map.h-1; v>=0; v--)
+    {
+	for (u=map.w-1; u>=0; u--)
+	{
+	    if (!map.ammo[v][u] && map.ammotics[v][u]) 
+	    {
 		if (--map.ammotics[v][u]<1) 
 		{
 		    map.ammo[v][u] = map.ammoorig[v][u];
@@ -1281,6 +1284,8 @@ void respawn_ammo()
 		    spawn_explo(u*16, v*16, RESPAWN0, 7);
 		}
 	    }
+	}
+    }
 }
 
 
@@ -1983,6 +1988,9 @@ void clean_player(int pl)
 #define SER_THROWDICE   '@'
 #define SER_PLAYERSTAT  's'
 #define SER_QUITGAME    'x'
+#define SER_QUITOK      'X'
+
+char packet[20];
 
 void inline send_long(long val)
 {
@@ -2002,6 +2010,27 @@ void send_local_input()
 {
     if (num_players>1)
     {
+	// build the packet
+	packet[0] = SER_PLAYERSTAT;
+	packet[1] = local;
+	packet[2] = players[local].up;
+	packet[3] = players[local].down;
+	packet[4] = players[local].left;
+	packet[5] = players[local].right;
+	packet[6] = players[local].fire;
+	packet[7] = players[local].drop_mine;
+	packet[8] = players[local].select;
+	packet[9] = players[local].respawn;
+	packet[10] = players[local].facing;
+	packet[11] = players[local].angle & 0xff;
+	packet[12] = (players[local].angle>>8) & 0xff;
+	packet[13] = (players[local].angle>>16) & 0xff;
+	packet[14] = (players[local].angle>>14) & 0xff;
+
+	// now send it off
+	skWrite(packet, 15);
+
+	/*
 	skSend(SER_PLAYERSTAT);
 	skSend(local);
 	skSend(players[local].up);
@@ -2014,6 +2043,7 @@ void send_local_input()
 	skSend(players[local].respawn);
 	skSend(players[local].facing);
 	send_long(players[local].angle);
+	*/
     }
 };
 
@@ -2050,11 +2080,12 @@ void recv_remote_inputs()
 		    num_players--;
 		    add_msg("REMOTE PLAYER HAS LEFT", -1);
 		    speed_counter = 0;
+		    skSend(SER_QUITOK);
 		    return;
 
 		default:
 		    //suicide("Invalid code received.  Possibly sync problem.");
-		    add_msg("INVALID CODE RECEIVED!! POSSIBLY SYNC PROBLEM!", -1);
+		    add_msg("SYNC PROBLEM !", -1);
 		    break;
 	    }
 	}
@@ -2195,7 +2226,7 @@ void game_loop()
 	draw_corpses();
 
 	if (!players[local].visor_tics ||
-	    (players[local].visor_tics < GAME_SPEED * 2 && (players[local].visor_tics%2)==0))
+	    (players[local].visor_tics < GAME_SPEED*3 && (players[local].visor_tics%2)==0))
 	    draw_spotlight();
 
 	draw_status(); 
@@ -2213,6 +2244,8 @@ void game_loop()
     {
 	skSend(SER_QUITGAME);
 	skSend(local);
+	skFlush();
+	while (skRecv() != SER_QUITOK);
     }
 }
 
@@ -2255,7 +2288,8 @@ int connect_serial(int comport)
     seed = time(NULL);
     srandom(seed);
 
-    skOpen(comport, BAUD_19200, STOP_1 | BITS_8 | PARITY_NONE);
+    skOpen(comport, BAUD_19200, BITS_8 | PARITY_NONE | STOP_1);    // 8n1
+    skEnableFIFO();
 
     if (!linkup(SER_CONNECTPLS))
 	return 0;

@@ -1,14 +1,20 @@
-/*  SK 0.51d - Serial Communications
+/*  SK 0.7 - Serial Communications
  *      by Peter Wang  (tjaden@alphalink.com.au -or- tjaden@psynet.net)
  *
- *  These routines are based (heavily) on Andre' LaMothes routines featured
- *  in 'Tricks of the Game Programming Gurus'.  Most of the work on my part
- *  was in porting the real mode ISR to protected mode.
+ *  These routines were originally basically just a port of Andre' LaMothes
+ *  routines from 'Tricks of the Game Programming Gurus'. 
  *
- *  Recently they have moved further and further away from LaMothe's code.
+ *  Now they feature (much) more:
+ *      - use FIFO buffer of 16550A if possible
+ *      - the ISR handles sending and receiving, and is more compliant
+ *      - detect_UART() routine
+ *      - a few general routines
  *
- *  Also thanks to Shawn Hargreaves, for I ripped out a few macros from
- *  Allegro.
+ *  Extra thanks:
+ *
+ *  Chris Blums for 'The Serial Port'.
+ *  Dim Zegebart for DZComm, from which I copy and pasted a bit.
+ *  Shawn Hargreaves, for I ripped out a few macros from Allegro.
  */
 
 /*  Started:    14 March 1998
@@ -17,8 +23,12 @@
  *  Modified:   13 June 1998    0.51c   skPutback()
  *                                      removed DEBUGME
  *  Modified:   14 June 1998    0.51d   skSendString() skWrite()
- *                                      open_port = 0 in skClose()
- *                                      boosted skBUFFER_SIZE to 2K
+ *                                      open_port = 0 in Close()
+ *                                      boosted BUFFER_SIZE to 2K
+ *  Modified:   15 June 1998    x.xx    FIFO used if possible [unfinished]
+ *                                      started send buffer
+ *  Modified:   16 June 1998    0.7     FIFO works! (i think) + better ISR
+ *                                      send buffer finished
  */
 
 #include <dpmi.h>
@@ -30,7 +40,7 @@
 
 
 
-char sk_desc[] = "SK 0.51d";
+char sk_desc[] = "SK 0.7 by Peter Wang, June 1998.";
 
 
 
@@ -44,18 +54,55 @@ char sk_desc[] = "SK 0.51d";
 #endif
 
 
-static unsigned char buffer[skBUFFER_SIZE];  // the receive buffer
-static volatile int  buf_head,          // index to where the data is written to
-		     buf_tail;          // index to where the data is read from
-static volatile int  isr_ch;            // current char (used by ISR)
 
-static int old_int_mask;                // the old interrupt mask on the PIC
-static int open_port = 0;               // the currently open port
+/*  too lazy */
+#define DISABLE()   asm("cli")
+#define ENABLE()    asm("sti")
 
-static int virgin = 1;
+
+
+/* a heap of globals */
+
+#define BUFFER_SIZE     2048    // resize if required
+
+static volatile unsigned char recv_buf[BUFFER_SIZE];    // the receive buffer
+static volatile int recv_head, recv_tail;               //  and indexes
+
+static volatile unsigned char send_buf[BUFFER_SIZE];    // the send buffer
+static volatile int send_head, send_tail;               //  and indexes
 
 static _go32_dpmi_seginfo old_vector;
 static _go32_dpmi_seginfo new_vector;
+
+static int old_int_mask;        // the old interrupt mask on the PIC
+
+static int open_port = 0;       // the currently open port
+static int fifo_enabled = 0;    // whether 16550A FIFO is enabled
+
+static int virgin = 1;
+
+
+
+/*  These are pinched from DZComm, renamed of course. :)
+ */
+#define THREINT 0x02
+#define RDAINT  0x04
+
+static inline void enable_interrupt(unsigned char i)
+{
+    unsigned char ch = inportb(open_port + IER);
+    if (!(ch & i)) outportb(open_port + IER, ch | i);
+}
+
+END_OF_FUNCTION(enable_interrupt)
+
+static inline void disable_interrupt(unsigned char i)
+{
+    unsigned char ch = inportb(open_port + IER);
+    if (ch & i) outportb(open_port + IER, ch & ~i);
+}
+
+END_OF_FUNCTION(disable_interrupt);
 
 
 
@@ -65,55 +112,101 @@ static _go32_dpmi_seginfo new_vector;
  */
 void skISR()
 {
-    // place character into next position in buffer
-    isr_ch = inportb(open_port + skRBF);
+    int cause, chars;
 
-    // wrap buffer index around
-    if (++buf_head > skBUFFER_SIZE - 1)
-	buf_head = 0;
+    // loop till all interrupts handled
+    for (;;)
+    {
+	cause = inportb(open_port + IIR) & 0x07;    // only use lower 3 bits
 
-    // move character into buffer
-    buffer[buf_head] = isr_ch;
+	if ((cause & 0x01)==1)  // no interrupt
+	{
+	    // re-enable interrupts
+	    outportb(PIC_ICR, 0x20);
+	    return;
+	}
 
-    // re-enable interrupts
-    outportb(skPIC_ICR, 0x20);
+	switch (cause)
+	{
+	    case 0x06:  // read the LSR and discard
+		inportb(open_port + LSR);
+		break;
+
+	    case 0x04:  // receive character
+		// wrap buffer index around
+		if (++recv_head == BUFFER_SIZE)
+		    recv_head = 0;
+
+		// move character into recv_buf
+		recv_buf[recv_head] = inportb(open_port + RBF);
+		break;
+
+	    case 0x02:  // send chars in queue
+		if (send_head == send_tail) 
+		{
+		    // nothing in queue, disable THRE interrupt
+		    disable_interrupt(THREINT);
+		}
+		else
+		{
+		    if (fifo_enabled) 
+			chars = 16;
+		    else 
+			chars = 1;
+
+		    while (send_head != send_tail && chars)
+		    {
+			outportb(open_port + THR, send_buf[send_tail]);
+			if (++send_tail == BUFFER_SIZE)
+			    send_tail = 0;
+			chars--;
+		    }
+		}
+		break;
+
+	    case 0x00:  // read MSR and discard
+		inportb(open_port + MSR);
+		break;
+	}
+    }
 }
 
 END_OF_FUNCTION(skISR)
 
 
-/*  This functions returns the number of characters waiting
+
+/*  This functions returns the number of characters waiting 
  *  in the receive buffer.
  */
 int skReady()
 {
-    if (buf_head >= buf_tail)
-	return buf_head - buf_tail;
+    if (recv_head >= recv_tail)
+	return recv_head - recv_tail;
     else
-	return buf_head - buf_tail + skBUFFER_SIZE;
+	return recv_head - recv_tail + BUFFER_SIZE;
 }
 
 
-/*  This function reads a character from the FIFO
- *  buffer and returns it to the caller.
+/*  This function reads a character from the receive buffer 
+ *  and returns it to the caller.
  */
 int skRecv()
 { 
     int ch;
 
-    if (buf_tail == buf_head)
+    if (recv_tail == recv_head)
 	return 0;
 
-    disable();
+    DISABLE();
 
     // wrap buffer index if needed 
-    if (++buf_tail > skBUFFER_SIZE - 1)
-       buf_tail = 0;
+    if (++recv_tail == BUFFER_SIZE)
+       recv_tail = 0;
 
     // get the character out of buffer
-    ch = buffer[buf_tail];
+    ch = recv_buf[recv_tail];
 
-    enable();
+    ENABLE();
 
     // send data back to caller
     return ch;
@@ -124,24 +217,55 @@ int skRecv()
  */
 void skPutback()
 {
-    disable();
-    if (--buf_tail < 0)
-	buf_tail = skBUFFER_SIZE - 1;
-    enable();
+    DISABLE();
+
+    if (--recv_tail < 0)
+	recv_tail = BUFFER_SIZE - 1;
+
+    ENABLE();
 }
 
 
-/*  This function writes a character to the transmit buffer, but first it
- *  waits for the transmit buffer to be empty.  Note: It is not interrupt
- *  driven and it turns off interrupts while it's working.
+/*  This function simplys clears the receive buffer.
+ */
+void skClear()
+{
+    DISABLE();
+
+    recv_tail = recv_head = 0;
+
+    ENABLE();
+}
+
+
+
+/*  This functions returns the number of characters waiting 
+ *  in the send buffer.
+ */
+int skWaiting()
+{
+    if (send_head >= send_tail)
+	return send_head - send_tail;
+    else
+	return send_head - send_tail + BUFFER_SIZE;
+}
+
+
+/*  This function puts a character into the send buffer. 
  */
 void skSend(unsigned char ch)
 {
-    // wait for transmit buffer to be empty 
-    while (!(inportb(open_port + skLSR) & 0x20));
+    DISABLE();
 
-    // send the character
-    outportb(open_port + skTHR, ch);
+    send_buf[send_head] = ch;
+
+    if (++send_head == BUFFER_SIZE)
+	send_head = 0;
+
+    // enable THRE int
+    enable_interrupt(THREINT);
+
+    ENABLE();
 }
 
 
@@ -149,13 +273,20 @@ void skSend(unsigned char ch)
  */
 void skSendString(unsigned char *str)
 {
+    DISABLE();
+
     // while not terminated
     while (*str)
     {
-	// do as in skSend()
-	while (!(inportb(open_port + skLSR) & 0x20));
-	outportb(open_port + skTHR, *str++);
+	send_buf[send_head] = *str++;
+	if (++send_head == BUFFER_SIZE)
+	    send_head = 0;
     }
+
+    // enable THRE int
+    enable_interrupt(THREINT);
+
+    ENABLE();
 }
 
 
@@ -163,23 +294,78 @@ void skSendString(unsigned char *str)
  */
 void skWrite(unsigned char *str, int len)
 {
+    DISABLE();
+
     // send len bytes
     while (len--)
     {
-	// do as in skSend()
-	while (!(inportb(open_port + skLSR) & 0x20));
-	outportb(open_port + skTHR, *str++);
+	send_buf[send_head] = *str++;
+	if (++send_head == BUFFER_SIZE)
+	    send_head = 0;
     }
+
+    // enable THRE int
+    enable_interrupt(THREINT);
+
+    ENABLE();
 }
 
 
-/*  This function simplys clears the buffer.
+/*  This function writes all characters waiting to be sent into the
+ *  transmit buffer.
  */
-void skClear()
+void skFlush()
 {
-    disable();
-    buf_tail = buf_head = 0;
-    enable();
+    DISABLE();
+
+    while (send_head != send_tail)
+    {
+	// wait for transmit buffer to be empty 
+	while (!(inportb(open_port + LSR) & 0x20));
+
+	// send the character
+	outportb(open_port + THR, send_buf[send_tail]);
+
+	// next character please
+	if (++send_tail == BUFFER_SIZE)
+	    send_tail = 0;
+    }
+
+    ENABLE();
+}
+
+
+
+/*  Ripped from ser_port.txt by Chris Blum.
+ */
+int detect_UART(int port_base)
+{
+    // this function returns 0 if no UART is installed.
+    // 1: 8250, 2: 16450 or 8250 with scratch reg., 3: 16550, 4: 16550A
+    int x,olddata;
+
+    // check if a UART is present anyway
+    olddata = inportb(port_base+4);
+    outportb(port_base+4,0x10);
+    if ((inportb(port_base+6) & 0xf0)) return 0;
+    outportb(port_base+4,0x1f);
+    if ((inportb(port_base+6)&0xf0)!=0xf0) return 0;
+    outportb(port_base+4,olddata);
+    // next thing to do is look for the scratch register
+    olddata=inportb(port_base+7);
+    outportb(port_base+7,0x55);
+    if (inportb(port_base+7)!=0x55) return UART_8250;
+    outportb(port_base+7,0xAA);
+    if (inportb(port_base+7)!=0xAA) return UART_8250;
+    outportb(port_base+7,olddata); // we don't need to restore it if it's not there
+    // then check if there's a FIFO
+    outportb(port_base+2,1);
+    x=inportb(port_base+2);
+    // some old-fashioned software relies on this!
+    outportb(port_base+2,0x0);
+    if ((x&0x80)==0) return UART_16450;
+    if ((x&0x40)==0) return UART_16550;
+    return UART_16550A;
 }
 
 
@@ -187,18 +373,31 @@ void skClear()
  *  on all the little flags and bits to make interrupts happen and load the
  *  ISR.
  */
-void skOpen(int port_base, int baud, int config)
+int skOpen(int port_base, int baud, int config)
 {
     // lock down ISR and variables?
     if (virgin)
     {
+	LOCK_VARIABLE(recv_buf);
+	LOCK_VARIABLE(recv_head);
+	LOCK_VARIABLE(recv_tail);
+	LOCK_VARIABLE(send_buf);
+	LOCK_VARIABLE(send_head);
+	LOCK_VARIABLE(send_tail);
+	LOCK_VARIABLE(open_port);
+	LOCK_VARIABLE(fifo_enabled);
 	LOCK_FUNCTION(skISR);
-	LOCK_VARIABLE(buffer);
-	LOCK_VARIABLE(buf_head);
-	LOCK_VARIABLE(buf_tail);
-	LOCK_VARIABLE(isr_ch);
+	LOCK_FUNCTION(enable_interrupt);
+	LOCK_FUNCTION(disable_interrupt);
 	virgin = 0; 
     }
+
+    if (!detect_UART(port_base))
+	return 0;
+
+    // clear buffers
+    recv_head = recv_tail = 0;
+    send_head = send_tail = 0;
 
     // save the port for other functions
     open_port = port_base;
@@ -206,63 +405,91 @@ void skOpen(int port_base, int baud, int config)
     // first set the baud rate
 
     // turn on divisor latch registers
-    outportb(port_base + skLCR, skDIV_LATCH_ON);
+    outportb(port_base + LCR, DIV_LATCH_ON);
 
-    // send low and high bytes to divsor latches
-    outportb(port_base + skDLL, baud);
-    outportb(port_base + skDLH, 0);
+    // send low and high bytes to divisor latches
+    outportb(port_base + DLL, baud);
+    outportb(port_base + DLH, 0);
 
     // set the configuration for the port
-    outportb(port_base + skLCR, config);
+    outportb(port_base + LCR, config);
 
     // enable the interrupts
-    outportb(port_base + skMCR, skGP02);
-    outportb(port_base + skIER, 1);
+    outportb(port_base + MCR, GP02);
+    outportb(port_base + IER, 1);
 
-    // hold off on enabling PIC until we have the ISR installed
+    // disable THRE interrupt 
+    disable_interrupt(THREINT);
+
+    // install ISR
     new_vector.pm_selector = _go32_my_cs();
     new_vector.pm_offset = (int)skISR;
     _go32_dpmi_allocate_iret_wrapper(&new_vector);
 
     if (port_base == COM1 || port_base == COM3)
     {
-	_go32_dpmi_get_protected_mode_interrupt_vector(skINT_SER_PORT_0, &old_vector);
-	_go32_dpmi_set_protected_mode_interrupt_vector(skINT_SER_PORT_0, &new_vector);
+	_go32_dpmi_get_protected_mode_interrupt_vector(INT_SER_PORT_0, &old_vector);
+	_go32_dpmi_set_protected_mode_interrupt_vector(INT_SER_PORT_0, &new_vector);
     }
     else    /* COM2 || COM4 */
     {
-	_go32_dpmi_get_protected_mode_interrupt_vector(skINT_SER_PORT_1, &old_vector);
-	_go32_dpmi_set_protected_mode_interrupt_vector(skINT_SER_PORT_1, &new_vector);
+	_go32_dpmi_get_protected_mode_interrupt_vector(INT_SER_PORT_1, &old_vector);
+	_go32_dpmi_set_protected_mode_interrupt_vector(INT_SER_PORT_1, &new_vector);
     }
 
     // enable interrupt on PIC
-    old_int_mask = inportb(skPIC_IMR);
-    outportb(skPIC_IMR, (port_base==COM1 || port_base==COM3) ? (old_int_mask & 0xEF) : (old_int_mask & 0xF7));
+    old_int_mask = inportb(PIC_IMR);
+    outportb(PIC_IMR, (port_base==COM1 || port_base==COM3) ? (old_int_mask & 0xEF) : (old_int_mask & 0xF7));
 
-    // clear it, just in case
-    skClear();
+    return 1;
 }
 
 
-/*  This function closes the port which entails turning off interrupts and
- *  restoring the old interrupt vector.
+/*  Enables FIFO if possible.
+ */
+int skEnableFIFO()
+{
+    if (!open_port)
+	return 0;
+
+    // 16550 has a FIFO, but doesn't work!  Go figure...
+    if (detect_UART(open_port) == UART_16550A)
+    {
+	outportb(open_port + FCR, 0x87); // 8 byte trigger level should be good
+					 // use C7h for 14 byte trigger level
+	fifo_enabled = 1;
+	return 1;
+    } 
+
+    // otherwise disable
+    outportb(open_port + FCR, 0);
+    fifo_enabled = 0;
+    return 0;
+}
+
+
+/*  This function closes the port.
  */
 void skClose()
 {
     if (open_port)
     {
+	// disable FIFOs
+	outportb(open_port + FCR, 0);
+	fifo_enabled = 0;
+
 	// disable the interrupts
-	outportb(open_port + skMCR, 0);
-	outportb(open_port + skIER, 0);
-	outportb(skPIC_IMR, old_int_mask);
+	outportb(open_port + MCR, 0);
+	outportb(open_port + IER, 0);
+	outportb(PIC_IMR, old_int_mask);
 
 	_go32_dpmi_free_iret_wrapper(&new_vector);
 
 	// reset old ISR handler
 	if (open_port == COM1 || open_port == COM3)
-	    _go32_dpmi_set_protected_mode_interrupt_vector(skINT_SER_PORT_0, &old_vector);
+	    _go32_dpmi_set_protected_mode_interrupt_vector(INT_SER_PORT_0, &old_vector);
 	else    /* COM2 || COM4 */
-	    _go32_dpmi_set_protected_mode_interrupt_vector(skINT_SER_PORT_1, &old_vector);
+	    _go32_dpmi_set_protected_mode_interrupt_vector(INT_SER_PORT_1, &old_vector);
 
 	open_port = 0;
     }

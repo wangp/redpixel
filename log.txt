@@ -8,6 +8,8 @@
 13 june     lots
 14 june     serial connection perfected + corpses + backpacks + too much, 
 	    forgotten
+15 june     mostly worked on sk
+16 june     uses new sk, quit bug fixed
 
 
 Red Pixel

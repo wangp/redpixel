@@ -19,20 +19,3 @@ arrowheadless - head blows up, body drops to ground
 spikes - impaled
 
 gutdrop - body falls to ground but guts stay in air for a bit, then drop and red pixels everywhere
-
-
-
-Wacko Weapons
-
-done...mines
-done...knife
-done...pistol
-done...shotgun
-done...uzi
-done...m16
-done...minigun
-done...tnt on arrow
-done...bazooka
-done...grenades
-
-flame-thrower
