@@ -1,3 +1,3 @@
-#define VERSION_STR 	"0.11.1"
-#define VERSION_YEAR 	"1998-2000"
+#define VERSION_STR 	"0.11.2"
+#define VERSION_YEAR 	"1998-2001"
 

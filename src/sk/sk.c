@@ -3,6 +3,7 @@
  *
  */
 
+#include <string.h>
 #include "sk.h"
 #include "skintern.h"
 

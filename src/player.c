@@ -154,15 +154,14 @@ void hurt_player(int pl, int dmg, int protect, int tag, int deathseq)
 	if (tag == pl) {
 	    players[tag].frags--;
 	    if (deathseq == D_IMPALE000)
-		add_msgv(-1, "%s WAS IMPALED", players[pl].name);
+		add_msgf(-1, "%s WAS IMPALED", players[pl].name);
 	    else
-		add_msgv(-1, "%s COMMITTED SUICIDE", players[pl].name);
+		add_msgf(-1, "%s COMMITTED SUICIDE", players[pl].name);
 	}
 	else {
 	    players[tag].frags++;
-	    add_msgv(-1, "%s WAS FRAGGED BY %s",
-		     players[pl].name,
-		     players[tag].name);
+	    add_msgf(-1, "%s WAS FRAGGED BY %s",
+		     players[pl].name, players[tag].name);
 	}
 
 	snd_3d(WAV_DEAD1 + (irnd() % 5), 255, players[pl].x, players[pl].y);

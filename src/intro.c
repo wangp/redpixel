@@ -145,7 +145,7 @@ void intro()
 	rest(1400);
     }
 
-    fade_out(4);
+    fade_out(6);
     clear(screen);
     set_palette(dat[GAMEPAL].dat);
 

@@ -24,6 +24,7 @@
  */
 
 
+#include <string.h>
 #include <allegro.h>
 #include "blood.h"
 #include "colours.h"

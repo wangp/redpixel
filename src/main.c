@@ -23,6 +23,7 @@
  */
 
 
+#include <ctype.h>
 #include <time.h>
 #include <allegro.h>
 #include "main.h"
@@ -50,8 +51,15 @@ int filtered = 0;
 
 static void usage(char *options)
 {
-    /* :) */
-    allegro_message("See manual for help on these options: %s\n", options);
+    char buf[40] = "";
+    int i, j;
+    
+    for (i = 0, j = 0; options[i]; i++)
+	if (isalpha(options[i]))
+	    buf[j++] = options[i];
+    buf[j] = '\0';
+    
+    allegro_message("See manual for help on these options: %s\n", buf);
 }
 
 
@@ -64,7 +72,9 @@ static void show_version()
 }
 
 
-void shutdown()
+/* "shutdown" is a sockets function, which gets called 
+ * when we exit if we're under X, which is no good.  */
+void main_shutdown()
 {
     engine_shutdown();
     
@@ -73,7 +83,6 @@ void shutdown()
     destroy_bitmap(light);
     
     rpcd_shutdown();
-    allegro_exit();
 }
 
 
@@ -86,14 +95,11 @@ int main(int argc, char *argv[])
     int editor = 0;
     int c;
 
-    srand(time(0));
-
-    allegro_init();
-    rpcd_init();
-    
     /* command line args  */
+    opterr = 0;
+    
     while (1) {
-	char *options = "hveqldmfs:";
+	char *options = ":hveqldmfs:";
 	    
 	c = getopt(argc, argv, options);
 	if (c < 0) break;
@@ -108,25 +114,35 @@ int main(int argc, char *argv[])
 	    case 'm': mute = 1; break;
 	    case 'f': filtered = 1; break;
 	    case 's': 
-		if (!optarg) {
-		    allegro_message("No stats file specified!\n");
-		    return 1;
-		}
-		else if (!read_stats(optarg, stat_block)) {
-		    allegro_message("Error reading %s.\n", optarg);
+	    	if (!read_stats(optarg, stat_block)) {
+		    allegro_message("Error reading `%s'.\n", optarg);
 		    return 1;
 		}
 		    
 		set_menu_message(get_filename(optarg));
 		alt_stats = 1;
 		break;
-		
-	    case '?':
+	    
+	    case ':':
+	    	allegro_message("Option `-%c' missing argument.\n", optopt);
+	    	return 1;
+
+	    case '?': 
+		allegro_message("Unknown option `-%c'.\n", optopt);
+	    	return 1;
+	    
 	    default:
 		return 1;
 	}
     }
 
+    /* initialisation */
+    srand(time(0));
+
+    allegro_init();
+    rpcd_init();
+    set_window_title("Red Pixel");
+    
     install_timer();
     install_keyboard();
 
@@ -162,7 +178,7 @@ int main(int argc, char *argv[])
     /* map editor option */
     if (editor) {
 	int x = mapper();
-	shutdown();
+	main_shutdown();
 	return x;
     }
 
@@ -183,10 +199,9 @@ int main(int argc, char *argv[])
     setup_lighting();
 
     /* init visuals */
-    set_window_title("Red Pixel");
     if (set_gfx_mode(GFX_AUTODETECT, 320, 200, 0, 0) < 0) {
-	shutdown();
-	allegro_message("Error setting 320x200 video mode.\n"
+	main_shutdown();
+	allegro_message("Error setting video mode.\n"
 #ifdef TARGET_LINUX
 			"Perhaps the executable does not have root permissions?\n"
 #endif
@@ -210,7 +225,7 @@ int main(int argc, char *argv[])
 
     main_menu();
 
-    shutdown();
+    main_shutdown();
 
     return 0;
 }

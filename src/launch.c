@@ -77,6 +77,7 @@ static void credits_proc()
 
 static void quit_proc()
 {
+    fade_out(32);
     menu_end = 1;
 }
 

@@ -8,8 +8,9 @@
 #
 
 CC = gcc
-CFLAGS = -Wall -O3 -m486 -ffast-math -fomit-frame-pointer \
-	-Isrc -Isrc/include -Isrc/sk
+INCLUDES = -Isrc -Isrc/include -Isrc/sk
+CFLAGS = -Wall -O2 -mpentium -ffast-math -fomit-frame-pointer \
+	-funroll-loops $(INCLUDES)
 
 ifdef DEBUG
 	CFLAGS += -g
@@ -114,11 +115,15 @@ OBJS = $(addprefix $(OBJDIR)/,$(addsuffix .o,$(MODULES)))
 
 vpath %.c src src/engine src/sk src/fastsqrt
 
+$(GAME): $(OBJS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+
 $(OBJDIR)/%.o: %.c
 	$(COMPILE.c) -o $@ $<
 
-$(GAME): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+# compile without optimisations for buggy gccs (at least, RedHat's gcc 2.96)
+$(OBJDIR)/fastsqrt.o: src/fastsqrt/fastsqrt.c
+	$(CC) -Wall $(INCLUDES) -c -o $@ $<
 
 obj/depend:
 	gcc $(CFLAGS) -MM src/*.c src/sk/*.c | sed 's,^\(.*[.]o:\),obj/*/\1,' > $@

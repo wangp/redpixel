@@ -6,6 +6,7 @@
 /* TODO: This will one day implement proper Unix file system handling.  */
 
 
+#include <string.h>
 #include <allegro.h>
 #include "resource.h"
 

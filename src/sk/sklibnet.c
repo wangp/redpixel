@@ -7,6 +7,7 @@
 #ifdef LIBNET_CODE
 
 
+#include <string.h>
 #include <libnet.h>
 #include "sk.h"
 #include "skintern.h"

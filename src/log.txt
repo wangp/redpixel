@@ -165,7 +165,6 @@ now back to school, so less done
 			packets by the same player)
 		Made screen shots demo playback only, and now `p' key
 
-
 03 June		Made name default to nothing, rather than `NO NAME'
    		Rewrote flakey `trade_map_filenames' routine
 			(now send/receive intertwined)
@@ -177,3 +176,16 @@ now back to school, so less done
 04 June		Found demo-screwing up bugs
    		Released as version 0.11.1
 		Fixed bug in cd audio track selection
+		Improved command line option handling
+
+15 November	Renamed `shutdown' to `main_shutdown'
+   		Quick fade out on exit.
+
+------------------------------- 2001 --------------------------------
+
+17 April	#include <string.h> in some files
+		Fixed some things the cpp in use right now doesn't like
+		Changed optimisations in makefile
+		Compile `fastsqrt.c' without optimisations, as gcc "2.96"
+			miscompiles it and breaks demos (grr!)
+		Released a patch as 0.11.2

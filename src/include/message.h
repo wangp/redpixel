@@ -3,7 +3,7 @@
 
 
 void add_msg(char *s, int to_player);
-void add_msgv(int target, char *fmt,...);
+void add_msgf(int target, char *fmt, ...);
 
 void update_msgs();
 void draw_msgs();

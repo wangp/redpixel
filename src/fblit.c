@@ -62,7 +62,11 @@ void fblit(BITMAP *src, BITMAP *dest)
 	}
     }
     
-    #undef getpixel getr8 getg8 getb8 makecol8
+    #undef getpixel
+    #undef getr8
+    #undef getg8
+    #undef getb8
+    #undef makecol8
 }
 
 

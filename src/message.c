@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 #include <allegro.h>
 #include "anim.h"
 #include "blood.h"
@@ -55,7 +56,7 @@ void add_msg(char *s, int to_player)
 }
 
 
-void add_msgv(int target, char *fmt,...)
+void add_msgf(int target, char *fmt, ...)
 {
     char buf[200];
     va_list va;

@@ -318,7 +318,7 @@ void game_loop()
 
 		    if (key[KEY_ENTER] && num_players == 2) {
 			local = 1 - local;
-			add_msgv(-1, "< NOW WATCHING %s >", players[local].name);
+			add_msgf(-1, "< NOW WATCHING %s >", players[local].name);
 
 			key[KEY_ENTER] = 0;	/* bleh */
 		    }

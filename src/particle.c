@@ -89,7 +89,8 @@ void spawn_particles(int x, int y, int num, int grad)
 	
 	particles[i].colour = (rnd() % (hi - low)) + low;
 	
-	if (--num == 0) return;
+	if (--num == 0)
+	    return;
     }
     
     if (vector_size(particles) >= MAX_PARTICLES)
@@ -119,8 +120,6 @@ void spawn_casing(int x, int y, int facing)
 	particles[i].colour = 175;
 	return;
     }
-
-    add_msg("PARTICLE OVERFLOW (CASING)", local);
 }
 
 
