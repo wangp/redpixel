@@ -27,6 +27,8 @@ int mouse_speed = 2;
 int record_demos = 0;
 int filtered = 0;
 
+int mute_sfx = 0;
+
 
 
 int load_dat()

@@ -12,7 +12,7 @@
 
 void suicide(char *s)
 {
-    shutdown();
+    main_shutdown();
     skClose();
     allegro_message("%s\n", s);
     exit(1);

@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include "stats.h"
+#include "suicide.h"
 
 
 
@@ -132,4 +133,37 @@ void for_every_stat(STAT_VAR *block, int (*proc)(STAT_VAR *sv))
 	    break;
 	sv++;
     }
+}
+
+
+
+static unsigned long checksum;
+static int checksum_i;
+
+static unsigned long my_pow(unsigned long n, int p)
+{
+    unsigned long nn = 1;
+    while (p--)
+	nn *= n;
+    return nn;
+}
+
+static int checksum_proc(STAT_VAR *sv)
+{
+    int x = 0;
+    if (sv->type == ST_INT)
+	x = *(int *)sv->p;
+    else if (sv->type == ST_FLOAT)
+	x = 1000 * *(float *)sv->p;
+    else
+	suicide("internal error in make_stat_checksum");
+    checksum += my_pow(x, checksum_i++);
+    return 0;
+}
+
+unsigned long make_stat_checksum(STAT_VAR *block)
+{
+    checksum = checksum_i = 0;
+    for_every_stat(block, checksum_proc);
+    return checksum;
 }

@@ -6,16 +6,16 @@
 
 # Platform detection.
 
+ifdef DJDIR
+PLATFORM := DJGPP
+else
+ifdef windir	# How do we detect Mingw properly?
+PLATFORM := MINGW
+else
 ifneq ($(findstring Linux,$(shell uname)),)
 PLATFORM := LINUX
 endif
-
-ifdef MINGW
-PLATFORM := MINGW
 endif
-
-ifdef DJDIR
-PLATFORM := DJGPP
 endif
 
 
@@ -28,23 +28,25 @@ all: libnet libcda jgmod agup thegame
 
 # libnet.
 
+LIBNET := libnet/lib/libnet.a
+
 ifeq "$(PLATFORM)" "LINUX"
-LIBNET_MAKEFILE := linux.mak
+$(LIBNET):
+	cp libnet/makfiles/linux.mak libnet/port.mak
+	make -C libnet lib
 endif
 
 ifeq "$(PLATFORM)" "MINGW"
-LIBNET_MAKEFILE := mingw.mak
+$(LIBNET):
+	copy libnet\makfiles\mingw.mak libnet\port.mak
+	make -C libnet lib
 endif
 
 ifeq "$(PLATFORM)" "DJGPP"
-LIBNET_MAKEFILE := djgpp.mak
-endif
-
-LIBNET := libnet/lib/libnet.a
-
 $(LIBNET):
-	cp libnet/makfiles/$(LIBNET_MAKEFILE) libnet/port.mak
+	copy libnet\makfiles\djgpp.mak libnet\port.mak
 	make -C libnet lib
+endif
 
 libnet: $(LIBNET)
 
@@ -64,13 +66,24 @@ libcda: $(LIBCDA)
 # jgmod.
 
 ifeq "$(PLATFORM)" "LINUX"
+JGMOD_MAKEFILE := makefile.lnx
+JGMOD_DIR := unix
+endif
 
-JGMOD := jgmod/lib/unix/libjgmod.a
+ifeq "$(PLATFORM)" "MINGW"
+JGMOD_MAKEFILE := makefile.mgw
+JGMOD_DIR := mingw32
+endif
+
+ifeq "$(PLATFORM)" "DJGPP"
+JGMOD_MAKEFILE := makefile.dj
+JGMOD_DIR := djgpp
+endif
+
+JGMOD := jgmod/lib/$(JGMOD_DIR)/libjgmod.a
 
 $(JGMOD):
-	make -C jgmod/src -f makefile.lnx ../lib/unix/libjgmod.a
-
-endif
+	make -C jgmod/src -f $(JGMOD_MAKEFILE) ../lib/$(JGMOD_DIR)/libjgmod.a
 
 jgmod: $(JGMOD)
 
@@ -78,14 +91,10 @@ jgmod: $(JGMOD)
 
 # agup.
 
-ifeq "$(PLATFORM)" "LINUX"
-
 AGUP := agup/agup.a
 
 $(AGUP):
 	make -C agup agup.a
-
-endif
 
 agup: $(AGUP)
 

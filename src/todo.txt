@@ -1,6 +1,27 @@
+stats file button and menu message incomplete
 Unix path stuff
-demo keys are not working right (search for '//' comments)
+map editor mouse coords
+no popping when go back to map selection screen
+highlight current map in map selection screen
+display switching (in map selection screen, in game?)
+	also with scanlines
+close button
+update manual
+icon for windows
+windows installer
+RPM spec
+setup program?
+if modules not being used, make jgmod relinquish some voices?
+
+
+MAYBES:
+new font
+small description of each demo
+
+
+PROBABLY NEVER:
 do not spawn in same place
 network error checking (should not be necessary because using RDM)
 eventually replace native SK serial with Libnet serial
 make intro use fblit :-)
+make not 32-bit assumant (see stats.c especially)

@@ -29,7 +29,7 @@ END_OF_STATIC_FUNCTION(timer_func);
 #define FULLSCREEN	\
     "", "", "", "", "", "", "", "", "", "",	\
     "", "", "", "", "", "", "", "", "", "",	\
-    "", "", "", "", "", "", ""
+    "", "", ""
 
 #define NL	""
 #define BLANK2	"", ""

@@ -60,20 +60,17 @@ static void show_version()
 /*      Init / main                                                     */
 /*----------------------------------------------------------------------*/
 
-static void main_shutdown();
-    
 int main(int argc, char *argv[])
 {
     int skip_intro = 0;
     int alt_stats = 0;
-    int mute = 0;
     int editor = 0;
 
     /* command line args  */
     opterr = 0;
     
     while (1) {
-	char *options = ":hveqdms:";
+	char *options = ":hveqs:";
 	    
 	int c = getopt(argc, argv, options);
 	if (c < 0) break;
@@ -83,8 +80,6 @@ int main(int argc, char *argv[])
 	    case 'v': show_version(); return 0;
 	    case 'e': editor = 1; break;
 	    case 'q': skip_intro = 1; break;
-	    case 'd': record_demos = 1; break;
-	    case 'm': mute = 1; break;
 	    case 's': 
 	    	if (!read_stats(optarg, stat_block)) {
 		    allegro_message("Error reading `%s'.\n", optarg);
@@ -96,11 +91,11 @@ int main(int argc, char *argv[])
 		break;
 	    
 	    case ':':
-	    	allegro_message("Option `-%c' missing argument.\n", optopt);
+	    	allegro_message("Option missing argument.\n");
 	    	return 1;
-
+		
 	    case '?': 
-		allegro_message("Unknown option `-%c'.\n", optopt);
+		allegro_message("Unknown option.\n");
 	    	return 1;
 	    
 	    default:
@@ -130,11 +125,9 @@ int main(int argc, char *argv[])
 	return 1;
     }
     
-    if (!mute) {
-	reserve_voices(32, -1);
-	install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);
-	music_init();
-    }
+    reserve_voices(32, -1);
+    install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);
+    music_init();
 
     /* set up game path */
     set_game_path(argv[0]);
@@ -219,7 +212,7 @@ END_OF_MAIN();
 
 /* "shutdown" is a sockets function, which gets called 
  * when we exit if we're under X, which is no good.  */
-static void main_shutdown()
+void main_shutdown()
 {
     free_stretched_mouse_sprite();
     if (light) {

@@ -31,7 +31,14 @@ static void prepare_scanlines(void)
     /* The current X windows graphics driver currently doesn't like
      * our scanline trick with the sub-bitmap. I think it maybe should
      * be classified as a "banked" driver. */
-    if ((gfx_driver->id == GFX_XWINDOWS_FULLSCREEN) || (gfx_driver->id == GFX_XWINDOWS))
+    if ((gfx_driver->id == GFX_XWINDOWS_FULLSCREEN) ||
+        (gfx_driver->id == GFX_XWINDOWS))
+	return;
+#endif
+#ifdef ALLEGRO_WINDOWS
+    /* The Windows windowed drivers don't like our scanline trick either
+     * (well, some of them at least). */
+    if (gfx_driver->windowed)
 	return;
 #endif
 
@@ -108,6 +115,9 @@ int set_desired_video_mode_or_fallback(void)
     
     clip_to_size();
     prepare_scanlines();
+    
+    if (set_display_switch_mode(SWITCH_BACKAMNESIA) == -1)
+	set_display_switch_mode(SWITCH_BACKGROUND);
     
     return 0;
 }

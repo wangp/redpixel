@@ -41,7 +41,7 @@ static int is_module(char *filename)
 
 void rpjgmod_init(void)
 {
-    install_mod(16);
+    install_mod(24);
     set_mod_volume(128);
     enable_lasttrk_loop = FALSE;
 

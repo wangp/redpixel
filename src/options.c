@@ -7,17 +7,22 @@
 
 
 #include <allegro.h>
+#include <string.h>
 #include "agup.h"
 #include "blood.h"
 #include "mousespr.h"
 #include "music.h"
 #include "globals.h"
 #include "rpagup.h"
+#include "setweaps.h"
+#include "stats.h"
+#include "statlist.h"
 #include "suicide.h"
 #include "vidmode.h"
 
 
 static FONT *old_font;
+static char stats_filename[1024];
 
 
 static char *res_list(int index, int *list_size)
@@ -48,13 +53,23 @@ static int mouse_speed_callback(void *dp3, int d2)
 }
 
 
-static int push_stats(DIALOG *d)
+static int push_stats_button(DIALOG *d)
 {
     char path[1024] = "";
     FONT *save = font;
     (void)d;
     font = old_font;
-    file_select_ex("Use stats file...", path, NULL, sizeof path, 0, 0);
+
+    if (file_select_ex("Use stats file...", path, NULL, sizeof path, 0, 0)) {
+	if (!read_stats(path, stat_block)) {
+	    alert("Error reading", path, "Reverting to previous stats", "Ok", NULL, 13, 27);
+	    pop_stat_block();
+	}
+	else {
+	    strcpy(stats_filename, get_filename(path));
+	}
+    }
+
     font = save;
     return D_O_K;
 }
@@ -90,7 +105,7 @@ DIALOG config_dlg[] =
     { d_text_proc,            160,  142,  20,  8,   0,    0,    0,   0,           10,   0,  "CD",             NULL,  NULL }, /* 18 */
     { d_agup_slider_proc,     185,  140,  100, 12,  0,    0,    0,   0,           10,   0,  NULL,             NULL,  NULL }, /* 19 */
 
-    { d_agup_push_proc,       20,   170,  130, 20,  0,    0,    0,   0,           0,    0,  "stats.09",       NULL,  push_stats }, /* 20 */
+    { d_agup_push_proc,       20,   170,  130, 20,  0,    0,    0,   0,           0,    0,  stats_filename,   NULL,  push_stats_button }, /* 20 */
 
     { d_agup_button_proc,     170,  170,  60,  20,  0,    0,    0,   D_EXIT,      0,    0,  "ACCEPT",         NULL,  NULL }, /* 21 */
     { d_agup_button_proc,     245,  170,  60,  20,  0,    0,    27,  D_EXIT,      0,    0,  "REJECT",         NULL,  NULL }, /* 22 */
@@ -103,11 +118,13 @@ DIALOG config_dlg[] =
 #define I_RESLIST	2
 #define I_SCANLINES	4
 #define I_FILTERED	5
+#define I_MUTESFX	7
 #define I_NOMUSIC	8
 #define I_PLAYMODULES	9
 #define I_PLAYCD	10
 #define I_RECORDREMOS	11
 #define I_MOUSESPEED	13
+#define I_STATS		20
 #define I_ACCEPT	21
 #define I_REJECT	22
 
@@ -130,11 +147,16 @@ void options(void)
     old_font = font;
     font = dat[MINI].dat;
 
+    push_stat_block();
+
+
     /* set up config_dlg */
     {
 	config_dlg[I_RESLIST].d1 = desired_video_mode;
 	set_D_SELECTED(config_dlg + I_SCANLINES, want_scanlines);
 	set_D_SELECTED(config_dlg + I_FILTERED, filtered);
+
+	set_D_SELECTED(config_dlg + I_MUTESFX, mute_sfx);
 
 	{
 	    config_dlg[I_NOMUSIC].flags &=~ D_SELECTED;
@@ -150,6 +172,8 @@ void options(void)
 	set_D_SELECTED(config_dlg + I_RECORDREMOS, record_demos);
 
 	config_dlg[I_MOUSESPEED].d2 = mouse_speed;
+
+	strcpy(stats_filename, "(fixme)");
     }
 
     
@@ -160,12 +184,14 @@ void options(void)
 
     
     /* update settings */
-    if (accepted)
-    {
+    if (accepted) {
+	
 	desired_video_mode = config_dlg[I_RESLIST].d1;
 	want_scanlines = config_dlg[I_SCANLINES].flags & D_SELECTED;
 	filtered = config_dlg[I_FILTERED].flags & D_SELECTED;
-
+	
+	mute_sfx = config_dlg[I_MUTESFX].flags & D_SELECTED;
+	
 	{
 	    if (config_dlg[I_NOMUSIC].flags & D_SELECTED)
 		music_set_format(MUSIC_FMT_NONE);
@@ -176,8 +202,11 @@ void options(void)
 	}
 	
 	record_demos = config_dlg[I_RECORDREMOS].flags & D_SELECTED;
-
+	
 	mouse_speed = config_dlg[I_MOUSESPEED].d2;
+    }
+    else {
+	pop_stat_block();
     }
 
     
@@ -192,7 +221,9 @@ void options(void)
     }
 
     set_mouse_speed(mouse_speed, mouse_speed);
-
+    
+    
+    set_weapon_stats();
     
     font = old_font;
 

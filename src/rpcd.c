@@ -15,6 +15,11 @@
 #include "rpcd.h"
 
 
+#ifndef NULL
+#define NULL	0
+#endif
+
+
 static int inited;
 static long rnd;
 

@@ -36,6 +36,11 @@
 #include "winhelp.h"
 
 
+#ifndef TARGET_WINDOWS
+#define SERIAL
+#endif
+
+
 #define big	dat[UNREAL].dat
 #define small	dat[MINI].dat
 
@@ -135,14 +140,16 @@ static int prompt(char *string, char *dest, int maxlen)
 
 	if ((k >> 8) == KEY_BACKSPACE && (len > 0)) {
 	    dest[len - 1] = 0;
-	    play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
+	    if (!mute_sfx)
+		play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
 	}
 	else if (len < maxlen-1) {
 	    c = toupper(k & 0xff);
 	    if (c >= ' ' && c <= '~') {
 		dest[len] = c;
 		dest[len+1] = 0;
-		play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
+		if (!mute_sfx)
+		    play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
 	    }	    
 	}
     }
@@ -201,7 +208,7 @@ static void get_map_filenames()
     while (1) {
 	if (i == 0) {
 	    i = 1;
-	    if (al_findfirst(path, &f, FA_RDONLY))
+	    if (al_findfirst(path, &f, FA_RDONLY | FA_ARCH | FA_SYSTEM))
 		return;
 	}
 	else {
@@ -533,7 +540,8 @@ static char *select_map()
 
 		chatting = 0;
 
-		play_sample(dat[WAV_INCOMING].dat, 255, 128, 1000, 0);
+		if (!mute_sfx)
+		    play_sample(dat[WAV_INCOMING].dat, 255, 128, 1000, 0);
 
 		if (comm == peerpeer) {
 		    skSend(CHAT_INCOMING);
@@ -562,7 +570,8 @@ static char *select_map()
 
 	    strcpy(chatbox[line], temp);
 
-	    play_sample(dat[WAV_INCOMING].dat, 255, 128, 1000, 0);
+	    if (!mute_sfx)
+		play_sample(dat[WAV_INCOMING].dat, 255, 128, 1000, 0);
 	}
 
 	/* backspace  */
@@ -570,7 +579,8 @@ static char *select_map()
 	    i = strlen(cur);
 	    if (i) {
 		cur[i-1] = 0;
-		play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
+		if (!mute_sfx)
+		    play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
 	    }
 	}
 
@@ -582,7 +592,8 @@ static char *select_map()
 		cur[i] = ch;
 		cur[i+1] = 0;
 		chatting = 1;
-		play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
+		if (!mute_sfx)
+		    play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
 	    }
 	}
     }
@@ -696,7 +707,8 @@ static void do_session()
 	spawn_players();
 	
 	/* Go!  */
-	play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
+	if (!mute_sfx)
+	    play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
 
       returntogame:   
 	game_loop();
@@ -773,6 +785,13 @@ static int peerpeer_negotiate_environment()
     return 1;
 }
 
+static int peerpeer_check_stats()
+{
+    unsigned long sum = make_stat_checksum(stat_block);
+    send_long(sum);
+    return sum == recv_long();
+}
+
 static void peerpeer_trade_names()
 {
     int pos, player, ch, left;
@@ -822,6 +841,8 @@ static void peerpeer_session()
  * 	Serial connection
  * 
  *----------------------------------------------------------------------*/
+
+#ifdef SERIAL
 
 #define SER_CONNECTPLS  '?'
 #define SER_CONNECTOK   '!'
@@ -896,6 +917,11 @@ static void serial_proc()
     if (!peerpeer_negotiate_environment())
 	return;
 	
+    if (!peerpeer_check_stats()) {
+	error_screen("INCOMPATIBLE STATS");
+	return;
+    }
+
     peerpeer_session();
         
     enter_menu(root_menu);
@@ -906,6 +932,8 @@ static void serial_port_0_proc() { com_port = 0; serial_proc(); }
 static void serial_port_1_proc() { com_port = 1; serial_proc(); }
 static void serial_port_2_proc() { com_port = 2; serial_proc(); }
 static void serial_port_3_proc() { com_port = 3; serial_proc(); }
+
+#endif
 
 
 
@@ -992,6 +1020,11 @@ static void libnet_proc(int x, char *addr)
     if (!peerpeer_negotiate_environment())
 	return;
     
+    if (!peerpeer_check_stats()) {
+	error_screen("INCOMPATIBLE STATS");
+	return;
+    }
+
     peerpeer_session();
     
     enter_menu(root_menu);
@@ -1083,7 +1116,7 @@ static void demo_playback_proc()
  * 
  *----------------------------------------------------------------------*/
 
-#ifndef TARGET_WINDOWS
+#ifdef SERIAL
 
 static BLUBBER serial_menu[] =
 {
@@ -1102,7 +1135,7 @@ static BLUBBER serial_menu[] =
     { prev_menu, "", 		startgame_menu }
 };
 
-#endif /* !TARGET_WINDOWS */
+#endif /* SERIAL */
 
 #ifndef NO_LIBNET_CODE
 
@@ -1118,7 +1151,7 @@ static BLUBBER libnet_menu[] =
 static BLUBBER startgame_menu[] = 
 {
     { menu_proc, "Solo", 	single_proc },
-#ifndef TARGET_WINDOWS
+#ifdef SERIAL
     { join_menu, "Serial", 	serial_menu },
 #endif
 #ifndef NO_LIBNET_CODE

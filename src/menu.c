@@ -121,6 +121,16 @@ void set_menu_message(char *msg)
  * 
  *----------------------------------------------------------------------*/
 
+
+static int dirty;
+
+
+static void switch_in_callback(void)
+{
+    dirty = 1;
+}
+
+
 static int inline touch(int item)
 {
     int my = mouse_y * 200.0/SCREEN_H;
@@ -129,15 +139,15 @@ static int inline touch(int item)
 }
 
 
-void blubber(BLUBBER *start)
+static void do_blubber(BLUBBER *start)
 {
     BLUBBER *bp;
     int do_action = 0, do_prev = 0;
     int old_mouse_pos = 0;
-    int dirty = 1;
     int i;
 
     menu_end = 0;
+    dirty = 1;
     enter_menu(start);
     show_mouse(screen);
 
@@ -248,4 +258,19 @@ void blubber(BLUBBER *start)
 	    dirty = 1;
 	}
     }
+}
+
+
+void blubber(BLUBBER *start)
+{
+    int mode = get_display_switch_mode();
+    int need = (mode == SWITCH_AMNESIA) || (mode == SWITCH_BACKAMNESIA);
+    
+    if (need)
+	set_display_switch_callback(SWITCH_IN, switch_in_callback);
+    
+    do_blubber(start);
+    
+    if (need)
+	remove_display_switch_callback(switch_in_callback);
 }

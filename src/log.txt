@@ -214,3 +214,13 @@ now back to school, so less done
 		More work on options
 		Scanlines option for video modes
 		Show current player name at bottom of screen in demos
+		Don't show tracker after death
+
+11 December	Stats checksums
+		Don't set key[] for ENTER, F12, P, since it is now read-only
+		Stats file select in options screen
+
+12 December	Fixed compilation under Mingw
+		Don't show brightened screen for lightamp after death
+		Reserve more voices for jgmod
+		Use SWITCH_BACKAMNESIA or SWITCH_BACKGROUND when possible

@@ -17,13 +17,17 @@
 
 void snd_local(int snd)
 {
-    play_sample(dat[snd].dat, 255, 128, 1000, 0);
+    if (!mute_sfx)
+	play_sample(dat[snd].dat, 255, 128, 1000, 0);
 }
 
 
 void snd_3d(int snd, int maxvol, int sourcex, int sourcey)
 {
     int dist, pan;
+
+    if (mute_sfx)
+	return;
 
     dist = find_distance(players[local].x, players[local].y, sourcex, sourcey) / 2;
 

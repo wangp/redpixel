@@ -27,7 +27,7 @@ ifeq "$(PLATFORM)" "MINGW"
 CFLAGS += -DTARGET_WINDOWS
 GAME := redwin.exe
 LDFLAGS := -mwindows
-LIBS := -lalleg $(LIBNET) -lwsock32 $(LIBCDA) $(JGMOD) $(AGUP)
+LIBS := $(LIBNET) -lwsock32 $(LIBCDA) -lwinmm $(JGMOD) $(AGUP) -lalleg
 PLATFORM_MODULES := getopt skdummy
 OBJDIR := obj/win
 endif

@@ -64,7 +64,7 @@ void respawn_player(int pl)
 		guy->num_rockets =
 		guy->num_arrows =
 		guy->num_mines = 0;
-	    for (i = 0; i < num_weaps; i++, guy->have[i] = 0) ;
+	    for (i = 0; i < num_weaps; i++) guy->have[i] = 0;
 	    guy->have[w_knife] = 1;
 	    guy->cur_weap = guy->pref_weap = w_knife;
 	    guy->visor_tics = 0;

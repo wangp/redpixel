@@ -56,6 +56,59 @@ static int show_fps = 0;
 static BITMAP *ftmp;
 
 
+/*----------------------------------------------------------------------*/
+
+
+static volatile int kb_enter;
+static volatile int kb_f12;
+static volatile int kb_p;
+static volatile int want_quit;
+
+static void my_keyboard_lowlevel_callback(int scancode)
+{
+    int sc = scancode & 0x7f;
+    int pressed = !(scancode & 0x80);
+    switch (sc) {
+	case KEY_ENTER: kb_enter = pressed; break;
+        case KEY_F12: kb_f12 = pressed; break;
+	case KEY_P: kb_p = pressed; break;
+        case KEY_ESC:
+	    if (pressed)
+		want_quit = 1;
+	    break;
+        default:
+    }
+}
+
+END_OF_STATIC_FUNCTION(my_keyboard_lowlevel_callback);
+
+
+static void install_my_keyboard_lowlevel_callback()
+{
+    static int first = 1;
+    if (first) {
+	LOCK_VARIABLE(kb_enter);
+	LOCK_VARIABLE(kb_f12);
+	LOCK_VARIABLE(kb_p);
+	LOCK_VARIABLE(want_quit);
+	LOCK_FUNCTION(my_keyboard_lowlevel_callback);
+	first = 0;
+    }
+    kb_enter = kb_f12 = kb_p = 0;
+    want_quit = 0;
+    keyboard_lowlevel_callback = my_keyboard_lowlevel_callback;
+}
+
+
+static void uninstall_my_keyboard_lowlevel_callback()
+{
+    keyboard_lowlevel_callback = NULL;
+}
+
+
+/*----------------------------------------------------------------------*/
+
+
 static void draw_spotlight()
 {
     int u = 0, v = 0;
@@ -234,9 +287,10 @@ static void render()
     draw_explo();
     draw_corpses();
 
-    if (!players[local].visor_tics
-	|| ((players[local].visor_tics < (GAME_SPEED * 3)
-	     && (players[local].visor_tics % 2) == 0)))
+    if (!players[local].health ||
+        !players[local].visor_tics ||
+        ((players[local].visor_tics < (GAME_SPEED * 3) &&
+         (players[local].visor_tics % 2) == 0)))
 	draw_spotlight();
 
     if ((players[local].scanner_tics) && (players[local].health > 0)) {
@@ -261,11 +315,12 @@ static void render()
 
 void game_loop()
 {
-    int want_quit = 0;
     int frames_dropped;
     int update;
     int i;
     
+    install_my_keyboard_lowlevel_callback();
+
     if (filtered) ftmp = create_bitmap(dbuf->w, dbuf->h);
     if (ftmp) clear_bitmap(ftmp);
 
@@ -273,7 +328,7 @@ void game_loop()
 
     show_mouse(screen);
 
-    while (1) {
+    do {
 	frames_dropped = 0;
 	update = 0;
 
@@ -282,8 +337,14 @@ void game_loop()
 
 	    calc();
 
-	    if (comm != demo) 
+	    if (comm != demo) {
 		get_local_input();
+
+		/* Hack: the X port of Allegro will "lightly" grab the
+                   mouse in the window if you call get_mouse_mickeys.
+                   You can still break out by moving the mouse faster.  */
+ 		{ int x, y; get_mouse_mickeys(&x, &y); }
+	    }
 
 	    switch (comm) {
 		case peerpeer:
@@ -294,9 +355,6 @@ void game_loop()
 			    frames_dropped--;
 			    render();
 			}
-
-			if (key[KEY_ESC])
-			    want_quit = 1;
 		    }
 
 		    if (recv_remote_inputs() < 0)
@@ -319,11 +377,11 @@ void game_loop()
 			    speed_counter += 2;
 		    }
 
-		    if (key[KEY_ENTER] && num_players == 2) {
+		    if (kb_enter && num_players == 2) {
 			local = 1 - local;
 			/* add_msgf(-1, "< Now watching %s >", players[local].name); */
 
-			//key[KEY_ENTER] = 0;	/* bleh */
+			kb_enter = 0;
 		    }
 		
 		    /* screenshots: dodgy web design stuff */
@@ -331,17 +389,18 @@ void game_loop()
 			static char ss_name[80];
 			static int ss_num = 0;
 
-			if (key[KEY_P]) {
+			if (kb_p) {
 			    while (ss_num <= 9999) {
 				sprintf(ss_name, "shot%04d.pcx", ss_num++);
 				if (exists(ss_name))
 				    continue;
-				save_pcx(ss_name, dbuf, dat[GAMEPAL].dat);
+				if (save_pcx(ss_name, dbuf, dat[GAMEPAL].dat) != 0)
+				    add_msgf(-1, "Error writing %s", ss_name);
 				break;
 			    }
 			    
 			    speed_counter = 1;
-			    //key[KEY_P] = 0;
+			    kb_p = 0;
 			}
 		    }
 
@@ -354,9 +413,6 @@ void game_loop()
 
 	    if (comm != demo)
 		demo_write_player_inputs();
-
-	    if (key[KEY_ESC])
-		want_quit = 1;
 
 	    respawn_tiles();
 	    respawn_ammo();
@@ -400,9 +456,9 @@ void game_loop()
 		    blood_frame = 0;
 	    }
 
-	    if (key[KEY_F12]) {
-		show_fps = (show_fps ? 0 : 1);
-		//key[KEY_F12] = 0;
+	    if (kb_f12) {
+		show_fps = !show_fps;
+		kb_f12 = 0;
 	    }
 	    
 	    speed_counter--;
@@ -415,9 +471,7 @@ void game_loop()
 
 	music_poll();
 
-	if (key[KEY_ESC] || want_quit)
-	    break;
-    }
+    } while (!want_quit);
     
     if (comm == peerpeer) {
 	skSend(PACKET_QUITGAME);
@@ -428,11 +482,13 @@ void game_loop()
     while (key[KEY_ESC] && mouse_b)
 	yield_timeslice();
     clear_keybuf();
-    
+
   quit:
     
     if (ftmp) {
 	destroy_bitmap(ftmp);
 	ftmp = 0;
     }
+    
+    uninstall_my_keyboard_lowlevel_callback();
 }
