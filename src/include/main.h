@@ -3,6 +3,8 @@
 
 
 extern int record_demos;
+extern int filtered;
+
 
 void shutdown();
 

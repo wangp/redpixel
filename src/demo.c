@@ -246,6 +246,17 @@ void demo_write_frame_data(void *packet, int len)
 }
 
 
+void demo_write_player_inputs()
+{
+    char packet[10];
+    int i;
+    
+    for (i = 0; i < num_players; i++) {
+	make_playerstat(packet, i);
+	demo_write_frame_data(packet, 4);
+    }
+}
+
 
 /*----------------------------------------------------------------------
  * 

@@ -17,9 +17,12 @@
 #include "anim.h"
 #include "blood.h"
 #include "colours.h"
+#include "demo.h"
 #include "engine.h"
+#include "fblit.h"
 #include "globals.h"
 #include "input.h"
+#include "main.h"
 #include "map.h"
 #include "packet.h"
 #include "player.h"
@@ -51,8 +54,9 @@ static int shakex, shakey;
 static int heart_frame, heart_anim;
 static int blood_frame, blood_anim;
 
-
 static int show_fps = 0;
+
+static BITMAP *ftmp;
 
 
 static void draw_spotlight()
@@ -242,8 +246,11 @@ static void render()
     draw_status();
     draw_msgs();
 
-    show_mouse(NULL);		/* FIXME: use scare mouse instead */
-    blit(dbuf, screen, 0, 0, 0 + shakex, 0 + shakey, SCREEN_W, SCREEN_H);
+    if (ftmp) 
+	fblit(dbuf, ftmp);
+
+    show_mouse(NULL);	/* FIXME: use scare mouse instead */
+    blit(ftmp ? ftmp : dbuf, screen, 0, 0, 0 + shakex, 0 + shakey, SCREEN_W, SCREEN_H);
     if (players[local].health && (comm != demo))
 	show_mouse(screen);
 
@@ -253,9 +260,13 @@ static void render()
 
 void game_loop()
 {
+    int want_quit = 0;
     int frames_dropped;
     int update;
     int i;
+    
+    if (filtered) ftmp = create_bitmap(dbuf->w, dbuf->h);
+    if (ftmp) clear(ftmp);
 
     speed_counter = 0;
 
@@ -263,18 +274,18 @@ void game_loop()
 	frames_dropped = 0;
 	update = 0;
 
-	while (speed_counter > 0 && frames_dropped < 6) {
+	while ((speed_counter > 0 && frames_dropped < 6) && (!want_quit)) {
 	    update = 1;
 
 	    calc();
 
-	    if (comm != demo) {
+	    if (comm != demo) 
 		get_local_input();
-		send_local_input();
-	    }
 
 	    switch (comm) {
 		case peerpeer:
+		    send_local_input();
+		
 		    while (!skReady()) {
 			if (frames_dropped > 1) {
 			    frames_dropped--;
@@ -282,17 +293,17 @@ void game_loop()
 			}
 
 			if (key[KEY_ESC])
-			    goto ask_quit;
+			    want_quit = 1;
 		    }
 
 		    if (recv_remote_inputs() < 0)
-			return;
+			goto quit;
 
 		    break;
 
 		case demo:
 		    if (recv_demo_inputs() < 0)
-			return;
+			goto quit;
 		
 		    /* Special demo-mode keys.  */
 
@@ -335,10 +346,14 @@ void game_loop()
 
 		default:
 		    break;
-	    }
+		
+	    } /* end receive inputs */
+
+	    if (comm != demo)
+		demo_write_player_inputs();
 
 	    if (key[KEY_ESC])
-		goto ask_quit;
+		want_quit = 1;
 
 	    respawn_tiles();
 	    respawn_ammo();
@@ -395,12 +410,10 @@ void game_loop()
 	if (update)
 	    render();
 
-	if (key[KEY_ESC])
+	if (key[KEY_ESC] || want_quit)
 	    break;
     }
-
-  ask_quit:
-
+    
     if (comm == peerpeer) {
 	skSend(PACKET_QUITGAME);
 	while (skRecv() != PACKET_QUITOK)
@@ -409,4 +422,11 @@ void game_loop()
 
     while (key[KEY_ESC] && mouse_b) ;
     clear_keybuf();
+    
+  quit:
+    
+    if (ftmp) {
+	destroy_bitmap(ftmp);
+	ftmp = 0;
+    }
 }

@@ -39,7 +39,7 @@ static int raster_words(char *s)
 
     w = text_length(dat[UNREAL].dat, s);
     h = text_height(dat[UNREAL].dat);
-    if (w%2==0) w++;
+    if ((w % 2) == 0) w++;
 
     txt1 = create_bitmap(w, h);
     txt2 = create_bitmap(w, h);
@@ -47,41 +47,39 @@ static int raster_words(char *s)
     clear(txt2);
     textout(txt1, dat[UNREAL].dat, s, 0, 0, -1);
     textout(txt2, dat[UNREAL].dat, s, 0, 0, -1);
-    for (x=0; x<h; x+=2) {
-	hline(txt1, 0, x, w-1, 0);
-	hline(txt2, 0, x+1, w-1, 0);
+    for (x = 0; x < h; x += 2) {
+	hline(txt1, 0, x,     w - 1, 0);
+	hline(txt2, 0, x + 1, w - 1, 0);
     }
 
     x = -w;
-    y = 100-h/2;
+    y = 100 - h / 2;
 
-    do
-    {
+    do {
 	clear(dbuf);
 	draw_sprite(dbuf, txt1, x, y);
-	draw_sprite(dbuf, txt2, 319-x-w, y);
+	draw_sprite(dbuf, txt2, 319 - x - w, y);
 	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
 	x++;
 	if (keypressed())
-	    goto die;
-    } while (x < 160-w/2);
+	    goto quit;
+    } while (x < (160 - w / 2));
 
     rest(500);
 
-    do
-    {
+    do { 
 	clear(dbuf);
 	draw_sprite(dbuf, txt1, x, y);
-	draw_sprite(dbuf, txt2, 319-x-w, y);
+	draw_sprite(dbuf, txt2, 319 - x - w, y);
 	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
 	x++;
 	if (keypressed())
-	    goto die;
-    } while (x<320);
+	    goto quit;
+    } while (x < 320);
 
     nopress = 1;
 
-    die:
+  quit:
     
     destroy_bitmap(txt1);
     destroy_bitmap(txt2);
@@ -92,26 +90,25 @@ static int raster_words(char *s)
 
 static int scan(int x, int y)
 {
-    BITMAP *dbuf;
-    int x2, i, j=0;
+    BITMAP *bmp;
+    int x2, i, j = 0;
     x2 = x + 60;
 
-    dbuf = create_bitmap(320,200);
-    clear(dbuf);
+    bmp = create_bitmap(320, 200);
+    clear(bmp);
 
-    do
-    {
-	if (j==0) j=1; else j=0;
+    do {
+	j = (j) ? 0 : 1;
 
-	for (i=j; i<80; i+=2)
-	    blit(dat[TITLE].dat, dbuf, x, y+i, 120, 60+i, 80, 1);
+	for (i = j; i < 80; i += 2)
+	    blit(dat[TITLE].dat, bmp, x, y + i, 120, 60 + i, 80, 1);
 
-	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
+	blit(bmp, screen, 0, 0, 0, 0, 320, 200);
 	x++;
 	rest(60);
     } while ((x < x2) && (!keypressed()));
 
-    destroy_bitmap(dbuf);
+    destroy_bitmap(bmp);
 
     return !(x < x2);
 }
@@ -136,16 +133,14 @@ void intro()
 	x = 159; x2 = 160;
 	y = 99;  y2 = 100;
 
-	do
-	{
+	do {
 	    clear(dbuf);
 	    blit(dat[TITLE].dat, dbuf, x, y, x, y, x2-x, y2-y);
 	    blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
 
 	    x--; x2++;
 	    y--; y2++;
-	}
-	while (x>0);
+	} while (x > 0);
 
 	rest(1400);
     }

@@ -28,6 +28,7 @@
 #include "main.h"
 #include "engine.h"
 #include "blood.h"
+#include "fblit.h"
 #include "globals.h"
 #include "intro.h"
 #include "launch.h"
@@ -44,6 +45,7 @@
 
 
 int record_demos = 0;
+int filtered = 0;
 
 
 static void usage(char *options)
@@ -91,20 +93,20 @@ int main(int argc, char *argv[])
     
     /* command line args  */
     while (1) {
-	char *options = "hveqldms:";
+	char *options = "hveqldmfs:";
 	    
 	c = getopt(argc, argv, options);
 	if (c < 0) break;
 	    
 	switch (c) {
 	    case 'h': usage(options); return 0;
-	    case 'v': 
-	    show_version(1); return 0;
+	    case 'v': show_version(); return 0;
 	    case 'e': editor = 1; break;
 	    case 'q': skip_intro = 1; break;
 	    case 'l': lcd_cur = 1; break;
 	    case 'd': record_demos = 1; break;
 	    case 'm': mute = 1; break;
+	    case 'f': filtered = 1; break;
 	    case 's': 
 		if (!optarg) {
 		    allegro_message("No stats file specified!\n");
@@ -194,6 +196,9 @@ int main(int argc, char *argv[])
     }
     
     set_palette(dat[GAMEPAL].dat);
+    if (filtered)
+	fblit_init(dat[GAMEPAL].dat);
+    
     dbuf = create_bitmap(SCREEN_W, SCREEN_H);
     light = create_bitmap(SCREEN_W, SCREEN_H);
     set_mouse_sprite(dat[lcd_cur ? XHAIRLCD : XHAIR].dat);

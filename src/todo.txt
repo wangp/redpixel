@@ -2,3 +2,4 @@ Unix path stuff
 do not spawn in same place
 network error checking (should not be necessary because using RDM)
 eventually replace native SK serial with Libnet serial
+make intro use fblit :-)

@@ -26,16 +26,9 @@ void send_local_input()
 {
     char packet[10];
     
-    if (num_players < 2 && !demo_is_recording())
-	return;
-    
     packet[0] = PACKET_PLAYERSTAT;
     make_playerstat(packet + 1, local);
-
-    if (comm == peerpeer)
-	skWrite(packet, 5);
-
-    demo_write_frame_data(packet + 1, 4);
+    skWrite(packet, 5);
 }
 
 
@@ -54,7 +47,6 @@ int recv_remote_inputs()
 		    ;
 		skRead(packet, 4);
 	    	load_playerstat(packet);
-		demo_write_frame_data(packet, 4);
 	    	return 0;
 
 	    case PACKET_QUITGAME:

@@ -48,7 +48,7 @@ static void speed_timer()
     speed_counter++;
 }
 
-END_OF_FUNCTION(speed_timer);
+END_OF_STATIC_FUNCTION(speed_timer);
 
 
 /*----------------------------------------------------------------------*/
@@ -61,7 +61,7 @@ static void fps_timer()
     frame_counter = 0;
 }
 
-END_OF_FUNCTION(fps_timer);
+END_OF_STATIC_FUNCTION(fps_timer);
 
 
 /*----------------------------------------------------------------------*/

@@ -27,6 +27,7 @@ void demo_write_close();
 void demo_write_set_rng_seed(long seed);
 void demo_write_change_map(char *filename);
 void demo_write_frame_data(void *packet, int len);
+void demo_write_player_inputs();
 
 
 char *new_demo_filename(char *ppath);

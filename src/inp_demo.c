@@ -31,8 +31,8 @@ int recv_demo_inputs()
 
 	if (x == DEMO_FRAME_DATA) {
 	    demo_read_packet(packet, 4);
-	    if (load_playerstat(packet) == num - 1)
-		break;
+	    load_playerstat(packet);
+	    num--;
 	}
 	else if (x == DEMO_MAP_CHANGE) {
 	    char filename[1024], *f;

@@ -8,7 +8,12 @@
 #
 
 CC = gcc
-CFLAGS = -Wall -O3 -m486 -Isrc -Isrc/include -Isrc/sk 
+CFLAGS = -Wall -O3 -m486 -ffast-math -fomit-frame-pointer \
+	-Isrc -Isrc/include -Isrc/sk
+
+ifdef DEBUG
+	CFLAGS += -g
+endif
 
 ifdef MINGW32
 	PLATFORM = WINDOWS
@@ -70,6 +75,7 @@ COMMON_MODULES = \
 	engine		\
 	explo		\
 	fastsqrt	\
+	fblit		\
 	gameloop	\
 	globals		\
 	inp_demo	\
@@ -115,7 +121,7 @@ $(GAME): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 obj/depend:
-	gcc $(CFLAGS) -MM src/*.c src/sk/*.c | sed 's,^\(.*[.]o:\),obj/\1,' > $@
+	gcc $(CFLAGS) -MM src/*.c src/sk/*.c | sed 's,^\(.*[.]o:\),obj/*/\1,' > $@
 
 
 .PHONY = depend compress suidroot strip clean cleaner 

@@ -169,5 +169,11 @@ now back to school, so less done
 03 June		Made name default to nothing, rather than `NO NAME'
    		Rewrote flakey `trade_map_filenames' routine
 			(now send/receive intertwined)
-   		Released as version 0.11
+   		Released as version 0.11 (announced everywhere :)
 		
+		Added filtered blit option `-f'
+		... and made credits screen use it
+		
+04 June		Found demo-screwing up bugs
+   		Released as version 0.11.1
+		Fixed bug in cd audio track selection

@@ -74,6 +74,7 @@ the original `redpixel.txt'.
       <item> keyboard control in menu
       <item> experimental Windows port (unstable)
       <item> CD playing (not built by default)
+      <item> <ref id="sec-cmdline" name="filter"> command-line option (i.e. anti-aliasing)
     </itemize>
 
   <p> New in 0.9:
@@ -182,6 +183,9 @@ the original `redpixel.txt'.
       <tag/-d/ Enable <ref id="sec-demo" name="demo"> recording.
       
       <tag/-m/ Mute sound.
+      
+      <tag/-f/ Filter screen.  Requires a fast computer.  (I can
+      	       only manage 15-20 FPS.)  Be sure to watch the credits :-)
 
     </descrip>
 

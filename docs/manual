@@ -114,6 +114,8 @@
 
   o  CD playing (not built by default)
 
+  o  ``filter'' command-line option (i.e. anti-aliasing)
+
 
   New in 0.9:
 
@@ -193,6 +195,7 @@
   install Libnet.  If you want CD playing support, you will also need to
   install libcda.  (see below for URLs)
 
+
   From there you should be able to simply type `make' in the game's root
   directory.  If you don't have Libnet, type `make WITHOUT_LIBNET=1'.
   If you want CD playing supprt, add `WITH_LIBCDA=1' to the command
@@ -255,10 +258,11 @@
      -m Mute sound.
 
 
+     -f Filter screen.  Requires a fast computer.  (I can only manage
+        15-20 FPS.)  Be sure to watch the credits :-)
+
+
   You can collate the options together, e.g. `red -qld'.
-
-
-
 
 
 
@@ -321,10 +325,6 @@
 
 
   o  Use the following keys to move around.  They are all equivalent.
-
-
-
-
 
 
 

@@ -44,11 +44,17 @@ void rpcd_play_random_track()
     if (cd_get_tracks(&t0, &t1) != 0)
 	return;
 
+    /* make sure there is at least one audio track */
+    for (i = t0; i <= t1; i++)
+	if (cd_is_audio(i)) break;
+    
+    if (i > t1) return;
+
     while (1) {
 	rnd = longrand(rnd);
 	i = (rnd % t1) + 1;
 	
-	if ((i < t1) && !cd_is_audio(i))
+	if ((i < t0) || !cd_is_audio(i))
 	    continue;
 	
 	cd_play_from(i);

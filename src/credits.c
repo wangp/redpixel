@@ -27,114 +27,124 @@
 #include "blood.h"
 #include "colours.h"
 #include "globals.h"
+#include "fblit.h"
+#include "main.h"
 #include "version.h"
 
 
+static volatile int timer;
+
+static void timer_func()
+{
+    timer++;
+} 
+
+END_OF_STATIC_FUNCTION(timer_func);
+
+
+#define FULLSCREEN	\
+    "", "", "", "", "", "", "", "", "", "",	\
+    "", "", "", "", "", "", "", "", "", "",	\
+    "", "", "", "", "", "", ""
+
+#define NL	""
+#define BLANK2	"", ""
+#define BLANK3	"", "", ""
+
+
 static char *text[] = {
-    "", "", "", "", "", "", "", "", "", "",
-    "", "", "", "", "", "", "", "", "", "",
-    "", "", "", "", "", "", "",
-    "rRED PIXEL",
-    "",
-    "",
-    "COPYRIGHT PSYK SOFTWARE " VERSION_YEAR,
-    "LICENSED UNDER GNU LGPL", 
-    "",
-    "",
-    "",
-    "rCODE + ADDITIONAL GRAPHICS",
-    "",
-    "",
-    "PETER WANG",
-    "",
-    "",
-    "",
-    "rGAME GRAPHICS",
-    "",
-    "",
-    "DAVID WANG",
-    "",
-    "",						
-    "``FRAGS TABLE'' BACKDROP FOUND ON FTP.UFIES.ORG",
-    "",
-    "",						
-    "",
-    "rINITIAL LINUX PORT",
-    "",
-    "",
-    "PETER SUNDLING",
-    "",
-    "",
-    "",
-    "rSOUNDS STOLEN FROM",
-    "",
-    "",
-    "POSTAL (RUNNING WITH SCISSORS)",
-    "",
-    "DOOM (ID SOFTWARE)",
-    "",
-    "MECHWARRIOR II (ACTIVISION)",
-    "",
-    "CYBERDOGS (RONNY WESTER)",
-    "",
-    "COMMANDO (ARNIE)",
-    "",
-    "",
-    "",
-    "rSPECIAL THANKS",
-    "",
-    "",
-    "SHAWN HARGREAVES AND ALLEGRO CONTRIBUTORS",
-    "",
-    "GEORGE FOOT AND LIBNET CONTRIBUTORS",
-    "",
-    "DJ DELORIE AND DJGPP CONTRIBUTORS",
-    "",
-    "ANDRE LAMOTHE FOR BASIS OF SERIAL CODE",
-    "",
-    "BRENNAN UNDERWOOD FOR FAST SQRT ROUTINES",
-    "",
-    "FREE SOFTWARE PEOPLE IN GENERAL",
-    "", "", "", "", "", "", "", "", "", "",
-    "", "", "", "", "", "", "", "", "", "",
-    "", "", "", "", "", "",
-    "x"
+        FULLSCREEN,
+	"rRED PIXEL ", NL,
+	"VERSION " VERSION_STR,
+	BLANK2,
+	"COPYRIGHT PSYK SOFTWARE " VERSION_YEAR,
+	"LICENSED UNDER GNU LGPL",
+	BLANK3,
+	"rCODE + ADDITIONAL GRAPHICS",
+	BLANK2,
+	"PETER WANG",
+	BLANK3,
+	"rGAME GRAPHICS",
+	BLANK2,
+	"DAVID WANG",
+	BLANK2,
+	"`FRAGS TABLE' BACKDROP FOUND ON FTP.UFIES.ORG",
+	BLANK3,
+	"rINITIAL LINUX PORT", 
+	BLANK2,
+	"PETER SUNDLING",
+	BLANK3,
+	"rSOUNDS STOLEN FROM",
+	BLANK2,
+	"               POSTAL   RUNNING WITH SCISSORS", NL,
+	"                 DOOM   ID SOFTWARE          ", NL,
+	"       MECHWARRIOR II   ACTIVISION           ", NL,
+	"            CYBERDOGS   RONNY WESTER         ", NL,
+	"             COMMANDO   ARNIE                ", NL,
+	BLANK2,
+	"rSPECIAL THANKS",
+	BLANK2,
+	"SHAWN HARGREAVES AND ALLEGRO CONTRIBUTORS",	NL,
+	"GEORGE FOOT AND LIBNET CONTRIBUTORS",		NL,
+	"DJ DELORIE AND DJGPP CONTRIBUTORS",		NL,
+	"ANDRE LAMOTHE FOR BASIS OF SERIAL CODE",	NL,
+	"BRENNAN UNDERWOOD FOR FAST SQRT ROUTINES",	NL,
+	"FREE SOFTWARE PEOPLE IN GENERAL",
+	FULLSCREEN, "x"
 };
 
 
 void credits()
 {
+    BITMAP *ftmp, *bmp;
     int line = 0;
     int offset = 0, h;
     int theend = 0;
     int i;
 
+    /* preparation */
+    ftmp = (filtered) ? create_bitmap(dbuf->w, dbuf->h) : 0;
+    bmp  = (ftmp) ? ftmp : dbuf;
+    
+    LOCK_VARIABLE(timer);
+    LOCK_FUNCTION(timer_func);
+    install_int(timer_func, 40);
+
+    /* begin */
     clear_keybuf();
     show_mouse(NULL);
+
+    clear(screen);
+    clear(dbuf);
 
     h = text_height(dat[MINI].dat);
 
     while (!keypressed() && !mouse_b && !theend) {
+	timer = 0;
+	
 	if (--offset < 0) {
 	    offset = h;
 	    line++;
 	}
 
-	clear(dbuf);
+	clear(bmp);
 	for (i = -1; i < 200 / h; i++) {
 	    if (!theend) {
-		if (text[line+i][0]=='x')
+		if (text[line+i][0] == 'x')
 		    theend = 1;
 		else if (text[line+i][0] == 'r')
-		    textout_centre(dbuf, dat[MINI].dat, text[line+i]+1, 160, i*h + offset, RED);
+		    textout_centre(bmp, dat[MINI].dat, text[line+i]+1, 160, i*h + offset, RED);
 		else
-		    textout_centre(dbuf, dat[MINI].dat, text[line+i], 160, i*h + offset, WHITE);
+		    textout_centre(bmp, dat[MINI].dat, text[line+i], 160, i*h + offset, WHITE);
 	    }
 	}
-
+	
+	if (ftmp) 
+	    fblit(ftmp, dbuf);
 	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
 
-	rest(40); 
+	while (timer == 0)
+	    ;
     }
 
     fade_out(6);
@@ -143,4 +153,10 @@ void credits()
 
     while (key[KEY_ESC] || mouse_b)
 	;
+
+    /* clean up */
+    remove_int(timer_func);
+    
+    if (ftmp)
+	destroy_bitmap(ftmp);
 }
