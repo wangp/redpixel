@@ -20,11 +20,5 @@
 	    + intro
 11 july     did name trading, score sheet, some synch fixes, serial chat
 	    + 3d sound + serial file select thing
-
-
-Red Pixel
-
-code : Tjaden
-graphics : Airstryk
-
-Psyk 1998
+12 july     fixed bloodlust respawn + chicken respawn, etc +
+	    arrow/rocket hitting player now causes explosion and boom sound

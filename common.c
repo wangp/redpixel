@@ -79,7 +79,7 @@ int pic2num(LIST *l, int pic)
 
 int rr_a_bullet, rr_a_arrow, rr_w_mine, rr_a_rocket, rr_a_shell, rr_a_chicken;
 int rr_a_coke, rr_a_armour, rr_a_goggles, rr_w_bow, rr_w_m16, rr_w_mini;
-int rr_w_pistol, rr_w_rocket, rr_w_shotgun, rr_w_uzi;
+int rr_w_pistol, rr_w_rocket, rr_w_shotgun, rr_w_uzi, rr_a_bloodlust;
 
 int ammo_respawn_rate(int pic)
 {
@@ -94,6 +94,7 @@ int ammo_respawn_rate(int pic)
 	case A_COKE: return rr_a_coke;
 	case A_ARMOUR: return rr_a_armour;
 	case A_GOGGLES: return rr_a_goggles; 
+	case A_BLOODLUST: return rr_a_bloodlust;
 	case W_BOW: return rr_w_bow;
 	case W_M16: return rr_w_m16;
 	case W_MINI: return rr_w_mini;

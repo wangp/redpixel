@@ -1,10 +1,10 @@
-Start Game-->
-	(name and colour)-->
-		Serial-->
-			Connecting......
-			Select Deathmatch Level (with chat box)
-			(game loop)
-		IPX-->
+ûStart Game-->
+	(ûname and (Xcolour))-->
+		ûSerial-->
+			ûConnecting......
+			ûSelect Deathmatch Level (with chat box)
+			û(game loop)
+		XIPX-->
 			Host Game-->
 				Select Deathmatch Level
 				Name the game
@@ -14,12 +14,12 @@ Start Game-->
 				(search for network games)
 				Select game to join
 				(game loop)
-		TCP/IP-->
-			Not implemented yet.  Encourage me by giving me $$$!
-Options-->
-		Sound volume
-		Music volume
-		CD Music / default mod music
-Credits
-Quit-->
-		Are you sure?
+		XTCP/IP-->
+			ûNot implemented yet.  Encourage me by giving me $$$!
+XOptions-->
+		XSound volume
+		XMusic volume
+		XCD Music / default mod music
+ûCredits
+ûQuit-->
+		XAre you sure?

@@ -9,9 +9,9 @@ Dune II
 
 
 == code ==
-shawn  (allegro)
-dj  (djgpp)
+ûshawn  (allegro)
+ûdj  (djgpp)
 tran (pmode)
-theur (seer)
+ûtheur (seer)
 jon (jonipx)
-lamothe (sk basis)
+ûlamothe (sk basis)

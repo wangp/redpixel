@@ -1353,9 +1353,15 @@ void touch_bullets()
 		    {
 			bullets[i].life = 0;
 			if (bullets[i].bmp==J_ROCKET || bullets[i].bmp==J_ARROW)
+			{
+			    spawn_explo(x, y, X_EXPLO0, 2);
 			    blast(x, y, bullets[i].dmg, bullets[i].tag);
+			    snd_3d(WAV_EXPLODE, 255, x, y);
+			}
 			else
+			{
 			    hurt_player(j, bullets[i].dmg, 1, bullets[i].tag, 0);
+			}
 		    }
 		}
 	    }
@@ -2214,6 +2220,9 @@ void inline draw_spotlight()
     draw_trans_sprite(dbuf, light, 0, 0);
 }
 
+char ss_name[80];
+int ss_num = 0;
+
 void game_loop()
 {
     int shakex = 0, shakey = 0;
@@ -2354,6 +2363,14 @@ void game_loop()
 		show_mouse(screen);
 
 	    frame_counter++;
+
+
+	    // screen shots
+	    if (key[KEY_PAUSE])
+	    {
+		sprintf(ss_name, "screen%02d.pcx", ss_num++);
+		save_pcx(ss_name, dbuf, dat[GAMEPAL].dat);
+	    }
 	}
     }
 
@@ -2440,6 +2457,7 @@ int main(int argc, char **argv)
     rr_a_coke   = scCall_Instance(prog, loc, A_COKE);
     rr_a_armour = scCall_Instance(prog, loc, A_ARMOUR);
     rr_a_goggles= scCall_Instance(prog, loc, A_GOGGLES);
+    rr_a_bloodlust=scCall_Instance(prog,loc, A_BLOODLUST);
     rr_w_bow    = scCall_Instance(prog, loc, W_BOW);
     rr_w_m16    = scCall_Instance(prog, loc, W_M16);
     rr_w_mini   = scCall_Instance(prog, loc, W_MINI);

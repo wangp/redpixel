@@ -1,0 +1,192 @@
+
+
+
+
+		    R ù e ù d   ù   P ù i ù x ù e ù l
+
+
+		      Copyright 1998 Psyk Software
+
+
+			    July ù 11 ù 1998
+
+
+
+
+#include <std_disclaimer.h>
+
+   "I do not accept responsibility for any effects, adverse or otherwise, 
+    that this code may have on you, your computer, your sanity, your dog, 
+    and anything else that you can think of. Use it at your own risk."
+
+
+---------------------
+  ù Requirements ù
+---------------------
+
+    486+    (Pentium strongly recommended)
+    DOS
+    VGA compliant card and monitor
+    RAM of some amount (4Mb should be enough)
+    mouse
+    tolerance for gore
+
+    Headphones recommended!
+
+    Steep requirements eh?  We got 18 FPS on our 486-66, 40 FPS (which is the 
+    maximum) on our Pentium 133, and 7 FPS when they were linked via serial.
+
+
+--------------
+  ù Story ù
+--------------
+
+    You have been thrown in a dungeon with a handful of other prisoners.
+    Contained within the dungeon are various magical objects, mostly weapons,
+    which respawn after a certain time period.
+
+    Surrounded by such weapons of destruction, you cannot resist the
+    temptation... yes!
+
+
+------------------
+  ù Controls ù
+------------------
+
+    Three easy steps:
+
+    (1) Move your little guy with the keyboard.  There are three layouts:
+
+	    W               T                   Up
+	A - S - D       F - G - H       Left -  Down  - Right
+
+    (2) Aim the gun with the mouse.  Left click to shoot. 
+
+    (3) On the left of the screen the weapons you collect will be displayed.
+
+	Right click on one to select it.
+	Or use the number keys across the top of the keyboard.
+	Press Enter to lay a mine.
+
+    Other stuff:
+
+	TAB to see your scores.
+	ESC to quit.
+
+	F12 to see frames per second (FPS).  This is a development thing,
+	so it's not supposed to work properly. Just push it real fast and see.
+
+
+--------------
+  ù Items ù
+--------------
+
+    Weapons:
+
+	Knife
+	Pistol
+	Shotgun
+	Uzi
+	M16 (just a big gun, nothing like an M16)
+	Minigun
+	Bow with EXPLOSIVE arrows
+	Bazooka
+	Mines
+
+    Other items:
+
+	Chicken     +50 health (200 max)
+	Coke        +15 health
+	Armour      +100 armour (300 max)
+	Goggles     light up your vision for one minute
+	Backpack    you drop half of all your ammo when you die,
+		    but your guns disappear
+	Bloodlust   double damage of your weapons (except mines) - be careful!
+		    lasts 30 seconds
+
+
+-----------------------------
+  ù Command line Options ù
+-----------------------------
+
+    Type RED to start.
+
+    To use the map editor, type RED -EDIT.
+
+    To use a different COM port for the serial connection (default is COM2)
+    type RED -COMx, where x is the com port number.
+
+
+--------------------------
+  ù Serial Connection ù
+--------------------------
+
+    Details:
+
+    Link two computers via serial cable in COM 1-4 (see Command line options).
+    Select Start -> Serial.  Enter your name, then wait for the computers to
+    connect.  If it hangs, press Ctrl-Alt-End and try again.
+
+    From here on, you will be shown a map selection screen.  Only the maps
+    existing on BOTH computers will be displayed.  Please make sure the maps
+    are identical, otherwise your games will be unsynchronised.  Press Up/Down
+    to selection a map.  You may also have a conversation of here if you wish.
+    Please feel free to use any obscene words you desire.
+
+    (Note: The chat box was designed in case the game ever supported Internet
+     play.  However it may be also useful in other areas, e.g. library :)
+
+    When you are ready to die, press F10.
+
+    If it ever says SYNC PROBLEM, then you'd better quit and restart.
+
+    Tip: Use the 3D sound to find where your opponent is.  Also, eating food 
+    does not make a noise, but picking up things does.
+
+
+-------------------
+  ù Map Editor ù
+-------------------
+
+    Keys:
+
+    Arrow keys to scroll around.
+
+    1-3 to select between 1) tiles, 2) items, 3) start locations (24 max)
+
+    Keypad + - / * to change map height, width.
+
+    L,S to Load or Save.
+
+    ESC to quit (does NOT ask to save)
+
+    Choose something from the bottom, then left click to place, right click 
+    to delete.
+
+
+---------------------
+  ù Completeness ù
+---------------------
+
+    Red Pixel is uncompleted. There is still IPX and Internet play to be done.
+    It is possible I will do IPX soon, if there is any interest, but Internet
+    play is harder (especially to test), so may never see the light of day.
+
+
+----------------
+  ù Contact ù
+----------------
+
+    Email: tjaden@alphalink.com.au
+	   tjaden@psynet.net (will redirect)
+
+    WWW: http://www.alphalink.com.au/~tjaden/
+	 http://members.xoom.com/psyk/
+
+    Tell me what you think, and if you find any bugs, well.. keep quiet. :)
+
+
+    Now go forth and kill something!
+
+
+

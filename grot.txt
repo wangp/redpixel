@@ -8,14 +8,16 @@ done...armdrop - arm drops off, blood dripping, body to ground
 
 done...Loselegs - legs fall off, body in air, immobile, then drops to ground
 
-Missle - breaks apart
+done...spikes - impaled
+
 
 canceled...fountain - head looks up, splurts a fountain of blood, then body falls to ground, soaked in red pixels
+
+
+Missle - breaks apart
 
 losestomach - stomach goes missing, body drips blood galore, then legs and upper body drop on different places
 
 arrowheadless - head blows up, body drops to ground
-
-done...spikes - impaled
 
 gutdrop - body falls to ground but guts stay in air for a bit, then drop and red pixels everywhere

@@ -270,6 +270,7 @@ void get_map_filenames()
 	tmpmap = malloc(sizeof(MAPFILE));
 	strcpy(tmpmap->fn, "MAPS/");
 	strcat(tmpmap->fn, f.ff_name);
+	strupr(tmpmap->fn); // font only has uppercase
 	curmap->next = tmpmap;
 	tmpmap->next = NULL;
 	curmap = tmpmap;
@@ -317,6 +318,7 @@ void trade_map_filenames()
     char buf[80];
     int pos, ch, finish, order;
     MAPFILE *a, *b, *c, *d;
+    int x = 16;
 
     // send first (no paths)
     curmap = maphead.next;
@@ -326,6 +328,7 @@ void trade_map_filenames()
 	skSendString(get_filename(curmap->fn));
 	skSend(0);
 	curmap = curmap->next;
+	putpixel(screen, x++, 180, RED);
     }
     skSend(MAPLIST_END);
 
@@ -342,6 +345,8 @@ void trade_map_filenames()
 		ch = skRecv();
 		buf[pos++] = ch;
 	    } while (ch);
+
+	    putpixel(screen, x++, 180, LBLUE);
 
 	    tmpmap = match(buf);
 	    if (tmpmap)
@@ -373,6 +378,8 @@ void trade_map_filenames()
 	    curmap = tmpmap->next;
 	    num_maps--;
 	}
+
+	putpixel(screen, x++, 180, GREEN);
     } 
 
     // shitty bubble sort 
@@ -419,6 +426,8 @@ void trade_map_filenames()
 		curmap = curmap->next;
 	    }
 	}
+
+	putpixel(screen, x++, 180, YELLOW);
     } while (!finish);
 }
 
@@ -842,6 +851,9 @@ void serial_func()
     trade_names();
 
     // get list of maps (from local and remote)
+
+    maphead.next = NULL;
+    num_maps = 0;
     get_map_filenames();
     trade_map_filenames();
 
@@ -862,6 +874,8 @@ void serial_func()
     // go
     play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
     game_loop();
+
+    free_map_filenames();
 
     score_sheet();
 
@@ -1027,8 +1041,6 @@ void blubber(BLUBBER *start)
 	    }
 	}
     }
-
-    free_map_filenames();
 }
 
 

@@ -208,14 +208,14 @@ void map_edit()
 
 	if (key[KEY_S])
 	{
-	    char path[128] = "";
+	    char path[128] = "maps/";
 	    if (file_select("Save As...", path, "wak"))
 		save_map(path);
 	    text_mode(-1);
 	}
 	else if (key[KEY_L])
 	{
-	    char path[128] = "";
+	    char path[128] = "maps/";
 	    if (file_select("Load...", path, "wak"))
 		load_map(path);
 	    text_mode(-1);

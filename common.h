@@ -67,7 +67,7 @@ void load_map(char *fn);
 
 extern int rr_a_bullet, rr_a_arrow, rr_w_mine, rr_a_rocket, rr_a_shell, rr_a_chicken;
 extern int rr_a_coke, rr_a_armour, rr_a_goggles, rr_w_bow, rr_w_m16, rr_w_mini;
-extern int rr_w_pistol, rr_w_rocket, rr_w_shotgun, rr_w_uzi;
+extern int rr_w_pistol, rr_w_rocket, rr_w_shotgun, rr_w_uzi, rr_a_bloodlust;
 
 int ammo_respawn_rate(int pic);
 
