@@ -8,7 +8,7 @@
 		      Copyright 1998 Psyk Software
 
 
-			    July ù 11 ù 1998
+			     ù July 26 1998 ù
 
 
 
@@ -24,7 +24,7 @@
   ù Requirements ù
 ---------------------
 
-    486+    (Pentium strongly recommended)
+    486+    (Pentium recommended)
     DOS
     VGA compliant card and monitor
     RAM of some amount (4Mb should be enough)
@@ -33,8 +33,21 @@
 
     Headphones recommended!
 
-    Steep requirements eh?  We got 18 FPS on our 486-66, 40 FPS (which is the 
-    maximum) on our Pentium 133, and 7 FPS when they were linked via serial.
+
+---------------------
+  ù Major Changes ù
+---------------------
+
+    This version is incompatible with the older version.  Please upgrade on
+    BOTH computers.
+
+    Significantly higher frame rates in serial games.
+
+    Fixed ladder above head bug.
+
+    Backpacks are now lit.
+
+    Preliminary modem code. (not working yet)
 
 
 --------------
@@ -96,11 +109,16 @@
     Other items:
 
 	Chicken     +50 health (200 max)
+
 	Coke        +15 health
+
 	Armour      +100 armour (300 max)
+
 	Goggles     light up your vision for one minute
+
 	Backpack    you drop half of all your ammo when you die,
 		    but your guns disappear
+
 	Bloodlust   double damage of your weapons (except mines) - be careful!
 		    lasts 30 seconds
 
@@ -124,7 +142,7 @@
     Details:
 
     Link two computers via serial cable in COM 1-4 (see Command line options).
-    Select Start -> Serial.  Enter your name, then wait for the computers to
+    Select Start --> Serial.  Enter your name, then wait for the computers to
     connect.  If it hangs, press Ctrl-Alt-End and try again.
 
     From here on, you will be shown a map selection screen.  Only the maps
@@ -162,6 +180,9 @@
 
     Choose something from the bottom, then left click to place, right click 
     to delete.
+
+    If you create a good map, please email it to us so we can put it on the
+    web site.
 
 
 ---------------------

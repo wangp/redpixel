@@ -66,13 +66,17 @@ int raster_words(char *s)
 
 int scan(int x, int y)
 {
-    int x2;
+    int x2, i, j=0;
     x2 = x + 60;
 
     do
     {
-	clear(dbuf);
-	blit(dat[TITLE].dat, dbuf, x, y, 120, 60, 80, 80);
+	//clear(dbuf);
+
+	if (j==0) j=1; else j=0;
+	for (i=j; i<80; i+=2)
+	    blit(dat[TITLE].dat, dbuf, x, y+i, 120, 60+i, 80, 1);
+
 	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
 	x++;
 	rest(60);

@@ -8,7 +8,7 @@
 
 //---------------------------------------------------------------- stuff -----
 
-#define VERSION_STR "v0.666"
+#define VERSION_STR "v0.7"
 
 #define MAX_PLAYERS         8
 

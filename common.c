@@ -31,8 +31,6 @@ LIST ammos[] =
     { W_MINE,    3 },
     { A_ROCKET,  4 },
     { A_SHELL,   5 },
-    //{ W_BOTTLE,  6 },
-    //{ A_FUEL,    7 },
     { A_CHICKEN, 20 },
     { A_COKE,    21 },
     { A_ARMOUR,  50 }, 
@@ -45,7 +43,6 @@ LIST ammos[] =
     { W_ROCKET,  104 },
     { W_SHOTGUN, 105 },
     { W_UZI,     106 },
-    //{ W_FLAME,   107 },
     { -1 }
 };
 

@@ -8,6 +8,7 @@
  *
  *  Chris Blums for 'The Serial Port'.
  *  Dim Zegebart for DZComm, from which I copy and pasted a bit.
+ *  Sam Vincent, from which I stole a routine.
  *  Shawn Hargreaves, for I ripped out a few macros from Allegro.
  */
 
@@ -25,6 +26,8 @@
  *                                      send buffer finished
  *  Modified:   17 June 1998    0.7a    fixed small bug in detect_UART()
  *  Modified:   18 June 1998    0.7á    fixed the fix in detect_UART()
+ *  Modified:   14 July 1998    0.7c    added skHand()
+ *  Modified:   25 July 1998    0.7d    added skRead()
  */
 
 #include <dpmi.h>
@@ -36,7 +39,7 @@
 
 
 
-char sk_desc[] = "SK 0.7á by Peter Wang, June 1998.";
+char sk_desc[] = "SK 0.7d by Peter Wang, July 1998.";
 
 
 
@@ -209,6 +212,29 @@ int skRecv()
 }
 
 
+/*  This function reads num chars and sticks them in buf.
+ *  Make sure you have enough characters ready before calling this.
+ */
+void skRead(unsigned char *dest, int num)
+{
+    int i = 0;
+
+    DISABLE();
+
+    while (num--)
+    { 
+	// wrap buffer index if needed 
+	if (++recv_tail == BUFFER_SIZE)
+	   recv_tail = 0;
+
+	// get the character out of buffer
+	dest[i++] = recv_buf[recv_tail];
+    }
+
+    ENABLE();
+}
+
+
 /*  This function puts the last retrieved character back into the buffer.
  */
 void skPutback()
@@ -330,6 +356,14 @@ void skFlush()
     ENABLE();
 }
 
+
+/*  Sets various handshaking lines.
+ *  Ripped from SVAsync
+ */
+void skHand(unsigned int hand)
+{
+    outportb(open_port + MCR, hand | 0x08); /* Keep interrupt enable ON */
+}
 
 
 /*  Ripped from ser_port.txt by Chris Blum.

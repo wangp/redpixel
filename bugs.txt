@@ -1,6 +1,0 @@
---- bugs ---
-o.tile at top of ladder
-o.explosions stick you in tiles
-
---- features ---
-plenty!

@@ -50,6 +50,11 @@
 #define PARITY_ODD      8       // odd parity
 #define PARITY_EVEN     24      // even parity
 
+#define DTR             0x01    // for skHand()
+#define RTS             0x02
+#define USER            0x04
+#define LOOPBACK        0x10
+
 #define GP02          8       // enable interrupt
 
 #define DIV_LATCH_ON  128     // used to turn reg 0,1 into divisor latch
@@ -67,6 +72,7 @@ extern char sk_desc[];
 
 int     skReady     ();
 int     skRecv      ();
+void    skRead      (unsigned char *, int);
 void    skPutback   ();
 void    skClear     ();
 
@@ -75,6 +81,7 @@ void    skSend      (unsigned char);
 void    skSendString(unsigned char *);
 void    skWrite     (unsigned char *, int);
 void    skFlush     ();
+void    skHand      (unsigned int);
 
 int     detect_UART (unsigned);
 int     skOpen      (int, int, int);

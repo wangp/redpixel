@@ -5,10 +5,9 @@
 #include <math.h>
 #include <string.h>
 #include <stdarg.h>
-#include <seer.h>
 #include "common.h"
 #include "run.h"
-#include "sk.h"
+#include "skmod.h"
 
 
 //---------------------------------------------------------------- maxs ------
@@ -27,7 +26,7 @@
 int max_bullets =       200;
 int max_mines =         50;
 int max_backpacks =     50;
-#define MAX_PARTICLES   400
+#define MAX_PARTICLES   600
 #define MAX_EXPLOSIONS  100
 #define MAX_BLODS       100
 #define MAX_CORPSES     30
@@ -191,7 +190,7 @@ inline int bb_collide(BITMAP *spr1, int x1, int y1, BITMAP *spr2, int x2, int y2
 
 inline fixed find_angle(int x1, int y1, int x2, int y2)
 {
-    int adj, opp;
+    /*int adj, opp;
     fixed angle;
     adj = x2 - x1;
     opp = y1 - y2;
@@ -200,7 +199,11 @@ inline fixed find_angle(int x1, int y1, int x2, int y2)
     angle = fatan(ftofix((float)opp/(float)adj));
     if (adj<0)
 	angle += itofix(128);
+
     return -angle;
+    */
+
+    return fatan2(itofix(y2-y1), itofix(x2-x1)) & 0x00ff0000;  // get rid of decimals
 }
 
 inline int find_distance(int x1, int y1, int x2, int y2)
@@ -243,7 +246,6 @@ inline int num_ammo(int pl, int weapon)
 inline void snd_local(int snd)
 {
     play_sample(dat[snd].dat, 255, 128, 1000, 0);
-
 }
 
 void snd_3d(int snd, int maxvol, int sourcex, int sourcey)
@@ -691,7 +693,11 @@ void draw_backpacks()
     for (i=max_backpacks-1; i>=0; i--)
     {
 	if (backpacks[i].alive && !backpacks[i].unactive) 
+	{
 	    draw_sprite(dbuf, dat[A_BACKPACK].dat, backpacks[i].x-px, backpacks[i].y-py);
+	    draw_light(L_EXPLO, backpacks[i].x+6-px, backpacks[i].y+8-py);
+	    // backpacks are 12x16
+	}
     } 
 }
 
@@ -1308,8 +1314,8 @@ void update_bullets()
 		    // explosion was caused
 		    if (bullets[i].bmp==J_ROCKET || bullets[i].bmp==J_ARROW) 
 		    {
-			spawn_explo(u, v, X_EXPLO0, 2);
-			blast(u, v, bullets[i].dmg, bullets[i].tag);
+			spawn_explo(u - 8, v - 8, X_EXPLO0, 2);
+			blast(u - 8, v - 8, bullets[i].dmg, bullets[i].tag);
 			snd_3d(WAV_EXPLODE, 255, u, v);
 		    }
 		    else    // just a ricochet
@@ -1383,7 +1389,7 @@ void touch_bullets()
 }
 
 
-//---------------------------------------------------------- pickups ---------
+//---------------------------------------------------------- pickups ----------
 
 void respawn_ammo()
 {
@@ -1428,10 +1434,8 @@ struct
     { W_UZI,        w_uzi,      KEY_4,      "4" },
     { W_M16,        w_m16,      KEY_5,      "5" },
     { W_MINI,       w_minigun,  KEY_6,      "6" },
-  //{ W_FLAME,      w_flamer,   KEY_7,      "7" },
     { W_BOW,        w_bow,      KEY_7,      "7" },
     { W_ROCKET,     w_bazooka,  KEY_8,      "8" },
-  //{ W_BOTTLE,     w_bottle,   KEY_0,      "0" }, 
     { 0 }
 };
 
@@ -1544,6 +1548,7 @@ void auto_weapon(int pl, int new_weapon)
     // 1) NEVER select bow or bazooka for you
     // 2) if you get a NEW weapon that is better than your preferred weapon, 
     //      then change to that
+    //  2.5) but only if you're not holding the bazooka or bow
     // 3) if you get ammo for your preferred weapon, then select your 
     //      preferred weapon
     // 4) if your preferred weapon runs out of ammo, choose next best
@@ -1556,6 +1561,9 @@ void auto_weapon(int pl, int new_weapon)
 
     if (new_weapon)
     {
+	if (players[pl].cur_weap == w_bow || players[pl].cur_weap == w_bazooka)
+	    return;
+
 	i = 0;
 	while (next_best[i])
 	{
@@ -1752,7 +1760,7 @@ void update_player(int pl)
 		guy->num_shells+=8;
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, 0);
-		add_msg("POCKET FULL A SHELLS", pl);
+		//add_msg("POCKET FULL A SHELLS", pl);
 		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
@@ -1844,7 +1852,7 @@ void update_player(int pl)
 		    auto_weapon(pl, 0);
 		} else {
 		    spawn_bullet(pl, guy->angle, GREY, 0);
-		    snd_3d(WAV_MINIGUN, 255, guy->x, guy->y);
+		    snd_3d(WAV_MINIGUN, 180, guy->x, guy->y);
 		}
 		break;
 
@@ -1977,7 +1985,7 @@ void update_player(int pl)
 
 	    if (guy->y > map.h * 16)
 	    {
-		hurt_player(pl, 10, 0, pl, 0);
+		hurt_player(pl, players[pl].health, 0, pl, 0);
 		return;
 	    }
 
@@ -1996,8 +2004,12 @@ void update_player(int pl)
 	    if (!guy->left && !guy->right && 
 		tile_collide(guy->x+3, guy->y+15)==T_LAD)
 	    {
-		guy->y-=2;
-		move_legs = 1;
+		t = tile_collide(guy->x+3, guy->y-1);
+		if (!t || t==T_LAD)
+		{
+		    guy->y-=2;
+		    move_legs = 1;
+		}
 	    }
 	    else    // jump
 	    {
@@ -2132,9 +2144,18 @@ void clean_player(int pl)
 #define SER_QUITGAME    'x'
 #define SER_QUITOK      'X'
 
+#define SER_UP          0x01    // bit flags
+#define SER_DOWN        0x02
+#define SER_LEFT        0x04
+#define SER_RIGHT       0x08
+#define SER_FIRE        0x10
+#define SER_DROPMINE    0x20
+#define SER_RESPAWN     0x40
+#define SER_FACINGLEFT  0x80
+
 char packet[20];
 
-int endgame = 0;
+int end_game = 0;
 
 void inline send_long(long val)
 {
@@ -2157,28 +2178,29 @@ void send_local_input()
 	// build the packet
 	packet[0] = SER_PLAYERSTAT;
 	packet[1] = local;
-	packet[2] = players[local].up;
-	packet[3] = players[local].down;
-	packet[4] = players[local].left;
-	packet[5] = players[local].right;
-	packet[6] = players[local].fire;
-	packet[7] = players[local].drop_mine;
-	packet[8] = players[local].select;
-	packet[9] = players[local].respawn;
-	packet[10] = players[local].facing;
-	packet[11] = players[local].angle & 0xff;
-	packet[12] = (players[local].angle>>8) & 0xff;
-	packet[13] = (players[local].angle>>16) & 0xff;
-	packet[14] = (players[local].angle>>14) & 0xff;
+
+	packet[2] = 0;
+	if (players[local].up)          packet[2] |= SER_UP;
+	if (players[local].down)        packet[2] |= SER_DOWN;
+	if (players[local].left)        packet[2] |= SER_LEFT;
+	if (players[local].right)       packet[2] |= SER_RIGHT;
+	if (players[local].fire)        packet[2] |= SER_FIRE;
+	if (players[local].drop_mine)   packet[2] |= SER_DROPMINE;
+	if (players[local].respawn)     packet[2] |= SER_RESPAWN;
+	if (players[local].facing==left)packet[2] |= SER_FACINGLEFT;    // otherwise facing right
+
+	packet[3] = players[local].select;
+	packet[4] = (players[local].angle>>16) & 0xff;
 
 	// now send it off
-	skWrite(packet, 15);
+	skWrite(packet, 5);
+	//skFlush();
     }
 };
 
 void recv_remote_inputs()
 {
-    int pl;
+    int pl, ch;
 
     if (num_players>1)
     {
@@ -2188,29 +2210,29 @@ void recv_remote_inputs()
 	    switch (skRecv())
 	    {
 		case SER_PLAYERSTAT:
-		    while (skReady()<14);
-		    pl = skRecv();
-		    players[pl].up = skRecv();
-		    players[pl].down = skRecv();
-		    players[pl].left = skRecv();
-		    players[pl].right = skRecv();
-		    players[pl].fire = skRecv();
-		    players[pl].drop_mine = skRecv();
-		    players[pl].select = skRecv();
-		    players[pl].respawn = skRecv();
-		    players[pl].facing = skRecv();
-		    players[pl].angle = recv_long();
+		    while (skReady()<4);
+		    skRead(packet, 4);
+
+		    pl = packet[0];
+
+		    ch = packet[1];
+		    players[pl].up          = ch & SER_UP;
+		    players[pl].down        = ch & SER_DOWN;
+		    players[pl].left        = ch & SER_LEFT;
+		    players[pl].right       = ch & SER_RIGHT;
+		    players[pl].fire        = ch & SER_FIRE;
+		    players[pl].drop_mine   = ch & SER_DROPMINE;
+		    players[pl].respawn     = ch & SER_RESPAWN;
+		    if (ch & SER_FACINGLEFT) players[pl].facing = left;
+		    else players[pl].facing = right;
+
+		    players[pl].select = packet[2];
+		    players[pl].angle = packet[3] << 16;
 		    return;
 
 		case SER_QUITGAME:
-		    while (!skReady());
-		    pl = skRecv();
-		    //clean_player(pl);
-		    //num_players--;
-		    //v_msg(-1, "%s HAS LEFT THE DUNGEON", players[pl].name);
-		    //speed_counter = 0;
 		    skSend(SER_QUITOK);
-		    endgame = 1;
+		    end_game = 1;
 		    return;
 
 		default:
@@ -2222,7 +2244,12 @@ void recv_remote_inputs()
 }
 
 
+//---------------------------------------------------------- modem -----------
+
+
 //---------------------------------------------------------- mother loop -----
+
+int shakex = 0, shakey = 0;
 
 void inline draw_spotlight()
 {
@@ -2243,31 +2270,126 @@ void inline draw_spotlight()
     draw_trans_sprite(dbuf, light, 0, 0);
 }
 
-char ss_name[80];
-int ss_num = 0;
+void render(int update)
+{
+    int bx, by;
+
+    if (update)
+    {
+	/* tile backdrop */
+	bx = -(px%640)/2;
+	by = -(py%400)/2;
+	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx,     by,     320, 200);
+	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx,     by+200, 320, 200);
+	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx+320, by,     320, 200);
+	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx+320, by+200, 320, 200);
+
+	/* find top-left */
+	mx = players[local].x / 16 - 10;
+	my = players[local].y / 16 - 6;
+
+	offsetx = players[local].x % 16;
+	offsety = players[local].y % 16;
+
+	if (mx<0) mx = offsetx = 0;
+	if (my<0) my = offsety = 0;
+	if (mx>=map.w-20) { mx=map.w-20; offsetx = 0; }
+	if (my>map.h-13 || (my==map.h-13 && offsety>=8)) { my=map.h-13; offsety = 8; }
+
+	px = mx * 16 + offsetx;
+	py = my * 16 + offsety;
+
+	// not a good place for this, but we need px and py
+	players[local].angle = find_angle(players[local].x-px+3, players[local].y-py+4, mouse_x, mouse_y);
+
+	// facing left or right? 
+	if (mouse_x+px > players[local].x)
+	    players[local].facing = right;
+	else
+	    players[local].facing = left;
+
+	// ready light
+	clear_to_color(light, AMBIENT_LIGHT);
+	color_map = &alpha_map;
+
+	// now draw, boy!
+	draw_mines();
+	draw_tiles_an_stuff();
+	draw_backpacks();
+	draw_bullets();
+	draw_players();
+	draw_particles();
+	draw_blods();
+	draw_explo();
+	draw_corpses();
+
+	if (!players[local].visor_tics ||
+	    (players[local].visor_tics < GAME_SPEED*3 && (players[local].visor_tics%2)==0))
+	    draw_spotlight();
+
+	draw_status(); 
+	draw_msgs();
+
+	show_mouse(NULL);
+	blit(dbuf, screen, 0, 0, 0 + shakex, 0 + shakey, SCREEN_W, SCREEN_H);
+	if (players[local].health)
+	    show_mouse(screen);
+
+	frame_counter++;
+
+
+	//-- screen shots --
+	#if 0
+	{
+	    static char ss_name[80];
+	    static int ss_num = 0;
+
+	    if (key[KEY_PAUSE])
+	    {
+		sprintf(ss_name, "screen%02d.pcx", ss_num++);
+		save_pcx(ss_name, dbuf, dat[GAMEPAL].dat);
+	    }
+	}
+	#endif
+    }
+}
 
 void game_loop()
 {
-    int shakex = 0, shakey = 0;
-    int bx, by, i;
     int frames_dropped;
     int update;
+    int i;
 
     speed_counter = 0;
 
-    endgame = 0;
+    end_game = 0;
 
-    while (!key[KEY_ESC] && !endgame)
+    while (!end_game)
     {
 	frames_dropped = 0;
 	update = 0;
 	while (speed_counter > 0 && frames_dropped < 6) 
 	{
+	    update = 1;
+
 	    get_local_input();
-	    if (comm==serial) {
+	    if (key[KEY_ESC]) goto quit_pls;
+
+	    if (comm==serial || comm==modem) 
+	    {
 		send_local_input();
+
+		while (!skReady())
+		{
+		    if (frames_dropped)
+			render(frames_dropped--);
+
+		    if (key[KEY_ESC]) goto quit_pls;
+		}
+
 		recv_remote_inputs();
-		if (endgame)
+
+		if (end_game)
 		    break;
 	    }
 
@@ -2321,92 +2443,25 @@ void game_loop()
 
 	    speed_counter--;
 	    frames_dropped++;
-	    update = 1;
 	}
 
-	/* tile backdrop */
-	bx = -(px%640)/2;
-	by = -(py%400)/2;
-	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx,     by,     320, 200);
-	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx,     by+200, 320, 200);
-	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx+320, by,     320, 200);
-	blit(dat[BACKDROP].dat, dbuf, 0, 0, bx+320, by+200, 320, 200);
+	render(update);
 
-	/* find top-left */
-	mx = players[local].x / 16 - 10;
-	my = players[local].y / 16 - 6;
-
-	offsetx = players[local].x % 16;
-	offsety = players[local].y % 16;
-
-	if (mx<0) mx = offsetx = 0;
-	if (my<0) my = offsety = 0;
-	if (mx>=map.w-20) { mx=map.w-20; offsetx = 0; }
-	if (my>map.h-13 || (my==map.h-13 && offsety>=8)) { my=map.h-13; offsety = 8; }
-
-	px = mx * 16 + offsetx;
-	py = my * 16 + offsety;
-
-	// not a good place for this, but we need px and py
-	players[local].angle = find_angle(players[local].x-px+3, players[local].y-py+4, mouse_x, mouse_y);
-
-	// facing left or right? 
-	if (mouse_x+px > players[local].x)
-	    players[local].facing = right;
-	else
-	    players[local].facing = left;
-
-	if (update)
-	{
-	    // ready light
-	    clear_to_color(light, AMBIENT_LIGHT);
-	    color_map = &alpha_map;
-
-	    // now draw, boy!
-	    draw_mines();
-	    draw_tiles_an_stuff();
-	    draw_backpacks();
-	    draw_bullets();
-	    draw_players();
-	    draw_particles();
-	    draw_blods();
-	    draw_explo();
-	    draw_corpses();
-
-	    if (!players[local].visor_tics ||
-		(players[local].visor_tics < GAME_SPEED*3 && (players[local].visor_tics%2)==0))
-		draw_spotlight();
-
-	    draw_status(); 
-	    draw_msgs();
-
-	    show_mouse(NULL);
-	    blit(dbuf, screen, 0, 0, 0 + shakex, 0 + shakey, SCREEN_W, SCREEN_H);
-	    if (players[local].health)
-		show_mouse(screen);
-
-	    frame_counter++;
-
-
-	    // screen shots
-	    #if 0
-		if (key[KEY_PAUSE])
-		{
-		    sprintf(ss_name, "screen%02d.pcx", ss_num++);
-		    save_pcx(ss_name, dbuf, dat[GAMEPAL].dat);
-		}
-	    #endif
+	if (key[KEY_ESC])
+	{ 
+	//-------------//
+	    quit_pls:
+	//-------------//
+	    end_game = 1;
+	    if (comm==serial || comm==modem)
+	    {
+		skSend(SER_QUITGAME);
+		while (skRecv() != SER_QUITOK) rest(10);
+	    }
+	    break;
 	}
     }
 
-    // tell other guy we quit
-    if (comm==serial)
-    {
-	skSend(SER_QUITGAME);
-	skSend(local);
-	skFlush();
-	while (skRecv() != SER_QUITOK);
-    }
 
     // just in case
     while (key[KEY_ESC] && mouse_b);
@@ -2428,7 +2483,7 @@ void no_germs()
     memset(blods, 0, MAX_BLODS * sizeof(BLOD));
     memset(corpses, 0, MAX_CORPSES * sizeof(CORPSE));
     oldest_corpse = 0;
-    num_msgs =0;
+    num_msgs = 0;
 }
 
 char retain_names[MAX_PLAYERS][40];

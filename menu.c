@@ -1,14 +1,14 @@
 #include <ctype.h>
 #include <string.h>
 #include <dir.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include <allegro.h>
 #include "common.h"
 #include "run.h"
-#include "sk.h"
+#include "skmod.h"
 #include "blood.h"
 
-//  FIXME: pressing ESC in game loop should return to game, 
-//
 
 //------------------------------------------------------ menu `system' -------
 
@@ -31,6 +31,7 @@ int     count, top;
 
 BLUBBER root_menu[];
 BLUBBER startgame_menu[];
+BLUBBER modem_menu[];
 
 
 //------------------------------------------------------ procs ---------------
@@ -102,7 +103,6 @@ void credits_func()
 void quit_func()
 {
     end = 1;
-
 }
 
 
@@ -159,6 +159,66 @@ int get_name()
 	    if (ch >= ' ' && ch <= '~') {
 		local_name[len] = ch;
 		local_name[len+1] = 0;
+	    }
+	    play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
+	}
+    }
+}
+
+
+//------------------------------------------------------ phone no. -----------
+
+#define MAX_PHONENO_LEN    16
+char phoneno[MAX_PHONENO_LEN+1] = "";
+
+int get_phoneno()
+{
+    int k, len, ch;
+    char temp[80];
+
+    show_mouse(NULL);
+    clear_keybuf();
+
+    for (;;)
+    {
+	// screen output
+	strcpy(temp, phoneno);
+	strcat(temp, "_");
+	clear(dbuf);
+	textout_centre(dbuf, small, "NUMBER TO DIAL:", 160, 70, makecol(255,255,255));
+	textout_centre(dbuf, small, temp, 160, 90, makecol(255,255,255));
+	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
+
+	// wait for keypress
+	k = readkey();
+
+	// enter.. continue
+	if ((k>>8) == KEY_ENTER) {
+	    while (key[KEY_ENTER]);
+	    return 1;
+	}
+
+	// esc.. get out
+	if ((k>>8) == KEY_ESC) {
+	    while (key[KEY_ESC]);
+	    return 0;
+	}
+
+	// otherwise entering name
+	len = strlen(phoneno);
+
+	// backspace
+	if ((k>>8) == KEY_BACKSPACE && len > 0)
+	{
+	    phoneno[len-1] = 0;
+	    play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
+	}
+	else if (len < MAX_NAME_LEN)    // ascii key
+	{
+	    ch = toupper(k & 0xff);
+	    if (ch >= '#' && ch <= 'F') {
+		phoneno[len] = ch;
+		phoneno[len+1] = 0;
 	    }
 	    play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
 	}
@@ -395,9 +455,11 @@ void trade_map_filenames()
 #define CHAT_INCOMING   1
 #define CHAT_KEYDOWN    2
 #define CHAT_KEYUP      3
-#define CHAT_NEWMAP     4
-#define CHAT_LEAVE      5
-#define CHAT_RETURN     6
+#define CHAT_NEWMAP     4 
+#define CHAT_LEAVE      5 
+#define CHAT_RETURN     6 
+
+char return_str[] = "return me to my game NOW!";
 
 char *select_map()
 {
@@ -414,9 +476,7 @@ char *select_map()
 	// map select
 
 	textout(dbuf, small, "GRAVEYARD", 20, 10, RED);
-	textout_centre(dbuf, small, "UP/DOWN TO SELECT, F10 TO START", 160, 120, RED);
-	// FIXME-->wrong pos
-	textout_centre(dbuf, small, "CTRL-D: DOS SHELL  CTRL-Q: DISCONNECT", 160, 130, RED);
+	textout_centre(dbuf, small, "UP/DOWN: SELECT  F10: START  F4: DISCONNECT", 160, 120, RED);
 
 	curmap = maphead.next;
 	for (i=0; i<top; i++)
@@ -474,7 +534,7 @@ char *select_map()
 		break;
 	    }
 
-	    if (comm==serial && skReady())
+	    if ((comm==serial || comm==modem) && skReady())
 	    {
 		k = 0;
 		remote = skRecv();
@@ -490,7 +550,7 @@ char *select_map()
 	    else if (selected>=top+9)
 		top++;
 
-	    if ((k>>8)==KEY_DOWN && comm==serial)
+	    if ((k>>8)==KEY_DOWN && (comm==serial || comm==modem))
 		skSend(CHAT_KEYDOWN);
 	}
 
@@ -502,14 +562,23 @@ char *select_map()
 	    else if (selected<top)
 		top--;
 
-	    if ((k>>8)==KEY_UP && comm==serial)
+	    if ((k>>8)==KEY_UP && (comm==serial || comm==modem))
 		skSend(CHAT_KEYUP);
 	}
 
-	// esc... get out
-	if ((k>>8) == KEY_ESC || remote == CHAT_LEAVE)
+	// esc... return to game
+	if ((k>>8) == KEY_ESC || remote == CHAT_RETURN)
 	{
-	    if ((k>>8) == KEY_ESC && comm==serial)
+	    while (key[KEY_ESC]);
+	    if ((k>>8) == KEY_ESC && (comm==serial || comm==modem))
+		skSend(CHAT_RETURN);
+	    return return_str;
+	}
+
+	// f4... get out
+	if ((k>>8) == KEY_F4 || remote == CHAT_LEAVE)
+	{
+	    if ((k>>8) == KEY_F4 && (comm==serial || comm==modem))
 		skSend(CHAT_LEAVE);
 	    return NULL;
 	}
@@ -517,7 +586,7 @@ char *select_map()
 	// f10.. start game
 	if ((k>>8) == KEY_F10 || remote == CHAT_NEWMAP)
 	{
-	    if ((k>>8) == KEY_F10 && comm==serial)
+	    if ((k>>8) == KEY_F10 && (comm==serial || comm==modem))
 		skSend(CHAT_NEWMAP);
 
 	    curmap = maphead.next;
@@ -550,7 +619,7 @@ char *select_map()
 
 		play_sample(dat[WAV_INCOMING].dat, 255, 128, 1000, 0);
 
-		if (comm==serial)
+		if ((comm==serial || comm==modem))
 		{
 		    skSend(CHAT_INCOMING);
 		    skSendString(temp);
@@ -679,7 +748,7 @@ int linkup()
 	}
     }
 
-    textout(screen, dat[MINI].dat, "TOUCHED.. CONTINUING ON TO THROW DICE", 16, y+8, WHITE);
+    textout(screen, dat[MINI].dat, "TOUCHED..", 16, y+8, WHITE);
     return 1;
 }
 
@@ -821,19 +890,27 @@ void serial_func()
     strcpy(players[local].name, local_name);
     trade_names();
 
+    // get list of maps (from local and remote)
+    get_map_filenames();
+    trade_map_filenames();
+
     for (;;)
     {
-	show_mouse(NULL);
-
-	// get list of maps (from local and remote)
-	get_map_filenames();
-	trade_map_filenames();
 	if (!num_maps) break;
 
+	show_mouse(NULL);
+
 	// select level
+	loop:
 	fn = select_map();
 	if (!fn) break;
-	free_map_filenames();
+	if (fn==return_str) 
+	{
+	    if (!first_play)
+		goto returntogame;
+	    else
+		goto loop;
+	}
 
 	// load level
 	load_map(fn);
@@ -850,6 +927,8 @@ void serial_func()
 
 	// go!
 	play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
+
+	returntogame:   // dodgy gotos
 	game_loop();
 
 	first_play = 0;
@@ -861,8 +940,339 @@ void serial_func()
 	score_sheet();
     }
 
+    free_map_filenames();
+
     // back to root menu
     enter_menu(root_menu); 
+}
+
+
+//------------------------------------------------------ connect via modem ---
+
+int gy = 10;
+
+void gprintf_reset()
+{
+    gy = 10;
+    clear(screen);
+    show_mouse(NULL);
+}
+
+void gprintf(char *fmt, ...)
+{
+    char buf[200];
+    va_list va;
+
+    va_start(va, fmt); 
+    vsprintf(buf, fmt, va);
+    strupr(buf);
+
+    if (gy>=SCREEN_H-10)
+    {
+	blit(screen, screen, 10, 20, 10, 10, SCREEN_W-20, SCREEN_H-10);
+	gy = SCREEN_H-10-10;
+    }
+
+    textout(screen, dat[MINI].dat, buf, 10, gy, WHITE);
+    gy+=10;
+}
+
+void _rest50() { rest(50); }
+
+int _cancel() { if (key[KEY_ESC]) return 1; return 0; }
+
+int connect_modem()
+{
+    int l = 0, r = 0;
+
+    seed = time(NULL);
+    srandom(seed);
+
+    rest(1000);
+
+    gprintf("throwing dice");
+
+    skSend(SER_THROWDICE);
+    while (skRecv() != SER_THROWDICE);
+
+    gprintf("trhowing 2");
+
+    do
+    {
+	l = (random()%255) + 1;     // 1-255
+	skSend(l);
+
+	while (!skReady())
+	{
+	    if (key[KEY_ESC]) 
+	    {
+		while (key[KEY_ESC]);
+		skClose();
+		return 0; 
+	    }
+	}
+
+	r = skRecv();
+    } while (l==r);
+
+    if (l>r)    // l>r we win
+    {
+	local = 0;
+	send_long(seed);
+    }
+    else        // l<r we lose
+    {
+	local = 1;
+	seed = recv_long();
+    }
+
+    srandom(seed);
+    next_position = random()%(24*24);
+    rnd_index = random()%600;
+    irnd_index = random()%600;
+
+    num_players = 2;
+    comm = modem;
+    return 1;
+}
+
+int modem_init(comport)
+{
+    int ch;
+
+    gprintf_reset();
+
+    if (!skOpen(comport, BAUD_19200, BITS_8 | PARITY_NONE | STOP_1))
+    {
+	textout_centre(screen, dat[MINI].dat, "ERROR OPENING COM PORT", 160, 90, WHITE);
+	while (!keypressed() && !mouse_b);
+	clear_keybuf();
+	return 0;
+    }
+
+    switch (comport)
+    {
+	case COM1: gprintf("COM1 OPENED"); break;
+	case COM2: gprintf("COM2 OPENED"); break;
+	case COM3: gprintf("COM3 OPENED"); break;
+	case COM4: gprintf("COM4 OPENED"); break;
+    }
+
+    if (skEnableFIFO())
+	gprintf("16550A UART FIFO ENABLED");
+    else
+	gprintf("FIFO NOT ENABLED");
+
+    skm_delay = _rest50;
+
+    for (;;)
+    {
+	if (!skmModemPresent())
+	{
+	    gprintf("MODEM NOT FOUND");
+	    gprintf("PRESS R to retry or esc to cancel");
+
+	    do { 
+		ch = readkey() & 0xff;
+		if (ch=='r') ch = 'R';
+	    } while (ch != 27 && ch != 'R');
+
+	    if (ch==27) return 0;
+	} 
+	else
+	{
+	    gprintf("MODEM PRESENT");
+	    break;
+	}
+    }
+
+    skmInit();
+    gprintf("modem Initialised");
+    skmDisableAutoAnswer();
+    gprintf("disable autoanswer"); 
+    return 1;
+}
+
+int dial()
+{
+    int err, ch;
+
+    for (;;)
+    {
+	gprintf("Dialing %s...", phoneno);
+	err = skmDial(phoneno, _cancel);
+
+	switch (err)
+	{
+	    case 0:
+		gprintf("Connected!");
+		return 1;
+	    case ERR_NOCARRIER:
+		gprintf("No carrier");
+		break;
+	    case ERR_ERROR:
+		gprintf("Invalid phone number");
+		break;
+	    case ERR_NODIALTONE:
+		gprintf("No dialtone");
+		break;
+	    case ERR_BUSY:
+		gprintf("Busy");
+		break;
+	    case ERR_NOANSWER:
+		gprintf("No answer");
+		break;
+	    case ERR_USERABORT:
+		gprintf("User aborted");
+		while (key[KEY_ESC]);
+		clear_keybuf();
+		break;
+	}
+
+	gprintf("press r to retry or esc to cancel");
+
+	do { 
+	    ch = readkey() & 0xff;
+	    if (ch=='r') ch = 'R';
+	} while (ch != 27 && ch != 'R');
+
+	if (ch==27) return 0;
+    }
+}
+
+int modem_dial(int comport)
+{
+    if (modem_init(comport)==0) return 0;
+
+    if (!dial())
+    {
+	skClose();
+	return 0;
+    }
+
+    connect_modem();
+    return 1;
+}
+
+int answer()
+{
+    skmEnableAutoAnswer();
+    gprintf("Awaiting incoming call...");
+
+    if (skmAwaitConnect(_cancel)==ERR_USERABORT)
+    {
+	gprintf("User aborted");
+	rest(100);
+	skmDisableAutoAnswer();
+	return 0;
+    }
+
+    gprintf("Connected!");
+    return 1;
+}
+
+int modem_answer(int comport)
+{
+    if (modem_init(comport)==0) return 0;
+
+    if (!answer())
+    {
+	skClose();
+	return 0;
+    }
+
+    connect_modem();
+    return 1;
+}
+
+void modem_part_two()
+{
+    char *fn;
+    int first_play = 1;
+
+    no_germs();
+    strcpy(players[local].name, local_name);
+    trade_names();
+
+    // get list of maps (from local and remote)
+    get_map_filenames();
+    trade_map_filenames();
+
+    for (;;)
+    {
+	if (!num_maps) break;
+
+	show_mouse(NULL);
+
+	// select level
+	loop:
+	fn = select_map();
+	if (!fn) break;
+	if (fn==return_str) 
+	{
+	    if (!first_play)
+		goto returntogame;
+	    else
+		goto loop;
+	}
+
+	// load level
+	load_map(fn);
+
+	// init players 
+	retain_players();
+	no_germs(); 
+	restore_players();
+	spawn_players();
+
+	// final synching
+	skSend(SER_CONNECTOK);
+	while (skRecv()!=SER_CONNECTOK);
+
+	// go!
+	play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
+
+	returntogame:   // dodgy gotos
+	game_loop();
+
+	first_play = 0;
+    }
+
+    if (!first_play)
+    {
+	// disconnected, show who won
+	score_sheet();
+    }
+
+    skmHangup();
+
+    free_map_filenames();
+
+    // back to root menu
+    enter_menu(root_menu); 
+}
+
+void dial_func()
+{
+    // name
+    if (!get_name()) return;
+
+    // phone no.
+    if (!get_phoneno()) return;
+
+    if (!modem_dial(com_port)) return;
+
+    modem_part_two();
+}
+
+void answer_func()
+{
+    // name
+    if (!get_name()) return;
+
+    if (!modem_answer(com_port)) return;
+
+    modem_part_two();
 }
 
 
@@ -891,17 +1301,24 @@ void single_func()
     no_germs();
     strcpy(players[local].name, local_name);
 
+    get_map_filenames();
+    sort_map_filenames();
+
     for (;;)
     {
 	show_mouse(NULL);
 
-	get_map_filenames();
-	sort_map_filenames();
-
 	// select level
+	loop:
 	fn = select_map();
-	if (!fn) return;
-	free_map_filenames();
+	if (!fn) break;
+	if (fn==return_str) 
+	{
+	    if (!first_play)
+		goto returntogame;
+	    else
+		goto loop;
+	}
 
 	// load level
 	load_map(fn);
@@ -914,6 +1331,8 @@ void single_func()
 
 	// go!
 	play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
+
+	returntogame:
 	game_loop();
 
 	first_play = 0;
@@ -924,6 +1343,8 @@ void single_func()
 	// disconnected, show who won
 	score_sheet();
     }
+
+    free_map_filenames();
 
     // back to root menu
     enter_menu(root_menu); 
@@ -948,11 +1369,18 @@ void not_yet_func()
 
 //------------------------------------------------------ menus ---------------
 
+BLUBBER modem_menu[] = 
+{
+    { func, "Dial", dial_func },
+    { func, "Answer", answer_func },
+    { prev, "", startgame_menu }
+};
+
 BLUBBER startgame_menu[] = 
 {
     { func, "Solo", single_func },
     { func, "Serial", serial_func },
-    { func, "Modem-Modem", not_yet_func },
+    { join, "Modem-Modem", modem_menu },
     { func, "IPX Network", not_yet_func },
     { func, "Internet", not_yet_func },
     { prev, "", root_menu }
