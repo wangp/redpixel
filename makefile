@@ -8,3 +8,6 @@ mapper.exe : mapper.o common.o
 
 run.exe : run.o common.o
 	gcc -Wall -O3 -o $@ run.o common.o -lalleg
+
+clean : 
+	rm *.exe *.o

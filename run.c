@@ -1,5 +1,6 @@
 /*  7 june 1998 
     8 june 1998 
+    9 june 1998
     Coding: Tjaden 
     Graphics: Air
  */
@@ -144,11 +145,10 @@ typedef struct
     char alive;
 
     int x, y;
-    char jump, yv;
+    char jump, yv, xv;
     int health;
     int armour;
     fixed angle;
-    char facing;
 
     char leg_frame, leg_tics;
 
@@ -169,8 +169,14 @@ typedef struct
 
 PLAYER player[MAX_PLAYERS];
 
+
+
 int local;
 int shake_factor;
+
+
+#define HEART_ANIM  5
+int heart_frame = 0, heart_tics = 0;
 
 
 
@@ -224,7 +230,7 @@ fixed find_angle(int x1, int y1, int x2, int y2)
 enum
 {
     grad_red,
-    grad_orange
+    grad_orange,
 };
 
 void spawn_particles(int x, int y, int num, int grad)
@@ -264,7 +270,7 @@ void spawn_particles(int x, int y, int num, int grad)
 	    angle = itofix(random()%256);
 	    particles[i].xv = fcos(angle) * spd;
 	    particles[i].yv = fsin(angle) * spd;
-	    particles[i].life = random()%20;
+	    particles[i].life = (random()%10)+10;
 	    particles[i].colour = (random()%(hi-low)) + low;
 	    particles[i].alive = 1;
 	    if (--num==0)
@@ -274,6 +280,27 @@ void spawn_particles(int x, int y, int num, int grad)
 
     //this is very bad, but we won't let it crash us
     //suicide("Particle overflow");
+}
+
+void spawn_casing(int x, int y, int facing)
+{
+    // specialised copy of spawn_particles
+    int i;
+
+    for (i=0; i<MAX_PARTICLES; i++)
+    {
+	if (!particles[i].alive)
+	{ 
+	    particles[i].x = itofix(x);
+	    particles[i].y = itofix(y);
+	    particles[i].xv = (facing==left ? itofix(1) : itofix(-1));
+	    particles[i].yv = itofix(-1);
+	    particles[i].life = 20;
+	    particles[i].colour = 175;
+	    particles[i].alive = 1;
+	    return;
+	}
+    } 
 }
 
 void move_particles()
@@ -416,11 +443,10 @@ void respawn_player(int pl)
 	    guy->alive = 1;
 	    guy->x = map.start[i].x * 16;
 	    guy->y = map.start[i].y * 16;
-	    guy->yv = guy->jump = 0;
+	    guy->xv = guy->yv = guy->jump = 0;
 	    guy->health = 100;
 	    guy->armour = 0;
 	    guy->angle = itofix(0);
-	    guy->facing = right;
 	    guy->leg_tics = guy->leg_frame = 0;
 	    guy->fire_frame = guy->fire_tics = guy->firing = guy->next_fire = 0;
 	    guy->num_bullets = guy->num_shells = guy->num_rockets = guy->num_arrows = guy->num_mines = 0;
@@ -433,9 +459,18 @@ void respawn_player(int pl)
     } 
 }
 
-void hurt_player(int pl, int dmg)
+void hurt_player(int pl, int dmg, int protect)
 {
-    player[pl].health-=dmg;
+    if (protect) {
+	player[pl].armour -= (dmg/4)*3;
+	player[pl].health -= dmg/4;
+	if (player[pl].armour < 0) {
+	    player[pl].health -= abs(player[pl].armour);
+	    player[pl].armour = 0;
+	}
+    } else {
+	player[pl].health-=dmg;
+    }
     spawn_particles(player[pl].x+3, player[pl].y+13, dmg, grad_red);
     if (player[pl].health < 1)
 	respawn_player(pl);
@@ -443,7 +478,7 @@ void hurt_player(int pl, int dmg)
 
 void draw_players()
 {
-    int i, gun;
+    int i, gun, facing;
     int u, v, w, h;
     PLAYER *guy;
 
@@ -470,11 +505,11 @@ void draw_players()
 	}
 
 	if (mouse_x >= u+3)
-	    guy->facing = right;
+	    facing = right;
 	else 
-	    guy->facing = left;
+	    facing = left;
 
-	if (guy->facing == left)
+	if (facing == left)
 	    gun += 4;
 
 	// minigun is weird
@@ -486,7 +521,7 @@ void draw_players()
 	w = ((BITMAP *)dat[gun].dat)->w / 2;
 	h = ((BITMAP *)dat[gun].dat)->h / 2;
 
-	if (guy->facing==right)
+	if (facing==right)
 	{
 	    draw_sprite(dbuf, dat[P_BODY].dat, u, v);
 	    draw_sprite(dbuf, dat[P_LEG0+guy->leg_frame].dat, u-1, v);
@@ -509,22 +544,21 @@ void blow_mine(int num);
 
 void blast(int x, int y, int dmg)
 {
-    // blast affects:
-    //  barrels, wood, crates
-    //  mines
-    //  players
     int u, v;
     int i, j, t;
+    fixed angle;
 
     u = x/16;
     v = y/16;
 
     shake_factor += 10;
 
+    // radius in pixels, 40 pixels around
+
     // barrels, wood, crates 
-    for (j=-1; j<2; j++) {
-	for (i=-1; i<2; i++) {
-	    if (v+j>=0 && v+j<map.h && u+i>=0 && u+i<map.h)
+    for (j=-2; j<=2; j++) {
+	for (i=-2; i<=2; i++) {
+	    if (v+j>=0 && v+j<map.h && u+i>=0 && u+i<map.w)
 	    {
 		t = map.tile[v+j][u+i];
 		if (t==T_BAR || t==T_CRATE || t==T_WOOD)
@@ -533,8 +567,6 @@ void blast(int x, int y, int dmg)
 	}
     }
 
-    // radius in pixels, 24 pixels around
-
     // mines
     for (i=0; i<MAX_MINES; i++)
     {
@@ -542,7 +574,7 @@ void blast(int x, int y, int dmg)
 	{
 	    u = mine[i].x+3;
 	    v = mine[i].y;
-	    if (u>=x-24 && u<=x+24 && v>=y-24 && v<=y+24)
+	    if (u>=x-40 && u<=x+40 && v>=y-40 && v<=y+40)
 		blow_mine(i);
 	}
     }
@@ -554,11 +586,27 @@ void blast(int x, int y, int dmg)
 	{
 	    u = player[i].x;
 	    v = player[i].y;
-	    if (u>=x-24 && u<=x+24 && v>=y-24 && v<=y+24) 
+	    if (u>=x-40 && u<=x+40 && v>=y-40 && v<=y+40) 
 	    {
-		hurt_player(i, dmg);
-		player[i].yv = -8;
-		player[i].jump = 1;
+		hurt_player(i, dmg, 1);
+		angle = find_angle(x, y, u, v); 
+		player[i].xv = fixtoi(fcos(angle) * 15);
+		player[i].yv = fixtoi(fsin(angle) * 15) - 1;
+
+		if (player[i].yv>15)
+		    player[i].yv = 15;
+		else if (player[i].yv<-15)
+		    player[i].yv = -15;
+
+		if (player[i].xv>15)
+		    player[i].xv = 15;
+		else if (player[i].xv<-15)
+		    player[i].xv = -15;
+
+		if (player[i].yv > 0) 
+		    player[i].jump = 0;
+		else
+		    player[i].jump = 1;
 	    }
 	}
     }
@@ -621,9 +669,7 @@ void draw_mines()
     for (i=0; i<MAX_MINES; i++)
     {
 	if (mine[i].alive)
-	{
 	    draw_sprite(dbuf, dat[MINE1+mine[i].frame].dat, mine[i].x-px, mine[i].y-py);
-	}
     } 
 }
 
@@ -823,6 +869,55 @@ void respawn_ammo()
 
 
 
+/* msgs */
+
+char msg_queue[3][80];
+
+int msg_index = 0, num_msgs = 0;
+int msg_tics = 0;
+
+#define MSG_ANIM    140
+
+void add_msg(char *s)
+{
+    if (!num_msgs)
+	msg_tics = MSG_ANIM;
+
+    if (num_msgs>2)
+    {
+	memcpy(msg_queue[0], msg_queue[1], 80);
+	memcpy(msg_queue[1], msg_queue[2], 80);
+    } 
+    else
+	num_msgs++; 
+
+    strcpy(msg_queue[num_msgs-1], s);
+}
+
+void update_msgs()
+{
+    if (--msg_tics<0)
+    {
+	msg_tics = MSG_ANIM;
+	if (num_msgs)
+	{
+	    memcpy(msg_queue[0], msg_queue[1], 80);
+	    memcpy(msg_queue[1], msg_queue[2], 80);
+	    memset(msg_queue[2], 0, 80);
+	    num_msgs--;
+	}
+    }
+}
+
+void draw_msgs()
+{
+    int i;
+    for (i=0; i<num_msgs; i++)
+	textout(xbuf, dat[F_MINI].dat, msg_queue[i], SCREEN_W-16-text_length(dat[F_MINI].dat, msg_queue[i]), 3+6*i, GREEN - (num_msgs-1-i)*6);
+}
+
+
+
 /* status */
 
 struct
@@ -830,17 +925,18 @@ struct
     int pic;
     int weap;
     int shortcut;
+    char *s;
 } status_order[] = 
 {
-    { W_MINE, w_mine, KEY_ENTER },
-    { W_KNIFE, w_knife, KEY_TILDE },
-    { W_PISTOL, w_pistol, KEY_1 },
-    { W_SHOTGUN, w_shotgun, KEY_2 },
-    { W_UZI, w_uzi, KEY_3 },
-    { W_M16, w_m16, KEY_4 },
-    { W_MINI, w_minigun, KEY_5 },
-    { W_BOW, w_bow, KEY_6 },
-    { W_ROCKET, w_bazooka, KEY_7 },
+    { W_MINE, w_mine, KEY_ENTER, "" },
+    { W_KNIFE, w_knife, KEY_TILDE, "~" },
+    { W_PISTOL, w_pistol, KEY_1, "1" },
+    { W_SHOTGUN, w_shotgun, KEY_2, "2" },
+    { W_UZI, w_uzi, KEY_3, "3" },
+    { W_M16, w_m16, KEY_4, "4" },
+    { W_MINI, w_minigun, KEY_5, "5" },
+    { W_BOW, w_bow, KEY_6, "6" },
+    { W_ROCKET, w_bazooka, KEY_7, "7" },
     { 0 }
 };
 
@@ -858,6 +954,7 @@ void draw_status()
 	{
 	    draw_sprite(xbuf, dat[status_order[i].pic].dat, 
 		6 + (player[local].cur_weap==status_order[i].weap ? 6 : 0), y);
+	    textout(xbuf, dat[F_MINI].dat, status_order[i].s, 0, y+10, RED);
 	    y-=14;
 	}
 	i++;
@@ -887,10 +984,13 @@ void draw_status()
 
     if (c!=-1) {
 	sprintf(buf, "%d", c); 
-	textout(xbuf, font, buf, SCREEN_W-24-text_length(font, buf), SCREEN_H-24, RED);
+	textout(xbuf, dat[F_UNREAL].dat, buf, SCREEN_W-24-text_length(dat[F_UNREAL].dat, buf), SCREEN_H-24, -1);
     }
 
-    textprintf(xbuf, font, 16, 6, RED, "%d", player[local].health);
+    draw_sprite(xbuf, dat[HEART1+(heart_frame>2 ? 1 : heart_frame)].dat, 6, 9);
+    draw_sprite(xbuf, dat[A_ARMOUR].dat, 60, 9);
+    textprintf(xbuf, dat[F_UNREAL].dat, 24, 3, -1, "%3d", player[local].health);
+    textprintf(xbuf, dat[F_UNREAL].dat, 78, 3, -1, "%3d", player[local].armour);
 }
 
 
@@ -945,7 +1045,7 @@ void get_local_input()
 void move_player(int pl)
 {
     PLAYER *guy;
-    int kx, ky, a, t;
+    int kx, ky, a, t, x, y;
     int move_legs = 0;
 
     guy = &player[pl];
@@ -967,8 +1067,12 @@ void move_player(int pl)
     switch (a)
     {
 	case A_ARMOUR:
-	    guy->armour+=20;
-	    map.ammo[ky][kx] = 0;
+	    if (guy->armour<300) {
+		guy->armour+=100;
+		if (guy->armour>300)
+		    guy->armour = 300;
+		map.ammo[ky][kx] = 0;
+	    } 
 	    break;
 	case A_ARROW:
 	    guy->num_arrows+=7;
@@ -984,6 +1088,7 @@ void move_player(int pl)
 		if (guy->health>200)
 		    guy->health = 200;
 		map.ammo[ky][kx] = 0;
+		add_msg("<BURP>");
 	    }
 	    break;
 	case A_COKE:
@@ -998,6 +1103,7 @@ void move_player(int pl)
 	    guy->num_mines+=1;
 	    guy->have[w_mine] = 1;
 	    map.ammo[ky][kx] = 0;
+	    add_msg("GOT YERSELF A MINE");
 	    break;
 	case A_ROCKET:
 	    guy->num_rockets+=3;
@@ -1006,11 +1112,13 @@ void move_player(int pl)
 	case A_SHELL:
 	    guy->num_shells+=8;
 	    map.ammo[ky][kx] = 0;
+	    add_msg("POCKET FULL A SHELLS");
 	    break;
 	case W_BOW:
 	    guy->have[w_bow]=1;
 	    guy->num_arrows+=3;
 	    map.ammo[ky][kx] = 0;
+	    add_msg("DYNAMITE ON STICKS!");
 	    break;
 	case W_M16:
 	    if (!guy->have[w_m16] && !guy->next_fire)
@@ -1018,6 +1126,7 @@ void move_player(int pl)
 	    guy->have[w_m16]=1;
 	    guy->num_bullets+=40;
 	    map.ammo[ky][kx] = 0;
+	    add_msg("GUN OF SOME SORT");
 	    break;
 	case W_MINI:
 	    if (!guy->have[w_minigun] && !guy->next_fire)
@@ -1025,6 +1134,7 @@ void move_player(int pl)
 	    guy->have[w_minigun]=1;
 	    guy->num_bullets+=50;
 	    map.ammo[ky][kx] = 0;
+	    add_msg("MINIGUN! FIND SOME MEAT!");
 	    break;
 	case W_PISTOL:
 	    if (!guy->have[w_pistol] && !guy->next_fire)
@@ -1037,6 +1147,7 @@ void move_player(int pl)
 	    guy->have[w_bazooka]=1;
 	    guy->num_rockets+=2;
 	    map.ammo[ky][kx] = 0;
+	    add_msg("BAARRZOOKA!");
 	    break;
 	case W_SHOTGUN:
 	    if (!guy->have[w_shotgun] && !guy->next_fire)
@@ -1137,7 +1248,7 @@ void move_player(int pl)
 
     /* impaled on spikes ? */
     if (tile_collide(guy->x+3, guy->y+16)==T_SPIKE)
-	hurt_player(pl, 3);
+	hurt_player(pl, 3, 0);  // armour doesn't affect spikes
 
     /* climb down ladder */
     if (guy->down)
@@ -1185,8 +1296,6 @@ void move_player(int pl)
     {
 	guy->y += guy->yv;
 	guy->yv++;
-	if (guy->yv==0)
-	    guy->jump = guy->yv = 0; 
 
 	t = tile_collide(guy->x+3, guy->y);
 	if (t && t!=T_LAD)
@@ -1194,6 +1303,27 @@ void move_player(int pl)
 	    guy->y = ((int)(guy->y+16)/16) * 16;
 	    guy->jump = guy->yv = 0;
 	} 
+
+	if (guy->yv==0)
+	    guy->jump = guy->yv = 0; 
+    }
+
+    // when getting blown back or something
+    if (guy->xv)
+    {
+	guy->x += guy->xv;
+
+	t = tile_collide(guy->x+3, guy->y);
+	if (t && t!=T_LAD)
+	{
+	    guy->x = ((int)(guy->x+3-guy->xv)/16) * 16;
+	    guy->xv = 0;
+	}
+
+	if (guy->xv < 0)
+	    guy->xv++;
+	if (guy->xv > 0)
+	    guy->xv--;
     }
 
     /* left */
@@ -1232,9 +1362,22 @@ void move_player(int pl)
 	    if (guy->fire_frame>4 || (guy->cur_weap!=w_minigun && guy->fire_frame>3))
 	    {
 		guy->fire_frame = 0;
-		if ((guy->cur_weap==w_uzi || guy->cur_weap==w_minigun) && guy->firing)
+		if (guy->firing && (guy->cur_weap==w_m16 || guy->cur_weap==w_uzi || guy->cur_weap==w_minigun))
 		    guy->fire_frame = 1;
 	    }
+
+	    // eject casings
+	    if ((guy->cur_weap==w_shotgun && guy->fire_frame==3) || 
+		(guy->cur_weap==w_m16 && guy->fire_frame==3) ||
+		(guy->cur_weap==w_pistol && guy->fire_frame==2) ||
+		(guy->cur_weap==w_uzi && guy->fire_frame==3) ||
+		(guy->cur_weap==w_minigun && guy->fire_frame!=2))
+	    { 
+		x = guy->x + 3 + fixtoi(fcos(guy->angle)) * 5;
+		y = guy->y + 3 + fixtoi(fsin(guy->angle)) * 5;
+		spawn_casing(x, y, ((mouse_x+px>guy->x) ? right : left));
+	    } 
+
 	    guy->fire_tics = weaps[guy->cur_weap].anim;
 	}
     }
@@ -1297,12 +1440,21 @@ void game_loop()
 	    move_bullets();
 	    move_particles();
 
+	    update_msgs();
+
 	    if (shake_factor>40) 
 		shake_factor = 40;
 	    else if (shake_factor)
 		shake_factor--;
 	    shakex = (random()%(shake_factor*2+1))-shake_factor;
 	    shakey = (random()%(shake_factor*2+1))-shake_factor;
+
+	    if (--heart_tics<0)
+	    {
+		heart_tics = HEART_ANIM;
+		if (++heart_frame>3)
+		    heart_frame=0;
+	    }
 
 	    speed_counter--;
 	}
@@ -1342,8 +1494,10 @@ void game_loop()
 	draw_explo();
 	draw_spotlight();
 	draw_status(); 
+	draw_msgs();
 
 	//vsync();
+	clear(dbuf);
 	show_mouse(NULL);
 	blit(xbuf, screen, 0, 0, 0 + shakex, 0 + shakey, SCREEN_W, SCREEN_H);
 	show_mouse(screen);
@@ -1421,8 +1575,6 @@ int main(int argc, char **argv)
     }
 
     /* misc */
-    font = dat[UNREAL].dat;
-
     set_mouse_sprite(dat[XHAIR].dat);
     set_mouse_sprite_focus(1,1);
 
