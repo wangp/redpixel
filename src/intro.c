@@ -4,9 +4,12 @@
  * 
  *  Game introduction.
  *  Code converted from a SeeR script.
+ *  Hacked to pieces to synchronise with music.
  */
 
 
+#include <sys/time.h>
+#include <unistd.h>
 #include <allegro.h>
 #include "blood.h"
 #include "globals.h"
@@ -14,14 +17,57 @@
 #include "vidmode.h"
 
 
+
+typedef struct timeval WATCH;
+
+static void set_watch(WATCH *watch)
+{
+    gettimeofday(watch, NULL);
+}
+
+static unsigned long elapsed_time(WATCH *watch)
+{
+    WATCH now;
+    set_watch(&now);
+    return ((now.tv_sec - watch->tv_sec) * 1000 +
+	    (now.tv_usec - watch->tv_usec) / 1000);
+}
+
+static void wait_until(WATCH *watch, unsigned long msecs_elaspsed)
+{
+    while (elapsed_time(watch) < msecs_elaspsed)
+	yield_timeslice();
+}
+
+
+
+static volatile int frames;
+
+static void frame_ticker(void)
+{
+    frames++;
+}
+
+END_OF_STATIC_FUNCTION(frame_ticker);
+
+
+
+/* duration to fit music: two seconds */
 static int raster_words(char *s)
 {
+    WATCH watch;
     BITMAP *txt1;
     BITMAP *txt2;
-    int w, h;
     int x, y;
+    int w, h;
     int nopress = 0;
 
+    set_watch(&watch);
+    LOCK_VARIABLE(frames);
+    LOCK_FUNCTION(frame_ticker);
+    install_int_ex(frame_ticker, BPS_TO_TIMER(60));
+
+    /* create text images */
     w = text_length(dat[UNREAL].dat, s);
     h = text_height(dat[UNREAL].dat);
     if ((w % 2) == 0) w++;
@@ -32,43 +78,69 @@ static int raster_words(char *s)
     clear_bitmap(txt2);
     textout(txt1, dat[UNREAL].dat, s, 0, 0, -1);
     textout(txt2, dat[UNREAL].dat, s, 0, 0, -1);
-    for (x = 0; x < h; x += 2) {
-	hline(txt1, 0, x,     w - 1, 0);
-	hline(txt2, 0, x + 1, w - 1, 0);
+    for (y = 0; y < h; y += 2) {
+	hline(txt1, 0, y,     w - 1, 0);
+	hline(txt2, 0, y + 1, w - 1, 0);
     }
 
-    x = -w;
     y = 100 - h / 2;
+    x = -w;
 
-    do {
-	clear_bitmap(dbuf);
-	draw_sprite(dbuf, txt1, x, y);
-	draw_sprite(dbuf, txt2, 319 - x - w, y);
-	blit_to_screen(dbuf);
-	x++;
+    /* text in */
+    frames = 1;
+    while (x < 160 - w/2) {
+	if (frames > 0) {
+	    x += 6;
+	    if (--frames == 0) {
+		clear_bitmap(dbuf);
+		draw_sprite(dbuf, txt1, x, y);
+		draw_sprite(dbuf, txt2, 319 - x - w, y);
+		blit_to_screen(dbuf);
+	    }
+	}
+	
 	if (keypressed())
 	    goto quit;
-    } while (x < (160 - w / 2));
+    }
 
-    rest(500);
+    /* pause a little */
+    x = 160 - w/2 - 1;
+    clear_bitmap(dbuf);
+    draw_sprite(dbuf, txt1, x, y);
+    draw_sprite(dbuf, txt2, 319 - x - w, y);
+    blit_to_screen(dbuf);
+    wait_until(&watch, 1500);
 
-    do { 
-	clear_bitmap(dbuf);
-	draw_sprite(dbuf, txt1, x, y);
-	draw_sprite(dbuf, txt2, 319 - x - w, y);
-	blit_to_screen(dbuf);
-	x++;
+    /* text out */
+    frames = 1;
+    while (x < 320) {
+	if (frames > 0) {
+	    x += 6;
+	    if (--frames == 0) {
+		clear_bitmap(dbuf);
+		draw_sprite(dbuf, txt1, x, y);
+		draw_sprite(dbuf, txt2, 319 - x - w, y);
+		blit_to_screen(dbuf);
+	    }
+	}
+	
 	if (keypressed())
 	    goto quit;
-    } while (x < 320);
+    } 
+
+    /* pause a little */
+    clear_bitmap(screen);
+    wait_until(&watch, 2000);
 
     nopress = 1;
 
   quit:
-    
+
     destroy_bitmap(txt1);
     destroy_bitmap(txt2);
-
+    
+    remove_int(frame_ticker);
+    
     return nopress;
 }
 
@@ -77,6 +149,10 @@ static int scan(int x, int y)
 {
     BITMAP *bmp;
     int x2, i, j = 0;
+    WATCH watch;
+
+    set_watch(&watch);
+    
     x2 = x + 60;
 
     bmp = create_bitmap(320, 200);
@@ -91,10 +167,11 @@ static int scan(int x, int y)
 	blit_to_screen(bmp);
 	x++;
 	rest(60);
-    } while ((x < x2) && (!keypressed()));
+    } while ((x < x2) && (!keypressed()) &&
+	     (elapsed_time(&watch) < 3600));
 
     destroy_bitmap(bmp);
-
+    
     return !(x < x2);
 }
 
@@ -105,7 +182,7 @@ void intro()
 
     /* Give monitor a chance to set the mode.  I'm serious.  
      * Only important because we want to see the year scroll in.  */
-    rest(300);
+    rest(1500);
     
     clear_keybuf();
 
@@ -127,9 +204,14 @@ void intro()
 
 	    x--; x2++;
 	    y--; y2++;
+
+	    rest(8);
 	} while (x > 0);
 
-	rest(1400);
+	rest(1600);
+    }
+    else {
+	rpjgmod_stop();
     }
 
     fade_out(6);

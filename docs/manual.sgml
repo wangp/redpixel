@@ -306,6 +306,10 @@
     The <tt>RECORD DEMOS</tt> option is explained in the
     <ref id="sec-demo" name="demo section">.
 
+    The <tt>MOUSE SPEED</tt> option adjusts the speed of the mouse's
+    movement.  Note that this does not work in all environments
+    (e.g. it might not work in windowed environments).
+
     In the bottom left corner there is a button (usually labelled
     ``stats'' or similar).  This is explained in the
     <ref id="sec-stats" name="next section">.
@@ -544,6 +548,10 @@
 
   <p> `getopt.c' was taken from some mailing archive somewhere.  It
   retains its license and copyright.
+
+  <p> Other libraries used are libnet, JGMOD, libcda and AGUP.
+  Although they are included in the Red Pixel's source tree for
+  convenience, they retain their own copyrights (of course).
 
 
 <sect1> Contacting Psyk Software

@@ -42,6 +42,24 @@ void rpcd_shutdown()
 }
 
 
+int rpcd_get_volume()
+{
+    int v = 0;
+    if (inited) {
+	cd_get_volume(&v, NULL);
+	cd_set_volume(v, v);  /* potentially annoying to some people */
+    }
+    return v;
+}
+
+
+void rpcd_set_volume(int volume)
+{
+    if (inited)
+	cd_set_volume(volume, volume);
+}
+
+
 void rpcd_play_random_track()
 {
     int t0, t1, i;

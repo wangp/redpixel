@@ -149,7 +149,7 @@ compress: $(GAME)
 	upx $<
 
 suidroot:
-	chown root.allegro $(GAME)
+	chown root.games $(GAME)
 	chmod 4750 $(GAME)
 
 strip:

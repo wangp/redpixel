@@ -11,6 +11,9 @@
 #include "vidmode.h"
 
 
+void fblend_2x_stretch(BITMAP *src, BITMAP *dst, int s_x, int s_y, int d_x, int d_y, int w, int h);
+
+
 int desired_video_mode;
 int want_scanlines;
 static BITMAP *scanlined_screen;

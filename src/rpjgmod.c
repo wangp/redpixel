@@ -45,7 +45,6 @@ static int is_module(char *filename)
 void rpjgmod_init(void)
 {
     install_mod(24);
-    set_mod_volume(128);
     enable_lasttrk_loop = FALSE;
 
     /* create list of filenames */
@@ -97,6 +96,13 @@ void rpjgmod_shutdown(void)
 
     inited = 0;
 }
+
+
+void rpjgmod_set_volume(int volume)
+{
+    if (inited)
+        set_mod_volume(volume);
+}  
 
 
 static struct filename *get_filename_by_index(int i)

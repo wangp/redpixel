@@ -2,7 +2,7 @@
  *  Red Pixel, a violent game.
  *  Copyright (C) 1999 Psyk Software.
  * 
- *  Options part of menu.
+ *  Options part of menu.  The height of ugly.
  */
 
 
@@ -15,7 +15,10 @@
 #include "globals.h"
 #include "resource.h"
 #include "rpagup.h"
+#include "rpcd.h"
+#include "rpjgmod.h"
 #include "setweaps.h"
+#include "sound.h"
 #include "stats.h"
 #include "statlist.h"
 #include "suicide.h"
@@ -23,11 +26,15 @@
 
 
 
-int mouse_speed = 2;
-int record_demos = 0;
+int mouse_speed;
+int record_demos;
 int filtered;
 int family;
-int mute_sfx = 0;
+int mute_sfx;
+
+static int sfx_volume;
+static int mod_volume;
+static int cd_volume;
 
 
 
@@ -60,6 +67,14 @@ static char *res_list(int index, int *list_size)
 static int mouse_speed_callback(void *dp3, int d2)
 {
     set_mouse_speed(d2, d2);
+    return D_O_K;
+}
+
+
+static int sfx_volume_callback(void *dp3, int d2)
+{
+    set_volume(d2 * 32, -1);
+    snd_local(WAV_DEAD1 + (rand() % (WAV_DEAD5 - WAV_DEAD1 + 1)));
     return D_O_K;
 }
 
@@ -110,15 +125,15 @@ DIALOG config_dlg[] =
 
     { d_agup_check_proc,      180,  70,   100, 20,  0,    0,    0,   0,           0,    0,  "RECORD DEMOS",   NULL,  NULL }, /* 12 */
 
-    { d_text_proc,            160,  95,   40,  8,   0,    0,    0,   0,           10,   0,  "MOUSE SPEED",    NULL,  NULL }, /* 13 */
+    { d_text_proc,            160,  95,   40,  8,   0,    0,    0,   0,           0,    0,  "MOUSE SPEED",    NULL,  NULL }, /* 13 */
     { d_agup_slider_proc,     225,  93,   60,  12,  0,    0,    0,   0,           3,    0,  NULL,             mouse_speed_callback,  NULL }, /* 14 */
 
-    { d_text_proc,            160,  117,  20,  8,   0,    0,    0,   0,           10,   0,  "SFX",            NULL,  NULL }, /* 15 */
-    { d_agup_slider_proc,     185,  115,  100, 12,  0,    0,    0,   0,           10,   0,  NULL,             NULL,  NULL }, /* 16 */
-    { d_text_proc,            160,  132,  20,  8,   0,    0,    0,   0,           10,   0,  "MODS",           NULL,  NULL }, /* 17 */
-    { d_agup_slider_proc,     185,  130,  100, 12,  0,    0,    0,   0,           10,   0,  NULL,             NULL,  NULL }, /* 18 */
-    { d_text_proc,            160,  147,  20,  8,   0,    0,    0,   0,           10,   0,  "CD",             NULL,  NULL }, /* 19 */
-    { d_agup_slider_proc,     185,  145,  100, 12,  0,    0,    0,   0,           10,   0,  NULL,             NULL,  NULL }, /* 20 */
+    { d_text_proc,            160,  117,  20,  8,   0,    0,    0,   0,           0,    0,  "SFX",            NULL,  NULL }, /* 15 */
+    { d_agup_slider_proc,     185,  115,  100, 12,  0,    0,    0,   0,           8,    0,  NULL,             sfx_volume_callback,  NULL }, /* 16 */
+    { d_text_proc,            160,  132,  20,  8,   0,    0,    0,   0,           0,    0,  "MODS",           NULL,  NULL }, /* 17 */
+    { d_agup_slider_proc,     185,  130,  100, 12,  0,    0,    0,   0,           8,    0,  NULL,             NULL,  NULL }, /* 18 */
+    { d_text_proc,            160,  147,  20,  8,   0,    0,    0,   0,           0,    0,  "CD",             NULL,  NULL }, /* 19 */
+    { d_agup_slider_proc,     185,  145,  100, 12,  0,    0,    0,   0,           8,    0,  NULL,             NULL,  NULL }, /* 20 */
 
     { d_agup_push_proc,       20,   170,  130, 20,  0,    0,    0,   0,           0,    0,  stats_filename,   NULL,  push_stats_button }, /* 21 */
 
@@ -140,6 +155,9 @@ DIALOG config_dlg[] =
 #define I_PLAYCD	11
 #define I_RECORDREMOS	12
 #define I_MOUSESPEED	14
+#define I_SFXVOLUME	16
+#define I_MODVOLUME	18
+#define I_CDVOLUME	20
 #define I_STATS		21
 #define I_ACCEPT	22
 #define I_REJECT	23
@@ -159,6 +177,7 @@ void options(void)
     int accepted;
     int old_desired_video_mode = desired_video_mode;
     int old_want_scanlines = want_scanlines;
+    int old_sfx_volume = sfx_volume;
     
     old_font = font;
     font = dat[MINI].dat;
@@ -189,6 +208,10 @@ void options(void)
 	set_D_SELECTED(config_dlg + I_RECORDREMOS, record_demos);
 
 	config_dlg[I_MOUSESPEED].d2 = mouse_speed;
+	
+	config_dlg[I_SFXVOLUME].d2 = sfx_volume;
+	config_dlg[I_MODVOLUME].d2 = mod_volume;
+	config_dlg[I_CDVOLUME].d2 = cd_volume;
 
 	strncpy(stats_filename, get_filename(current_stats), sizeof stats_filename);
 	strncpy(stats_path, current_stats, sizeof stats_path);
@@ -224,9 +247,14 @@ void options(void)
 	
 	mouse_speed = config_dlg[I_MOUSESPEED].d2;
 
+	sfx_volume = config_dlg[I_SFXVOLUME].d2;
+	mod_volume = config_dlg[I_MODVOLUME].d2;
+	cd_volume = config_dlg[I_CDVOLUME].d2;
+	
 	set_current_stats(stats_path);
     }
     else {
+	sfx_volume = old_sfx_volume;
 	pop_stat_block();
     }
 
@@ -242,7 +270,11 @@ void options(void)
     }
 
     set_mouse_speed(mouse_speed, mouse_speed);
-    
+
+    set_volume(sfx_volume * 32, -1);
+    rpjgmod_set_volume(mod_volume * 32);
+    rpcd_set_volume(cd_volume * 32);
+
     
     set_weapon_stats();
     
@@ -289,6 +321,9 @@ void load_settings()
     record_demos = get_config_int(section, "record_demos", FALSE);
     mouse_speed = get_config_int(section, "mouse_speed", 1);
     set_current_stats((char *)get_config_string(section, "stats_file", "stats/default.st"));
+    sfx_volume = get_config_int(section, "sfx_volume", 8); set_volume(sfx_volume * 32, -1);
+    mod_volume = get_config_int(section, "mod_volume", 3); rpjgmod_set_volume(mod_volume * 32);
+    cd_volume = rpcd_get_volume() / 32;
     
     close_cfg();
 }
@@ -307,6 +342,8 @@ void save_settings()
     set_config_int(section, "record_demos", record_demos);
     set_config_int(section, "mouse_speed", mouse_speed);
     set_config_string(section, "stats_file", current_stats);
+    set_config_int(section, "sfx_volume", sfx_volume);
+    set_config_int(section, "mod_volume", mod_volume);
 
     close_cfg();
 }

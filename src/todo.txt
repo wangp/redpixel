@@ -1,17 +1,16 @@
-volumes
-fblend stretcher
-shortcut to manual in windows installer
-shortcut to map editor
+	shortcut to manual in windows installer
+	shortcut to map editor
 
-
-MAYBES:
-small description of each demo
-if modules not being used, make jgmod relinquish some voices
-include allegro setup program
+LATER:
+	beos port
+	qnx port
+	small description of each demo
+	if modules not being used, make jgmod relinquish some voices
+	include allegro setup program
 
 PROBABLY NEVER:
-do not spawn in same place
-network error checking (should not be necessary because using RDM)
-eventually replace native SK serial with Libnet serial
-make intro use fblit :-)
-make not 32-bit assumant (see stats.c especially)
+	do not spawn in same place
+	network error checking (should not be necessary because using RDM)
+	eventually replace native SK serial with Libnet serial
+	make intro use fblit :-)
+	make not 32-bit assumant (see stats.c especially)

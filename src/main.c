@@ -132,9 +132,9 @@ int main(int argc, char *argv[])
 	skSetConfigPath(replace_filename(tmp, argv[0], "", sizeof tmp));
     }
 
-    load_settings();
-
     music_init();
+
+    load_settings();
 
     /* load datafile */
     /* ... before setting a graphics mode -- a big no-no :-) */

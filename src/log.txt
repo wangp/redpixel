@@ -247,3 +247,7 @@ now back to school, so less done
 			Other tiles spew less particles
 		Home/End keys for menu
 		Home/End/PageUp/PageDn keys for map selection screen
+
+19 December	David Capello contributed music for the intro
+		Synchronised intro sequence to the music
+		Finally made volume sliders in options screen work
