@@ -13,6 +13,7 @@
 #include "mousespr.h"
 #include "music.h"
 #include "globals.h"
+#include "resource.h"
 #include "rpagup.h"
 #include "setweaps.h"
 #include "stats.h"
@@ -23,6 +24,7 @@
 
 static FONT *old_font;
 static char stats_filename[1024];
+static char stats_path[1024];
 
 
 static char *res_list(int index, int *list_size)
@@ -55,10 +57,12 @@ static int mouse_speed_callback(void *dp3, int d2)
 
 static int push_stats_button(DIALOG *d)
 {
-    char path[1024] = "";
+    char path[1024];
     FONT *save = font;
     (void)d;
     font = old_font;
+
+    strncpy(path, get_resource(R_SHARE, "stats/"), sizeof path);
 
     if (file_select_ex("Use stats file...", path, NULL, sizeof path, 0, 0)) {
 	if (!read_stats(path, stat_block)) {
@@ -67,6 +71,7 @@ static int push_stats_button(DIALOG *d)
 	}
 	else {
 	    strcpy(stats_filename, get_filename(path));
+	    strcpy(stats_path, path);
 	}
     }
 
@@ -173,7 +178,8 @@ void options(void)
 
 	config_dlg[I_MOUSESPEED].d2 = mouse_speed;
 
-	strcpy(stats_filename, "(fixme)");
+	strncpy(stats_filename, get_filename(current_stats), sizeof stats_filename);
+	strncpy(stats_path, current_stats, sizeof stats_path);
     }
 
     
@@ -204,6 +210,8 @@ void options(void)
 	record_demos = config_dlg[I_RECORDREMOS].flags & D_SELECTED;
 	
 	mouse_speed = config_dlg[I_MOUSESPEED].d2;
+
+	set_current_stats(stats_path);
     }
     else {
 	pop_stat_block();

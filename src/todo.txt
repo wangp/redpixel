@@ -1,23 +1,18 @@
-stats file button and menu message incomplete
-Unix path stuff
-map editor mouse coords
-no popping when go back to map selection screen
-highlight current map in map selection screen
+family mode
+save state in config file
 display switching (in map selection screen, in game?)
 	also with scanlines
-close button
-update manual
-icon for windows
-windows installer
-RPM spec
-setup program?
-if modules not being used, make jgmod relinquish some voices?
+fblend stretcher
+in game help
 
+speed tips
+html manual
+mouse under linux console manual
 
 MAYBES:
-new font
 small description of each demo
-
+if modules not being used, make jgmod relinquish some voices
+include allegro setup program
 
 PROBABLY NEVER:
 do not spawn in same place

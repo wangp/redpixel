@@ -70,7 +70,8 @@ obj/*/inp_peer.o: src/inp_peer.c  \
   src/include/player.h src/include/engine.h src/include/weapon.h \
   src/sk/sk.h
 obj/*/intro.o: src/intro.c  \
-  src/include/blood.h src/include/globals.h src/include/vidmode.h
+  src/include/blood.h src/include/globals.h src/include/rpjgmod.h \
+  src/include/vidmode.h
 obj/*/launch.o: src/launch.c  \
   src/include/menu.h src/include/launch.h src/include/credits.h \
   src/include/blood.h src/include/colours.h src/include/demo.h \
@@ -98,7 +99,7 @@ obj/*/mapper.o: src/mapper.c  \
   src/include/map.h src/include/resource.h src/include/rpagup.h
 obj/*/menu.o: src/menu.c  \
   src/include/blood.h src/include/globals.h src/include/menu.h \
-  src/include/vidmode.h
+  src/include/stats.h src/include/vidmode.h
 obj/*/message.o: src/message.c  \
   src/include/anim.h src/include/blood.h src/include/engine.h \
   src/include/colours.h src/include/gameloop.h src/include/globals.h
@@ -115,8 +116,10 @@ obj/*/music.o: src/music.c  \
   src/include/music.h src/include/rpcd.h src/include/rpjgmod.h
 obj/*/options.o: src/options.c  \
   agup/agup.h src/include/blood.h src/include/mousespr.h \
-  src/include/music.h src/include/globals.h src/include/rpagup.h \
-  src/include/suicide.h src/include/vidmode.h
+  src/include/music.h src/include/globals.h src/include/resource.h \
+  src/include/rpagup.h src/include/setweaps.h src/include/stats.h \
+  src/include/statlist.h src/include/statlist.inc src/include/suicide.h \
+  src/include/vidmode.h
 obj/*/particle.o: src/particle.c  \
   src/include/blood.h src/include/engine.h src/include/gameloop.h \
   src/include/globals.h src/include/map.h src/include/message.h \
@@ -145,7 +148,8 @@ obj/*/rpagup.o: src/rpagup.c  \
 obj/*/rpcd.o: src/rpcd.c libcda/libcda.h src/include/rg_rand.h \
   src/include/rpcd.h
 obj/*/rpjgmod.o: src/rpjgmod.c  \
-  jgmod/src/jgmod.h src/include/rnd.h src/include/rpjgmod.h
+  jgmod/src/jgmod.h src/include/resource.h src/include/rnd.h \
+  src/include/rpjgmod.h
 obj/*/setweaps.o: src/setweaps.c  \
   src/include/engine.h src/include/stats.h src/include/statlist.h \
   src/include/statlist.inc src/include/weapon.h src/include/setweaps.h
@@ -155,7 +159,7 @@ obj/*/sound.o: src/sound.c  \
   src/include/globals.h src/include/player.h src/include/weapon.h \
   src/include/sound.h
 obj/*/statlist.o: src/statlist.c src/include/stats.h src/include/statlist.inc
-obj/*/stats.o: src/stats.c src/include/stats.h
+obj/*/stats.o: src/stats.c src/include/stats.h src/include/suicide.h
 obj/*/suicide.o: src/suicide.c  \
   src/include/suicide.h src/include/main.h src/sk/sk.h
 obj/*/tiles.o: src/tiles.c  \

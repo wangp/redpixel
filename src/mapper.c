@@ -178,6 +178,7 @@ static void map_edit()
 {
     int u, v;
     int dirty = 1;
+    int mouse_grid_x = -1, mouse_grid_y = -1;
 
     mode = m_tile;
     selector = selector_tiles;
@@ -227,7 +228,6 @@ static void map_edit()
 		if (file_select("Save As...", tmp, "wak"))
 		    if (save_map(tmp) < 0)
 			alert("Error saving", tmp, "", "Ok", NULL, 13, 27);
-		text_mode(-1);
 		dirty = 1;
 	    }
 	    else if (key[KEY_L])
@@ -238,7 +238,6 @@ static void map_edit()
 		if (file_select("Load...", tmp, "wak"))
 		    if (load_map(tmp) < 0)
 			alert("Error loading", tmp, "", "Ok", NULL, 13, 27);
-		text_mode(-1);
 		mx = my = 0;
 		dirty = 1;
 	    }
@@ -280,13 +279,29 @@ static void map_edit()
 
 	    selector(SEL_DRAW);
 
-	    textprintf(dbuf, font, 0, 0, WHITE, "x: %2d  y: %2d  w: %2d  h: %2d", mouse_x/16+mx, mouse_y/16+my, map.w, map.h); 
+	    mouse_grid_x = mouse_x/16+mx;
+	    mouse_grid_y = mouse_y/16+my;
+	    text_mode(0);
+	    textprintf(dbuf, font, 0, 0, WHITE, "x: %2d  y: %2d  w: %2d  h: %2d", mouse_grid_x, mouse_grid_y, map.w, map.h); 
 
 	    scare_mouse();
 	    blit(dbuf, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
 	    unscare_mouse();	
 	    
 	    dirty = 0;
+	}
+	else {
+	    /* not dirty, but maybe update the mouse coordinates anyway */
+	    int xx = mouse_x/16+mx;
+	    int yy = mouse_y/16+my;
+	    if ((xx != mouse_grid_x) || (yy != mouse_grid_y)) {
+		mouse_grid_x = xx;
+		mouse_grid_y = yy;
+		scare_mouse();
+		text_mode(0);
+		textprintf(screen, font, 0, 0, WHITE, "x: %2d  y: %2d  w: %2d  h: %2d", mouse_grid_x, mouse_grid_y, map.w, map.h); 
+		unscare_mouse();
+	    }
 	}
     }
 }
@@ -305,7 +320,6 @@ int mapper()
     dbuf = create_bitmap(SCREEN_W, SCREEN_H);
     clear_bitmap(dbuf);
 
-    text_mode(-1);
     set_mouse_sprite_focus(0,0);
 
     set_palette(dat[GAMEPAL].dat);

@@ -4,7 +4,7 @@
 #define DARKGREY	8
 #define DARKGRAY	DARKGREY
 #define GREY    	16
-#define GRAY		DARKGRAY
+#define GRAY		GREY
 #define WHITE   	31
 #define YELLOW  	175
 #define RED     	127

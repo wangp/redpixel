@@ -19,7 +19,6 @@ void join_menu(BLUBBER *bp, int command, int ex);
 void menu_proc(BLUBBER *bp, int command, int ex);
 
 
-void set_menu_message(char *msg);
 void blubber(BLUBBER *start);
 
 

@@ -395,9 +395,9 @@ static char return_str[] = "return me to my game NOW!";
 
 static char record_reminder[128];
 
-static char *select_map()
+static char *select_map(int *top, int *selected, char *current_map)
 {
-    int top = 0, selected = 0, i, k, y;
+    int i, k, y;
     int chatting = 0, line = -1;
     char chatbox[6][80] = { "", "", "", "", "", "" };
     char cur[80] = "", temp[80], ch;
@@ -419,20 +419,22 @@ static char *select_map()
 		       160, 120, RED);
 
 	curmap = maphead.next;
-	for (i = 0; i < top; i++)
+	for (i = 0; i < (*top); i++)
 	    curmap = curmap->next;
 
 	for (i = 0; i < 9; i++) {
-	    if (i + top < num_maps) {
+	    if (i + (*top) < num_maps) {
 		int c = WHITE;
-		if (top+i==selected)
+		if ((*top)+i == (*selected))
 		    c = YELLOW;
+		else if (current_map == curmap->fn)
+		    c = GRAY;
 		textout(dbuf, small, get_filename(curmap->fn), 20, 25 + i*10, c);
 		curmap = curmap->next;
 	    }
 	}
 	
-	textout(dbuf, small, "*", 10, 25 + (selected-top) * 10, RED);
+	textout(dbuf, small, "*", 10, 25 + ((*selected) - (*top)) * 10, RED);
 
 	/* player list */
 	textout(dbuf, small, "THE DAMNED", 180, 10, RED);
@@ -473,10 +475,10 @@ static char *select_map()
 
 	/* down key */
 	if ((k >> 8) == KEY_DOWN || (remote == CHAT_KEYDOWN)) {
-	    if (++selected >= num_maps)
-		selected--;
-	    else if (selected >= top+9)
-		top++;
+	    if (++(*selected) >= num_maps)
+		(*selected)--;
+	    else if ((*selected) >= (*top) + 9)
+		(*top)++;
 
 	    if ((k >> 8) == KEY_DOWN && (comm == peerpeer))
 		skSend(CHAT_KEYDOWN);
@@ -484,10 +486,10 @@ static char *select_map()
 
 	/* up key */
 	if ((k >> 8) == KEY_UP || (remote == CHAT_KEYUP)) {
-	    if (--selected < 0)
-		selected = 0;
-	    else if (selected<top)
-		top--;
+	    if (--(*selected) < 0)
+		(*selected) = 0;
+	    else if ((*selected) < (*top))
+		(*top)--;
 
 	    if ((k >> 8) == KEY_UP && (comm == peerpeer)) 
 		skSend(CHAT_KEYUP);
@@ -514,9 +516,11 @@ static char *select_map()
 	    if ((k >> 8) == KEY_F10 && (comm == peerpeer))
 		skSend(CHAT_NEWMAP);
 
-	    curmap = maphead.next;
-	    while (selected--)
-		curmap = curmap->next;
+	    {
+		int x = *selected;
+		curmap = maphead.next;
+		while (x--) curmap = curmap->next;
+	    }
 
 	    return curmap->fn;
 	}
@@ -670,7 +674,9 @@ static void try_demo_write_open()
 static void do_session()
 {
     char *fn;
+    char *last_fn = NULL;
     int played = 0;
+    int top = 0, selected = 0;
     
     if (record_demos) 
 	try_demo_write_open();
@@ -684,7 +690,7 @@ static void do_session()
 
 	/* Pick a level.  */
       loop:
-	fn = select_map();
+	fn = select_map(&top, &selected, last_fn);
 	if (!fn) break;
 	
 	if (fn == return_str) {
@@ -697,6 +703,7 @@ static void do_session()
 	/* Load level.  */
 	if (load_map_wrapper(fn) < 0)
 	    break;
+	last_fn = fn;
 	demo_write_change_map(fn);
 	music_play_random_track();
 
@@ -1062,8 +1069,10 @@ static void libnet_connect_proc()
 
 static void demo_playback_proc()
 {
-    char filename[1024] = "demos/";
+    char filename[MAX_PATH_LENGTH];
     int x;
+
+    strncpy(filename, get_resource(R_SHARE, "demos/"), sizeof filename);
     
     x = file_select_ex("Load demo", filename, "rec", sizeof filename, 0, 0);
     text_mode(-1);

@@ -10,6 +10,7 @@
 #include <allegro.h>
 #include "blood.h"
 #include "globals.h"
+#include "rpjgmod.h"
 #include "vidmode.h"
 
 
@@ -107,6 +108,8 @@ void intro()
     rest(300);
     
     clear_keybuf();
+
+    rpjgmod_play_specific_track("specific/present.xm");
 
     if (raster_words("1998")
 	&& scan(10, 100) 

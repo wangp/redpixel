@@ -167,3 +167,14 @@ unsigned long make_stat_checksum(STAT_VAR *block)
     for_every_stat(block, checksum_proc);
     return checksum;
 }
+
+
+
+
+char current_stats[1024];
+
+char *set_current_stats(char *filename)
+{
+    strncpy(current_stats, filename, sizeof current_stats);
+    return current_stats;
+}

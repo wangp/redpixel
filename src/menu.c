@@ -11,6 +11,7 @@
 #include "blood.h"
 #include "globals.h"
 #include "menu.h"
+#include "stats.h"
 #include "vidmode.h"
 
 
@@ -90,26 +91,6 @@ void menu_proc(BLUBBER *bp, int command, int ex)
 	case MSG_CLICK:
 	    ((void (*)())bp->thing)();
 	    break;
-    }
-}
-
-
-
-/*----------------------------------------------------------------------
- *
- * 	Menu message
- * 
- *----------------------------------------------------------------------*/
-
-static char menu_message[64];
-
-void set_menu_message(char *msg)
-{
-    if (!msg)
-	menu_message[0] = 0;
-    else {
-	strncpy(menu_message, msg, sizeof menu_message - 1);
-	strupr(menu_message);
     }
 }
     
@@ -216,9 +197,8 @@ static void do_blubber(BLUBBER *start)
 	    draw_trans_sprite(light, dat[L_SPOT].dat, 160 - 192/2, y);
 	    
 	    /* Little message space.  */
-	    if (menu_message[0]) 
-		textout_right(light, dat[MINI].dat, menu_message,
-			      320-2, 200 - text_height(dat[MINI].dat), 8);
+	    textout_right(light, dat[MINI].dat, get_filename(current_stats),
+			  320-2, 200 - text_height(dat[MINI].dat), 8);
 	    
 	    /* Blit to screen.  */
 	    scare_mouse();

@@ -5,6 +5,7 @@
 void rpjgmod_init(void);
 void rpjgmod_shutdown(void);
 void rpjgmod_play_random_track(void);
+void rpjgmod_play_specific_track(char *);
 void rpjgmod_poll(void);
 void rpjgmod_stop(void);
 

@@ -18,7 +18,8 @@ endif
 ifeq "$(PLATFORM)" "LINUX"
 CFLAGS += -DTARGET_LINUX
 GAME := redpixel
-LIBS := `allegro-config --libs` $(LIBNET) -lpthread $(LIBCDA) $(JGMOD) $(AGUP)
+ALLEGRO := `allegro-config --libs` 
+LIBS := $(ALLEGRO) $(LIBNET) -lpthread $(LIBCDA) $(JGMOD) $(AGUP)
 PLATFORM_MODULES := sklinux
 OBJDIR := obj/linux
 endif
@@ -26,8 +27,9 @@ endif
 ifeq "$(PLATFORM)" "MINGW"
 CFLAGS += -DTARGET_WINDOWS
 GAME := redwin.exe
-LDFLAGS := -mwindows
-LIBS := $(LIBNET) -lwsock32 $(LIBCDA) -lwinmm $(JGMOD) $(AGUP) -lalleg
+LDFLAGS := -Wl,--subsystem,windows
+ALLEGRO := -lalleg
+LIBS := $(LIBNET) -lwsock32 $(LIBCDA) -lwinmm $(JGMOD) $(AGUP) $(ALLEGRO)
 PLATFORM_MODULES := getopt skdummy
 OBJDIR := obj/win
 endif
@@ -35,7 +37,8 @@ endif
 ifeq "$(PLATFORM)" "DJGPP"
 CFLAGS += -DTARGET_DJGPP
 GAME := reddos.exe
-LIBS := -lalleg $(LIBNET) $(LIBCDA) $(JGMOD) $(AGUP)
+ALLEGRO := -lalleg
+LIBS := $(ALLEGRO) $(LIBNET) $(LIBCDA) $(JGMOD) $(AGUP)
 PLATFORM_MODULES := skdos
 OBJDIR := obj/djgpp
 endif
@@ -99,6 +102,24 @@ MODULES := $(COMMON_MODULES) $(PLATFORM_MODULES)
 OBJS := $(addprefix $(OBJDIR)/,$(addsuffix .o,$(MODULES)))
 
 
+# icon stuff for Windows
+
+ifeq "$(PLATFORM)" "MINGW"
+
+WFIXICON := $(OBJDIR)/wfixicon.exe
+RES := $(OBJDIR)/tmp.res
+
+$(WFIXICON): misc/wfixicon.c
+	$(CC) -o $@ $< $(ALLEGRO)
+
+$(RES): $(WFIXICON)
+	$(WFIXICON) $(OBJDIR)/tmp.ico -ro misc/icon.bmp
+
+OBJS += $(RES)
+
+endif
+
+
 vpath %.c src src/engine src/sk src/fastsqrt
 
 $(GAME): $(OBJS)
@@ -134,12 +155,51 @@ suidroot:
 strip:
 	strip $(GAME)
 
+# don't delete obj/depend because it requires sed to remake
+# however, make depend before making a distribution
+
 clean: 
-	rm -f $(OBJS) core
+	rm -f $(OBJS) src/TAGS core.*
 
 cleaner: clean
-	rm -f $(GAME) obj/depend 
+	rm -f $(GAME) $(WFIXICON) $(RES) $(OBJDIR)/tmp.ico
+
+distclean: cleaner
+	make -C agup clean
+	make -C jgmod/src -f $(JGMOD_MAKEFILE) clean
+	make -C libcda clean
+	make -C libnet cleaner
 
 
 -include obj/depend
 
+
+# (un)installation for Linux
+
+VERSION := 1.0
+
+ifeq "$(PLATFORM)" "LINUX"
+
+prefix := /usr/local
+bindir := $(prefix)/games
+docdir := $(prefix)/doc/redpixel-$(VERSION)
+sharedir := $(prefix)/share/redpixel
+
+INSTALL := install -C -p
+
+install: $(GAME)
+	$(INSTALL) -m 755 -D $(GAME) $(bindir)/$(GAME)
+	$(INSTALL) -m 644 -D blood.dat $(sharedir)/blood.dat
+	for thedir in demos maps music stats; do			\
+		$(INSTALL) -m 755 -d $(sharedir)/$${thedir};		\
+		$(INSTALL) -m 644 $${thedir}/* $(sharedir)/$${thedir};	\
+	done
+
+uninstall:
+	rm -f $(bindir)/$(GAME)
+	rm -fr $(docdir) $(sharedir)
+
+endif
+
+
+# vi: syntax=make

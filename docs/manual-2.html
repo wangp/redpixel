@@ -1,0 +1,295 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE> Red Pixel: The Manual: The Game</TITLE>
+ <LINK HREF="manual-3.html" REL=next>
+ <LINK HREF="manual-1.html" REL=previous>
+ <LINK HREF="manual.html#toc2" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="manual-3.html">Next</A>
+<A HREF="manual-1.html">Previous</A>
+<A HREF="manual.html#toc2">Contents</A>
+<HR>
+<H2><A NAME="s2">2. The Game</A></H2>
+
+<H2><A NAME="ss2.1">2.1 Concept</A>
+  </H2>
+
+<P> 
+<P>The concept is a platform deathmatch game.  You run around a
+tile-based map, picking up various items and shooting your
+opponent.  None too original concept, but still the best :-)
+<P>
+<P>
+<H2><A NAME="ss2.2">2.2 Story</A>
+  </H2>
+
+<P>
+<P>You have been thrown in a dungeon with another prisoner.
+Contained within the dungeon are various magical objects, mostly
+weapons, which respawn after a certain time period.
+<P>Surrounded by such weapons of destruction, you cannot resist the
+temptation to kill everyone around you.
+<P>
+<P>
+<H2><A NAME="sec-starting"></A> <A NAME="ss2.3">2.3 Starting the game </A>
+  </H2>
+
+<P>
+<P>Simply run the executable to start.  If you used the Windows
+installer, you can click on the item in the Start menu.
+<P>Optionally, you can pass the following command line arguments.
+Note that they are case sensitive.
+<P>
+<DL>
+<P>
+<A NAME="sec-cmdline"></A> <DT><B>-e</B><DD><P>Start the 
+<A HREF="manual-3.html#sec-mapeditor">map editor</A>.
+<P>
+<DT><B>-q</B><DD><P>Skip introduction.
+<P>
+<DT><B>-v</B><DD><P>Display version number.
+<P>
+</DL>
+<P>
+<P>
+<H2><A NAME="ss2.4">2.4 The main menu</A>
+  </H2>
+
+<P>
+<P>The main menu should be self explanatory, except for the little
+writing in the lower right corner of the screen.  See the 
+<A HREF="#sec-stats">stats section</A>
+if you are curious about that.
+<P>
+<P>
+<H2><A NAME="ss2.5">2.5 Connecting via a serial cable</A>
+  </H2>
+
+<P>
+<P>[Note: serial connection is currently not implemented in the
+Windows version.]
+<P>Link two computers via a serial cable and start the game.  Select
+Start --> Serial, and then the correct COM port.  Enter your name,
+then wait for the computers to connect.
+<P>If an error occurs, check to make sure you used the right
+command line option.  If you're are running a DOS executable
+under Windows, try running under pure DOS.  (If you have a
+Logitech mouse you could also also try what I did, and get
+updated mouse drivers (MouseWare) for it from their web site.)
+<P>From here on, you will be shown a map selection screen.  Only
+the maps existing on both computers will be displayed.  Please
+make sure the maps are identical, otherwise your games will be
+unsynchronised. Press the up and down arrow keys to select a
+map. When you are ready to play, press `F10'.
+<P>If your game become unsynchronised, quit the level and restart.
+If it ever says ``SYNC PROBLEM'', then you'd better restart from
+the serial connection procedure.
+<P>
+<P>
+<H2><A NAME="sec-sockets"></A> <A NAME="ss2.6">2.6 Connecting via Berkeley sockets or Winsock </A>
+  </H2>
+
+<P> 
+<P>One machine must first select `Listen' then wait.  The other
+machine then selects `Connect'.  The connecting machine will need
+to enter the name or the IP address of the listening machine.
+<P>After connection, the game acts as it would with a serial connection.
+<P>Note: as this driver simply emulates a perfect serial link via a
+network, you can still only play two player games.  Also, you need
+a fast connection (e.g. LAN) between the machines, since the game
+runs synchronously.
+<P>
+<P>
+<H2><A NAME="ss2.7">2.7 Controls</A>
+  </H2>
+
+<P>
+<P>
+<UL>
+<LI> Use the following keys to move around.  They are all equivalent.
+    
+<BLOCKQUOTE><CODE>
+ 
+<PRE>
+          W                 T                  Up
+      A - S - D       F - G - H         Left - Down - Right
+      
+</PRE>
+ 
+</CODE></BLOCKQUOTE>
+
+    </LI>
+<LI> Aim the gun with the mouse, fire with the left mouse button.
+    </LI>
+<LI> Select the weapon with the number keys, and with Q, E, R, Y.
+The weapons you have collected will be displayed on the left.
+    </LI>
+<LI> Press Enter or press the right mouse button to lay a mine.
+    </LI>
+<LI> If you have one and you are running under Linux or Windows,
+you can switch weapons using a mouse wheel on an
+Intellimouse compatible mouse.  Please read `readme.lnx' in
+the Allegro distribution to see how to set this up under
+Linux.  Your mileage may vary, so don't be disappointed if
+it doesn't work.
+</LI>
+<LI> TAB to see your scores.</LI>
+<LI> ESC to quit.</LI>
+<LI> F12 to see the frame rate counter.
+</LI>
+</UL>
+<P>
+<P>
+<H2><A NAME="sec-items"></A> <A NAME="ss2.8">2.8 Items </A>
+  </H2>
+
+<P>
+<P>
+<UL>
+<LI> Weapons
+<UL>
+<LI> Knife</LI>
+<LI> Pistol</LI>
+<LI> Shotgun</LI>
+<LI> Uzi</LI>
+<LI> M16 (just a big gun, nothing like an M16)</LI>
+<LI> Minigun</LI>
+<LI> Bow with explosive arrows</LI>
+<LI> Bazooka</LI>
+<LI> Mines</LI>
+</UL>
+
+       </LI>
+<LI> Other items:
+<UL>
+<LI> Chicken (+health)</LI>
+<LI> Coke (+health)</LI>
+<LI> Armour.  Takes half the damage from an attack (1 health = 2 armour)</LI>
+<LI> Goggles.  Lights up your vision, for about a minute.</LI>
+<LI> Backpack.  You drop half of all your ammo when you die,
+but your guns disappear.</LI>
+<LI> Bloodlust.  Double damage for all weapons, except mines.  Be careful!</LI>
+<LI> Scanner.  Points in the direction of your enemy.</LI>
+</UL>
+</LI>
+</UL>
+<P>
+<P>
+<H2><A NAME="sec-options"></A> <A NAME="ss2.9">2.9 Options </A>
+  </H2>
+
+<P>
+<P>There are a few things you can do in the options screen.
+<P>Under ``DESIRED RESOLUTION'', you can pick a screen mode you want
+to use.  Be aware that not all of them may work on your system.
+Higher resolutions are only recommended when the lower resolutions
+do not work.  You will NOT receive higher quality graphics, but
+rather a 320x200 image will be stretched up.  The video mode is
+changed when you push ``ACCEPT''.
+<P>If the ``SCANLINES'' option is enabled and you are in a high
+resolution video mode (either 640x400 or 640x480), then the game
+will try to create a ``scanline'' effect for you, where every
+second line is black.  This does not always work (in particular
+windowed modes often do not work).
+<P>If the ``FILTERED'' option is enabled, you will get slightly
+blurred image, which you may or may not like (nice for demos, in
+my opinion).  This requires a fast machine.
+<P>There are three options for music playback.  You can have ``NO
+MUSIC'', which is the classic way to play Red Pixel.  You can also
+put some .MOD, .S3M and .XM files into the `music' directory, and
+select ``PLAY MODULES''.  The game will select songs to play at
+random.  Or, you can put a music CD into your CD drive and select
+``PLAY CD''.
+<P>The ``RECORD DEMOS'' option is explained in the 
+<A HREF="#sec-demo">demo section</A>.
+<P>In the bottom left corner there is a button (usually labelled
+``stats'' or similar).  This is explained in the 
+<A HREF="#sec-stats">next section</A>.
+<P>
+<P>
+<H2><A NAME="sec-stats"></A> <A NAME="ss2.10">2.10 Stats </A>
+  </H2>
+
+<P> 
+<P>``Stats'' are various little numbers that change how the game
+works, e.g. how much damage each gun can bring about and how fast
+it reloads, how much health you can have, etc.
+<P>You can select different stats from the Options menu, using the
+button in the bottom left corner.  Once you select a stats file,
+the name of the stats file will be displayed in the lower right
+corner of the main menu.  To play with a network or serial game
+with another player, you must both select the same stats file (or
+you will receive an error message).
+<P>Included with the game are three files `stats', `stats.07' and
+`stats.09'.  `stats' is the more up to date version, providing
+more powerful weapons with quicker reload and respawn rates.
+`stats.07' and `stats.09' provide values from older versions, kept
+only for historic reasons.  You can create your own stats by
+copying one of them, and editing it with a text editor.
+<P>
+<P>
+<H2><A NAME="sec-demo"></A> <A NAME="ss2.11">2.11 Demos </A>
+  </H2>
+
+<P> 
+<P>You can record your deathmatches into demo files.  To do this,
+switch on the ``Record demos'' option in the Options screen.
+<P>When you start a new game, it will automatically save a demo into
+the current directory, named `demoXXXX.rec'.  Under Linux it will
+also try your home directory.
+<P>To play a demo, simply choose the ``Play Demo'' menu item under
+``Start'', then select a demo recording file.
+<P>Special keys available only in demo playback mode:
+<P>
+<UL>
+<LI> Enter - switch which player camera focuses on</LI>
+<LI> S - hold this down for slow motion mode</LI>
+<LI> F - hold this down for fast forward mode</LI>
+<LI> P - take screen shot</LI>
+</UL>
+<P>Please note that if you exit a demo before its completion, it will
+display the frag count as of the time you quit.  (Sorry about
+that.)
+<P>If you record a cool demo, whether a demostration of a cool move
+in solo mode, or a nice, bloody deathmatch, please send it to me!
+<P>If a demo does not play back properly, sent it to me for
+debugging.  I won't be able to save the demo, but it may help me
+track down bugs to prevent this sort of thing in the future.  If
+you really hate losing demos, try recording on both machines.
+Chances are, one of the recordings will be correct.
+<P>
+<P>
+<H2><A NAME="ss2.12">2.12 Tips</A>
+  </H2>
+
+<P> 
+<P>
+<UL>
+<LI> Use the 3D sound to find where your opponent is.  Also, eating
+food does not make a noise, but picking up things does.
+</LI>
+<LI> After you pick up an item, place a mine there.  Works also for
+regenerating walls (will not flash).
+    </LI>
+<LI> The scanner is good for running away, as well as tracking down.
+    </LI>
+<LI> If are being mowed down with a minigun, run and drop mines!  The
+blood will conceal it :)
+    </LI>
+<LI> Jump over your enemy and lay mines.
+    </LI>
+<LI> Jump up ladders, never climb.</LI>
+</UL>
+<P>
+<P>
+<P>
+<P>
+<HR>
+<A HREF="manual-3.html">Next</A>
+<A HREF="manual-1.html">Previous</A>
+<A HREF="manual.html#toc2">Contents</A>
+</BODY>
+</HTML>

@@ -9,8 +9,11 @@
 #ifndef NO_JGMOD_CODE
 
 
+#include <stdio.h>
+#include <string.h>
 #include <allegro.h>
 #include "jgmod.h"
+#include "resource.h"
 #include "rnd.h"
 #include "rpjgmod.h"
 
@@ -33,9 +36,9 @@ static int times_played_threshold;
 static int is_module(char *filename)
 {
     char *ext = get_extension(filename);
-    return (ext && ((0 == ustricmp(ext, "xm")) ||
-		    (0 == ustricmp(ext, "s3m")) ||
-		    (0 == ustricmp(ext, "mod"))));
+    return (ext && ((0 == stricmp(ext, "xm")) ||
+		    (0 == stricmp(ext, "s3m")) ||
+		    (0 == stricmp(ext, "mod"))));
 }
 
 
@@ -54,12 +57,13 @@ void rpjgmod_init(void)
 	num_played = 0;
 	times_played_threshold = 0;
 
-	if (al_findfirst("music/*", &ffblk, FA_RDONLY | FA_HIDDEN | FA_SYSTEM | FA_ARCH) == 0) {
+	if (al_findfirst(get_resource(R_SHARE, "music/*"), &ffblk,
+			 FA_RDONLY | FA_HIDDEN | FA_SYSTEM | FA_ARCH) == 0) {
 	    do {
 		if (is_module(ffblk.name)) {
 		    if (!(fn = malloc(sizeof *fn)))
 			goto end;
-		    if (!(fn->filename = ustrdup(ffblk.name))) {
+		    if (!(fn->filename = strdup(ffblk.name))) {
 			free(fn);
 			goto end;
 		    }
@@ -126,7 +130,8 @@ void rpjgmod_play_random_track(void)
 	f->times_played++;
 	num_played++;
 
-	uszprintf(buf, sizeof buf, "music/%s", f->filename);
+	/* mingw doesn't have snprintf */
+	uszprintf(buf, sizeof buf, "%s/%s", get_resource(R_SHARE, "music"), f->filename);
 	if ((current_mod = load_mod(buf))) {
 	    play_mod(current_mod, FALSE);
 	    return;
@@ -141,6 +146,18 @@ void rpjgmod_poll(void)
 {
     if (!is_mod_playing())
 	rpjgmod_play_random_track();
+}
+
+
+void rpjgmod_play_specific_track(char *filename)
+{
+    char buf[1024];
+    
+    rpjgmod_stop();
+    
+    uszprintf(buf, sizeof buf, "%s/%s", get_resource(R_SHARE, "music"), filename);
+    if ((current_mod = load_mod(buf)))
+	play_mod(current_mod, FALSE);
 }
 
 

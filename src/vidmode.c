@@ -96,19 +96,21 @@ static void clip_to_size(void)
 
 int set_desired_video_mode_or_fallback(void)
 {
+    int width, height;
+
     unprepare_scanlines();
     
     if (set_desired_video_mode() < 0) {
-	if (desktop_color_depth()) {
+	if (get_desktop_resolution(&width, &height) == 0) {
 	    /* Probably a windowed environment: choose 640x400 so we
 	     * don't end up in a tiny window. */
 	    desired_video_mode = VID_640x400_FULLSCREEN;
-	    if (set_gfx_mode(GFX_AUTODETECT, 640, 400, 0, 0) < 0)
+	    if (set_gfx_mode(GFX_SAFE, 640, 400, 0, 0) < 0)
 		return -1;
 	}
 	else {
 	    desired_video_mode = VID_320x200_FULLSCREEN;
-	    if (set_gfx_mode(GFX_AUTODETECT, 320, 200, 0, 0) < 0)
+	    if (set_gfx_mode(GFX_SAFE, 320, 200, 0, 0) < 0)
 		return -1;
 	}
     }

@@ -20,4 +20,8 @@ void for_every_stat(STAT_VAR *block, int (*proc)(STAT_VAR *sv));
 unsigned long make_stat_checksum(STAT_VAR *block);
 
 
+extern char current_stats[];
+char *set_current_stats(char *filename);
+
+
 #endif 

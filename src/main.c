@@ -63,14 +63,13 @@ static void show_version()
 int main(int argc, char *argv[])
 {
     int skip_intro = 0;
-    int alt_stats = 0;
     int editor = 0;
 
     /* command line args  */
     opterr = 0;
     
     while (1) {
-	char *options = ":hveqs:";
+	char *options = ":hveq";
 	    
 	int c = getopt(argc, argv, options);
 	if (c < 0) break;
@@ -80,15 +79,6 @@ int main(int argc, char *argv[])
 	    case 'v': show_version(); return 0;
 	    case 'e': editor = 1; break;
 	    case 'q': skip_intro = 1; break;
-	    case 's': 
-	    	if (!read_stats(optarg, stat_block)) {
-		    allegro_message("Error reading `%s'.\n", optarg);
-		    return 1;
-		}
-		    
-		set_menu_message(get_filename(optarg));
-		alt_stats = 1;
-		break;
 	    
 	    case ':':
 	    	allegro_message("Option missing argument.\n");
@@ -126,8 +116,12 @@ int main(int argc, char *argv[])
     }
     
     reserve_voices(32, -1);
+#ifdef TARGET_WINDOWS
+    /* the default hardware-based mixer sounds bad with jgmod */
+    install_sound(DIGI_DIRECTAMX(0), MIDI_NONE, NULL);
+#else
     install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);
-    music_init();
+#endif
 
     /* set up game path */
     set_game_path(argv[0]);
@@ -136,6 +130,8 @@ int main(int argc, char *argv[])
 	char tmp[MAX_PATH_LENGTH];
 	skSetConfigPath(replace_filename(tmp, argv[0], "", sizeof tmp));
     }
+
+    music_init();
 
     /* load datafile */
     /* ... before setting a graphics mode -- a big no-no :-) */
@@ -151,17 +147,17 @@ int main(int argc, char *argv[])
 	return x;
     }
 
-    /* stats, if none read yet */
-    if (!alt_stats) {
+    {
 	char *p = get_resource(R_SHARE, "stats/stats");
 	
 	if (!read_stats(p, stat_block)) {
 	    allegro_message("Error reading %s.\n", p);
 	    return 1;
 	}
-    }
 
-    set_weapon_stats();
+	set_current_stats("stats/stats");
+	set_weapon_stats();
+    }
 
     /* video mode */
     vidmode_init();

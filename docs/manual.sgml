@@ -1,9 +1,5 @@
 <!doctype linuxdoc system>
 
-<!-- Okay, so SGML/LinuxDoc is overkill for Red Pixel.
-     But I wanted to learn it, so there. 
-     Hey jed!  This is -*- SGML -*- -->
-
 <article>
 
 
@@ -12,21 +8,15 @@
 
 <title> Red Pixel: The Manual
 
-<author> Peter Wang, <tt> tjaden@users.sf.net </tt>
+<author> Peter Wang, <tt>tjaden@users.sf.net</tt>
 
-<date> Second edition for Red Pixel v0.11, June 2000
-<!-- First edition for Red Pixel v0.9, August 1999 -->
-
-<abstract>
-This document is a brief manual for the game Red Pixel, adapted from
-the original `redpixel.txt'.
-</abstract>
-
-
+<date> Third edition for Red Pixel 1.0, December 2001
+	<!-- Second edition for Red Pixel v0.11, June 2000 -->
+	<!-- First edition for Red Pixel v0.9, August 1999 -->
 
 <!-- Table of contents -->
-<toc> 
 
+<toc>
 
 <!-- Begin the document -->
 
@@ -62,6 +52,19 @@ the original `redpixel.txt'.
 
 <sect1> What's new?
 
+  <p> New in 1.0:
+
+    <itemize>
+      <item> An options screen
+      <item> Different screen sizes for platforms that don't support 320x200
+      <item> CD and module music support
+      <item> Current player's name is shown at bottom of screen in demo playback
+      <item> Stats sanity checking when you connect two machines
+      <item> More blood, and slowed down particles
+      <item> Easier to install under Windows and Linux
+      <item> Changed licence to zlib
+    </itemize>
+
   <p> New in 0.11:
 
     <itemize>
@@ -95,6 +98,31 @@ the original `redpixel.txt'.
       <item> this manual
     </itemize>
 
+<sect1> Compiling from source
+
+  <p> 
+
+    This is only for the people wanting to compile the source for
+    themselves.  If you downloaded an installer or precompiled binary,
+    you can skip this part.
+
+    Firstly, the three platforms supported are djgpp under DOS, gcc
+    under Linux, and mingw32 under Windows.  You will also need to
+    install the Allegro game programming library, version 4.0.
+    Then, simply type `make' in the game's root directory.
+
+    Under Linux console you will need to run the binary with root
+    permissions.  See `readme.lnx' in the Allegro distribution for
+    more information.
+    
+  <sect2> Relevant links:
+ 
+    <p> <itemize>
+      <item> djgpp: http://www.delorie.com/djgpp/
+      <item> mingw32: http://www.mingw.org/
+      <item> Allegro: http://alleg.sf.net/
+    </itemize>
+
 
 
 <!-- Next Section: The Game -->
@@ -108,97 +136,60 @@ the original `redpixel.txt'.
 
     The concept is a platform deathmatch game.  You run around a
     tile-based map, picking up various items and shooting your
-    opponent.  Original.
+    opponent.  None too original concept, but still the best :-)
 
 
 <sect1> Story
 
   <p>
 
-    You have been thrown in a dungeon with a handful of other
-    prisoners. Contained within the dungeon are various magical
-    objects, mostly weapons, which respawn after a certain time
-    period.
+    You have been thrown in a dungeon with another prisoner.
+    Contained within the dungeon are various magical objects, mostly
+    weapons, which respawn after a certain time period.
 
     Surrounded by such weapons of destruction, you cannot resist the
     temptation to kill everyone around you.
-
-
-<sect1> Compiling
-
-  <p> 
-
-    If you are planning to use a precompiled executable, you can skip
-    this section.
-
-    Firstly you need a working C compiler.  I use gcc under Linux
-    (obviously), djgpp under DOS, and mingw32 under Windows.
-
-    Then you need to install the Allegro game programming library (WIP
-    3.9.32 or above).  If you want sockets support, you will also need to
-    install Libnet.  If you want CD playing support, you will also need to
-    install libcda.  (see below for URLs)
-
-    From there you should be able to simply type `make' in the game's root
-    directory.  If you don't have Libnet, type `make WITHOUT_LIBNET=1'.
-    If you want CD playing supprt, add `WITH_LIBCDA=1' to the command
-    line.  If you are compiling with mingw32, add `MINGW32=1'.
-
-    Under Linux console you will need to run the binary with root
-    permissions.  See `readme.lnx' in the Allegro distribution for
-    more information.
-    
-  <sect2> Relevant links:
- 
-    <p> <itemize>
-      <item> gcc: http://www.gnu.org/
-      <item> djgpp: http://www.delorie.com/djgpp/
-      <item> mingw32: http://www.mingw.org/
-      <item> Allegro: http://www.talula.demon.co.uk/allegro/
-      <item> Libnet: http://www.canvaslink.com/libnet/
-      <item> libcda: http://www.alphalink.com.au/~tjaden/
-    </itemize>
 
 
 <sect1> Starting the game <label id="sec-starting">
 
   <p>
 
-    Simply run the executable to start, optionally passing the
-    following command line arguments.  Please note that they are case
-    sensitive.
+    Simply run the executable to start.  If you used the Windows
+    installer, you can click on the item in the Start menu.
+
+    Optionally, you can pass the following command line arguments.
+    Note that they are case sensitive.
 
     <descrip> <label id="sec-cmdline">
       <tag/-e/ Start the <ref id="sec-mapeditor" name="map editor">.
-
-      <tag/-l/ Use bright version of mouse cursor.  Designed 
-	       to be used on hard to see laptop displays.
     
-      <tag/-s/ Use alternative <ref id="sec-stats" name="stats"> for items.
-    
-      <tag/-q/ Skip introduction (quick!).
+      <tag/-q/ Skip introduction.
     
       <tag/-v/ Display version number.
 
-      <tag/-d/ Enable <ref id="sec-demo" name="demo"> recording.
-      
-      <tag/-m/ Mute sound.
-      
-      <tag/-f/ Filter screen.  Requires a fast computer.  (I can
-      	       only manage 15-20 FPS.)  Be sure to watch the credits :-)
-
     </descrip>
 
-    You can collate the options together, e.g. `red -qld'.
+
+<sect1> The main menu
+
+  <p>
+
+    The main menu should be self explanatory, except for the little
+    writing in the lower right corner of the screen.  See the <ref id="sec-stats" name="stats section">
+    if you are curious about that.
 
 
 <sect1> Connecting via a serial cable
 
   <p>
 
+    [Note: serial connection is currently not implemented in the
+    Windows version.]
+
     Link two computers via a serial cable and start the game.  Select
-    Start --> Serial, and then the correct COM port.  Enter your name, then wait
-    for the computers to connect.
+    Start --> Serial, and then the correct COM port.  Enter your name,
+    then wait for the computers to connect.
 
     If an error occurs, check to make sure you used the right
     command line option.  If you're are running a DOS executable
@@ -216,28 +207,21 @@ the original `redpixel.txt'.
     If it ever says ``SYNC PROBLEM'', then you'd better restart from
     the serial connection procedure.
 
-    Note: serial connection is currently not implemented in the
-    native Windows port.
-
 
 <sect1> Connecting via Berkeley sockets or Winsock <label id="sec-sockets">
 
   <p> 
-     
-    Note: you must have compiled with Libnet support for this to work.
 
-    One machine must select `Listen' while the one other selects
-    `Connect'.  It works better if the listening machine starts first.
-    The connecting machine will need to enter the IP address of the
-    listening machine (e.g. 192.168.1.1).  DNS names are not
-    supported.
+    One machine must first select `Listen' then wait.  The other
+    machine then selects `Connect'.  The connecting machine will need
+    to enter the name or the IP address of the listening machine.
 
     After connection, the game acts as it would with a serial connection.
 
     Note: as this driver simply emulates a perfect serial link via a
-    network, you can still only play two player games.  Also, you need a
-    fast connection between the machines, since the game still runs
-    synchronously.
+    network, you can still only play two player games.  Also, you need
+    a fast connection (e.g. LAN) between the machines, since the game
+    runs synchronously.
 
 
 <sect1> Controls
@@ -259,16 +243,16 @@ the original `redpixel.txt'.
     
     <item> Press Enter or press the right mouse button to lay a mine.
     
-    <item> If you have one and you are running under Linux or Windows, you can
-    	   switch weapons using a mouse wheel on an Intellimouse
-	   compatible mouse.  Please read `readme.lnx' in the
-	   Allegro distribution to see how to set this up under
-	   Linux.  Your mileage may vary, so don't be disappointed
-	   if it doesn't work.
+    <item> If you have one and you are running under Linux or Windows,
+    	   you can switch weapons using a mouse wheel on an
+    	   Intellimouse compatible mouse.  Please read `readme.lnx' in
+    	   the Allegro distribution to see how to set this up under
+    	   Linux.  Your mileage may vary, so don't be disappointed if
+    	   it doesn't work.
 
-    <item> TAB to see your scores.  
+    <item> TAB to see your scores.
     <item> ESC to quit.
-    <item> F12 to see the frame rate counter. 
+    <item> F12 to see the frame rate counter.
 
     </itemize>
     
@@ -305,21 +289,63 @@ the original `redpixel.txt'.
     </itemize>
 
 
+<sect1> Options <label id="sec-options">
+
+  <p>
+
+    There are a few things you can do in the options screen.
+
+    Under ``DESIRED RESOLUTION'', you can pick a screen mode you want
+    to use.  Be aware that not all of them may work on your system.
+    Higher resolutions are only recommended when the lower resolutions
+    do not work.  You will NOT receive higher quality graphics, but
+    rather a 320x200 image will be stretched up.  The video mode is
+    changed when you push ``ACCEPT''.
+
+    If the ``SCANLINES'' option is enabled and you are in a high
+    resolution video mode (either 640x400 or 640x480), then the game
+    will try to create a ``scanline'' effect for you, where every
+    second line is black.  This does not always work (in particular
+    windowed modes often do not work).
+
+    If the ``FILTERED'' option is enabled, you will get slightly
+    blurred image, which you may or may not like (nice for demos, in
+    my opinion).  This requires a fast machine.
+
+    There are three options for music playback.  You can have ``NO
+    MUSIC'', which is the classic way to play Red Pixel.  You can also
+    put some .MOD, .S3M and .XM files into the `music' directory, and
+    select ``PLAY MODULES''.  The game will select songs to play at
+    random.  Or, you can put a music CD into your CD drive and select
+    ``PLAY CD''.
+
+    The ``RECORD DEMOS'' option is explained in the <ref id="sec-demo" name="demo section">.
+
+    In the bottom left corner there is a button (usually labelled
+    ``stats'' or similar).  This is explained in the <ref id="sec-stats" name="next section">.
+
+
 <sect1> Stats <label id="sec-stats">
 
   <p> 
+
+    ``Stats'' are various little numbers that change how the game
+    works, e.g. how much damage each gun can bring about and how fast
+    it reloads, how much health you can have, etc.
+
+    You can select different stats from the Options menu, using the
+    button in the bottom left corner.  Once you select a stats file,
+    the name of the stats file will be displayed in the lower right
+    corner of the main menu.  To play with a network or serial game
+    with another player, you must both select the same stats file (or
+    you will receive an error message).
 
     Included with the game are three files `stats', `stats.07' and
     `stats.09'.  `stats' is the more up to date version, providing
     more powerful weapons with quicker reload and respawn rates.
     `stats.07' and `stats.09' provide values from older versions, kept
-    only for historic reasons.
-
-    You can create your own stats by copying one of them, and editing
-    it with a text editor.
-
-    Note that both machines will need exactly the same file, and both
-    must run with the `-s' command-line option.  You have been warned.
+    only for historic reasons.  You can create your own stats by
+    copying one of them, and editing it with a text editor.
 
 
 <sect1> Demos <label id="sec-demo">
@@ -327,15 +353,14 @@ the original `redpixel.txt'.
   <p> 
 
     You can record your deathmatches into demo files.  To do this,
-    first start Red Pixel using the `-d' command-line option.
+    switch on the ``Record demos'' option in the Options screen.
 
     When you start a new game, it will automatically save a demo into
-    the current directory, named `demoXXXX.rec' or, if that is
-    unwritable, into your home directory (if you don't know what I'm
-    talking about, don't worry).
+    the current directory, named `demoXXXX.rec'.  Under Linux it will
+    also try your home directory.
 
     To play a demo, simply choose the ``Play Demo'' menu item under
-    ``Start''.
+    ``Start'', then select a demo recording file.
 
     Special keys available only in demo playback mode:
 
@@ -347,7 +372,8 @@ the original `redpixel.txt'.
     </itemize>
 
     Please note that if you exit a demo before its completion, it will
-    display the frag count as of the time you quit.
+    display the frag count as of the time you quit.  (Sorry about
+    that.)
 
     If you record a cool demo, whether a demostration of a cool move
     in solo mode, or a nice, bloody deathmatch, please send it to me!
@@ -356,6 +382,7 @@ the original `redpixel.txt'.
     debugging.  I won't be able to save the demo, but it may help me
     track down bugs to prevent this sort of thing in the future.  If
     you really hate losing demos, try recording on both machines.
+    Chances are, one of the recordings will be correct.
 
 
 <sect1> Tips
@@ -453,6 +480,11 @@ the original `redpixel.txt'.
     The code has been cleaned up a lot, so is better now.  It's
     still not worth a 1.0 though.  :-)
 
+  <p> December 2001
+
+    I've had a change of heart and labelled it 1.0, just to "finish"
+    it.
+
 
 <sect1> Known Bugs
 
@@ -466,37 +498,43 @@ the original `redpixel.txt'.
     </itemize>
 
 
-<sect1> To do
-
-  <p> Here are some things that I have not bothered to finish.
-
-  <itemize>
-    <item> proper networking (client-server, packet loss detection, etc.)
-    <item> use a scripting language
-    <item> 3 or more player support
-  </itemize>
-
-  Most of these probably will not see the light of day unless
-  someone else does it.
-
-
-
 <!-- Next Section: Licence -->
 
 <sect> Licensing details
 
-  <p> Red Pixel is licensed under the GNU Lesser General Public License
-  which can be viewed in the file `COPYING' distributed with source code
-  package or from http://www.gnu.org/.
+  <p> 
+  Copyright (C) 2001 Peter Wang and contributing authors.
 
-  Brennan Underwood's `fastsqrt' routines (in the src/fastsqrt
-  directory) do not fall under the LGPL.  (I don't know what licence it
-  falls under, but it's free software of some sort.)
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
 
-  The slightly modified random number generator `rg_rand.c' was taken
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+
+  2. Altered source versions must be plainly marked as such, and must not
+     be misrepresented as being the original software.
+
+  3. This notice may not be removed or altered from any source distribution.
+
+
+  [For informational purposes, this is the zlib licence.]
+
+
+  <p> Brennan Underwood's `fastsqrt' routines (in the src/fastsqrt
+  directory) do not fall under the licence above.  (I don't know what
+  licence it falls under, but it's free software of some sort.)
+
+  <p> The slightly modified random number generator `rg_rand.c' was taken
   from the Snippets collection, and remains in the public domain.
 
-  `getopt.c' was taken from some mailing archive somewhere.  It
+  <p> `getopt.c' was taken from some mailing archive somewhere.  It
   retains its license and copyright.
 
 

@@ -222,5 +222,15 @@ now back to school, so less done
 
 12 December	Fixed compilation under Mingw
 		Don't show brightened screen for lightamp after death
-		Reserve more voices for jgmod
+		Reserved more voices for jgmod
 		Use SWITCH_BACKAMNESIA or SWITCH_BACKGROUND when possible
+		Always display stats filename in main menu
+		Update the mouse coordinates in the map editor when the mouse
+			moves, not just when a button is clicked
+		Remember currently selected map in map selection screen
+		Install/uninstall makefile rules for Linux
+		RPM spec file
+
+14 December	Windows icon
+		Windows installer using NSIS
+		Updated manual

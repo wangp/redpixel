@@ -56,19 +56,21 @@ jgm : jgm.c $(SHARED_NAME)
 
 
 clean :
-	rm $(OBJ_DIR)/*.o 
-	rm $(SHARED_LIB)
-	rm jgmod
-	rm jgm
+	rm -f $(OBJ_DIR)/*.o 
+	rm -f $(SHARED_LIB)
+	rm -f $(STATIC_LIB)
+	rm -f jgmod
+	rm -f jgm
 
 
 veryclean :
-	rm $(OBJ_DIR)/*.o 
-	rm $(SHARED_LIB)
-	rm jgmod
-	rm jgm
-	rm $(CPLIBDEST)/libjgmod.so
-	rm $(CPINCDEST)/jgmod.h
+	rm -f $(OBJ_DIR)/*.o 
+	rm -f $(SHARED_LIB)
+	rm -f $(STATIC_LIB)
+	rm -f jgmod
+	rm -f jgm
+	rm -f $(CPLIBDEST)/libjgmod.so
+	rm -f $(CPINCDEST)/jgmod.h
 
 
 compress: jgmod jgm
