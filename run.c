@@ -1,22 +1,27 @@
-/*  6 june 1998 map editor
-    7-9 june 1998 initial game engine
-    10 june 1998 serial code
-    Coding: Tjaden 
-    Graphics: Air
- */
-
+/* game engine */
 
 #include <stdio.h>
 #include <time.h>
 #include "common.h"
+#include "run.h"
 #include "sk.h"
 
 
-#define MAX_PLAYERS 8
 
-#define MINE_TICS   10
-#define EXPLO_TICS  5
-#define LEG_TICS    1
+#define MAX_PLAYERS 16
+
+#define GAME_SPEED  40
+
+#define MINE_ANIM   10
+#define EXPLO_ANIM  5
+#define LEG_ANIM    1
+#define HEART_ANIM  5
+#define MSG_ANIM    140
+
+int max_bullets = 200;
+int max_mines = 50;
+#define MAX_PARTICLES   400
+#define MAX_EXPLOSIONS  100
 
 
 
@@ -25,96 +30,48 @@ BITMAP *dbuf;
 BITMAP *xbuf;
 
 
-int crap_comp = 0;
-
-
-
 RGB_MAP rgb_table;
 COLOR_MAP light_table;
-
 BITMAP *spotlight;
 BITMAP *spotlight2;
 
 
 
+/* storage */
+
+PARTICLE *bullets;
+MINE *mine;
+PARTICLE particles[MAX_PARTICLES];
+EXPLOSION explo[MAX_EXPLOSIONS];
+
+PLAYER player[MAX_PLAYERS];
+
+int num_players;
+
+
+
+/* local stuff */
+
+int local;
+int shake_factor;
+
+int heart_frame = 0, heart_tics = 0;
+
+time_t seed;
+
 int mx, my, offsetx, offsety, px, py;
 
 
-
-#define GAME_SPEED  40
-
-
-volatile int speed_counter = 0;
-
-void increment_speed_counter()
-{
-    speed_counter++;
-}
-
-END_OF_FUNCTION(increment_speed_counter);
-
-
-
-typedef struct
-{
-    fixed x, y;
-    fixed xv, yv;
-    unsigned char colour;
-    unsigned char life;
-    unsigned char alive;
-    unsigned char tag, dmg;
-    int bmp;
-    fixed angle; 
-} PARTICLE;
-
-#define MAX_BULLETS     300
-#define MAX_PARTICLES   500
-
-PARTICLE bullets[MAX_BULLETS];
-PARTICLE particles[MAX_PARTICLES];
-
-
-
-typedef struct
-{
-    fixed x, y;
-    int pic;
-    char cur, frames, tics;
-    char alive;
-} EXPLOSION;
-
-#define MAX_EXPLOSIONS  100
-
-EXPLOSION explo[MAX_EXPLOSIONS];
-
-
-
-typedef struct
-{
-    int x, y;
-    char frame, tics;
-    char unactive;
-    char alive;
-} MINE;
-
-#define MAX_MINES   50
-
-MINE mine[MAX_MINES];
-
-
-
 enum {
-    w_knife = 1,
-    w_pistol,
-    w_bow,
-    w_shotgun,
-    w_uzi,
-    w_m16,
-    w_minigun, 
-    w_bazooka,
-    w_mine,
-    num_weaps
-} w_types;
+    single,     // boring...
+    serial,     // works
+    ipx,        // not yet..
+    tcpip       // keep dreaming!
+} comm;
+
+
+
+/* weapon stats */
 
 struct
 {
@@ -127,65 +84,30 @@ struct
     { 3, 20, 10 },  // knife
     { 4, 20, 13 },  // pistol
     { 4, 28, 30 },  // bow
-    { 6, 31, 5 }, // shotty 5xshells per shot
-    { 3, 8, 10 },  // uzi
-    { 2, 5, 12 },  // m16
-    { 1, 1, 5 },  // mgun
+    { 6, 31, 5 },   // shotty 5xshells per shot
+    { 3, 8, 10 },   // uzi
+    { 2, 5, 12 },   // m16
+    { 1, 1, 5 },    // minigun
     { 6, 50, 60 },  // zooka
-    { 0, 50, 40 }  // mine
+    { 0, 50, 40 }   // mine
 };
 
 
 
-enum {
-    left,
-    right
-};
+/* timer code */
 
-typedef struct
+volatile int speed_counter = 0;
+
+void increment_speed_counter()
 {
-    char alive;
+    speed_counter++;
+}
 
-    int x, y;
-    char jump, yv, xv;
-    int health;
-    int armour;
-    fixed angle;
-    char facing;
-
-    char leg_frame, leg_tics;
-
-    char firing, fire_frame, fire_tics, next_fire;
-
-    int num_bullets;
-    int num_shells;
-    int num_rockets;
-    int num_mines;
-    int num_arrows;
-
-    unsigned char up, down, left, right, fire, drop_mine;
-    unsigned char select;
-
-    unsigned char have[num_weaps];
-    unsigned char cur_weap;
-} PLAYER;
-
-PLAYER player[MAX_PLAYERS];
-
-int num_players = 2;
+END_OF_FUNCTION(increment_speed_counter);
 
 
 
-int local;
-int shake_factor;
-
-
-#define HEART_ANIM  5
-int heart_frame = 0, heart_tics = 0;
-
-
-
-/* just in case */
+/* cyanide takes the pain away */
 
 void killall()
 {
@@ -194,6 +116,8 @@ void killall()
     destroy_bitmap(spotlight2);
     destroy_bitmap(dbuf);
     destroy_bitmap(xbuf);
+    free(bullets);
+    free(mine);
     allegro_exit();
 }
 
@@ -206,7 +130,7 @@ void suicide(char *s)
 
 
 
-/* misc */
+/* misc - useful little things */
 
 int inline tile_collide(int x, int y) 
 {
@@ -214,7 +138,7 @@ int inline tile_collide(int x, int y)
 
 }
 
-fixed find_angle(int x1, int y1, int x2, int y2)
+fixed inline find_angle(int x1, int y1, int x2, int y2)
 {
     int adj, opp;
     fixed angle;
@@ -230,18 +154,64 @@ fixed find_angle(int x1, int y1, int x2, int y2)
 
 
 
+/* msgs */
+
+#define MAX_MSGS    5
+
+char msg_queue[MAX_MSGS][80];
+
+int num_msgs = 0, msg_tics = 0;
+
+void add_msg(char *s, int toplayer)
+{
+    if (toplayer!=local && toplayer!=-1)
+	return;
+
+    if (!num_msgs)
+	msg_tics = MSG_ANIM;
+
+    if (num_msgs==MAX_MSGS)
+    {
+	memcpy(msg_queue[0], msg_queue[1], 80);
+	memcpy(msg_queue[1], msg_queue[2], 80);
+    } 
+    else
+	num_msgs++; 
+
+    strcpy(msg_queue[num_msgs-1], s);
+}
+
+void update_msgs()
+{
+    int i;
+    if (--msg_tics<0)
+    {
+	msg_tics = MSG_ANIM;
+	if (num_msgs)
+	{
+	    for (i=0; i<MAX_MSGS-1; i++)
+		memcpy(msg_queue[i], msg_queue[i+1], 80);
+	    memset(msg_queue[MAX_MSGS-1], 0, 80);
+	    num_msgs--;
+	}
+    }
+}
+
+void draw_msgs()
+{
+    int i;
+    for (i=0; i<num_msgs; i++)
+	textout(xbuf, dat[F_MINI].dat, msg_queue[i], SCREEN_W-16-text_length(dat[F_MINI].dat, msg_queue[i]), 3+6*i, GREEN - (num_msgs-1-i)*6);
+}
+
+
+
 /* particles */
 
 enum
 {
     grad_red,
     grad_orange,
-};
-
-void spawn_particles(int x, int y, int num, int grad)
-{
-    int i, hi = 0, low=0, spd;
-    fixed angle;
 
     //   0-31   black
     //  48-63   dark blue
@@ -253,6 +223,13 @@ void spawn_particles(int x, int y, int num, int grad)
     // 192-233  light blue
     // 224-239  purple 
     // 240-255  green
+};
+
+void spawn_particles(int x, int y, int num, int grad)
+{
+    int i, hi = 0, low=0, spd;
+    fixed angle;
+
     switch (grad)
     {
 	case grad_red:
@@ -285,6 +262,7 @@ void spawn_particles(int x, int y, int num, int grad)
 
     //this is very bad, but we won't let it crash us
     //suicide("Particle overflow");
+    add_msg("PARTICLE OVERFLOW", local);
 }
 
 void spawn_casing(int x, int y, int facing)
@@ -306,9 +284,11 @@ void spawn_casing(int x, int y, int facing)
 	    return;
 	}
     } 
+
+    add_msg("PARTICLE OVERFLOW (CASING)", local);
 }
 
-void move_particles()
+void update_particles()
 {
     int i, t;
     for (i=0; i<MAX_PARTICLES; i++)
@@ -361,13 +341,14 @@ void spawn_explo(int x, int y, int pic, int frames)
 	    ex->pic = pic;
 	    ex->cur = 0;
 	    ex->frames = frames;
-	    ex->tics = EXPLO_TICS;
+	    ex->tics = EXPLO_ANIM;
 	    return;
 	}
     }
 
     //this is very bad, but we won't let it crash us
     //suicide("Explosion overflow");
+    add_msg("EXPLOSION OVERFLOW", local);
 }
 
 void update_explo()
@@ -378,7 +359,7 @@ void update_explo()
 	if (explo[i].alive)
 	{
 	    if (--explo[i].tics < 0) {
-		explo[i].tics = EXPLO_TICS;
+		explo[i].tics = EXPLO_ANIM;
 		if (++explo[i].cur >= explo[i].frames) {
 		    explo[i].alive = 0;
 		    return;
@@ -466,7 +447,7 @@ void respawn_player(int pl)
 
 void hurt_player(int pl, int dmg, int protect)
 {
-    if (protect) {
+    if (protect) {  // armour protection
 	player[pl].armour -= (dmg/4)*3;
 	player[pl].health -= dmg/4;
 	if (player[pl].armour < 0) {
@@ -476,9 +457,11 @@ void hurt_player(int pl, int dmg, int protect)
     } else {
 	player[pl].health-=dmg;
     }
+
     spawn_particles(player[pl].x+3, player[pl].y+13, dmg, grad_red);
+
     if (player[pl].health < 1)
-	respawn_player(pl);
+	player[pl].alive = player[pl].health = 0;
 }
 
 void draw_players()
@@ -568,7 +551,7 @@ void blast(int x, int y, int dmg)
     }
 
     // mines
-    for (i=0; i<MAX_MINES; i++)
+    for (i=0; i<max_mines; i++)
     {
 	if (mine[i].alive)
 	{
@@ -590,8 +573,8 @@ void blast(int x, int y, int dmg)
 	    {
 		hurt_player(i, dmg, 1);
 		angle = find_angle(x, y, u, v); 
-		player[i].xv = fixtoi(fcos(angle) * 15);
-		player[i].yv = fixtoi(fsin(angle) * 15) - 1;
+		player[i].xv += fixtoi(fcos(angle) * 15);
+		player[i].yv += fixtoi(fsin(angle) * 15) - 1;
 
 		if (player[i].yv>15)
 		    player[i].yv = 15;
@@ -616,10 +599,17 @@ void blast(int x, int y, int dmg)
 
 /* mines */
 
+void reset_mines(int lower)
+{
+    int i;
+    for (i=0; i<max_mines; i++)
+	mine[i].alive = 0;
+}
+
 void spawn_mine(int x, int y)
 {
     int i;
-    for (i=0; i<MAX_MINES; i++)
+    for (i=0; i<max_mines; i++)
     {
 	if (!mine[i].alive)
 	{
@@ -628,18 +618,24 @@ void spawn_mine(int x, int y)
 	    mine[i].y = y;
 	    mine[i].unactive = 40;
 	    mine[i].frame = 0;
-	    mine[i].tics = MINE_TICS;
+	    mine[i].tics = MINE_ANIM;
 	    return;
 	}
     }
 
-    suicide("Mine overflow");
+    max_mines += 10;
+    mine = realloc(mine, max_mines);
+    if (mine==NULL)
+	suicide("Mine overflow");
+    reset_mines(max_mines-10);
+    spawn_mine(x, y);
+    add_msg("ALLOCED EXTRA 10 MINES", local);
 }
 
-void move_mine()
+void update_mine()
 {
     int i;
-    for (i=0; i<MAX_MINES; i++)
+    for (i=0; i<max_mines; i++)
     {
 	if (mine[i].alive)
 	{
@@ -656,7 +652,7 @@ void move_mine()
 	    // anim
 	    if (--mine[i].tics<0 && !mine[i].unactive)
 	    {
-		mine[i].tics = MINE_TICS;
+		mine[i].tics = MINE_ANIM;
 		mine[i].frame = (mine[i].frame ? 0 : 1);
 	    }
 	}
@@ -666,7 +662,7 @@ void move_mine()
 void draw_mines()
 {
     int i;
-    for (i=0; i<MAX_MINES; i++)
+    for (i=0; i<max_mines; i++)
     {
 	if (mine[i].alive)
 	    draw_sprite(dbuf, dat[MINE1+mine[i].frame].dat, mine[i].x-px, mine[i].y-py);
@@ -684,7 +680,7 @@ void touch_mines()
 {
     int i, j;
     int x, y, x2, y2;
-    for (i=0; i<MAX_MINES; i++)
+    for (i=0; i<max_mines; i++)
     {
 	for (j=0; j<MAX_PLAYERS; j++)
 	{
@@ -705,10 +701,17 @@ void touch_mines()
 
 /* bullets */
 
+void reset_bullets(int lower)
+{
+    int i;
+    for (i=lower; i<max_bullets; i++)
+	bullets[i].alive = 0;
+}
+
 void spawn_bullet(int tag, int x, int y, fixed angle, int speed, int dmg, int c, int bmp)
 {
     int i;
-    for (i=0; i<MAX_BULLETS; i++)
+    for (i=0; i<max_bullets; i++)
     {
 	if (!bullets[i].alive)
 	{
@@ -725,13 +728,19 @@ void spawn_bullet(int tag, int x, int y, fixed angle, int speed, int dmg, int c,
 	}
     }
 
-    suicide("Bullet overflow"); 
+    max_bullets += 50;
+    bullets = realloc(bullets, max_bullets);
+    if (bullets==NULL)
+	suicide("Bullet overflow"); 
+    reset_bullets(max_bullets-50);
+    spawn_bullet(tag, x, y, angle, speed, dmg, c, bmp);
+    add_msg("ALLOCED EXTRA 50 BULLETS", local);
 }
 
-void move_bullets()
+void update_bullets()
 {
     int u, v, i, t;
-    for (i=0; i<MAX_BULLETS; i++)
+    for (i=0; i<max_bullets; i++)
     {
 	if (bullets[i].alive)
 	{
@@ -773,7 +782,7 @@ void move_bullets()
 void draw_bullets()
 {
     int i;
-    for (i=0; i<MAX_BULLETS; i++)
+    for (i=0; i<max_bullets; i++)
     {
 	if (bullets[i].alive) 
 	{
@@ -867,55 +876,6 @@ void respawn_ammo()
 
 
 
-/* msgs */
-
-char msg_queue[3][80];
-
-int msg_index = 0, num_msgs = 0;
-int msg_tics = 0;
-
-#define MSG_ANIM    140
-
-void add_msg(char *s)
-{
-    if (!num_msgs)
-	msg_tics = MSG_ANIM;
-
-    if (num_msgs>2)
-    {
-	memcpy(msg_queue[0], msg_queue[1], 80);
-	memcpy(msg_queue[1], msg_queue[2], 80);
-    } 
-    else
-	num_msgs++; 
-
-    strcpy(msg_queue[num_msgs-1], s);
-}
-
-void update_msgs()
-{
-    if (--msg_tics<0)
-    {
-	msg_tics = MSG_ANIM;
-	if (num_msgs)
-	{
-	    memcpy(msg_queue[0], msg_queue[1], 80);
-	    memcpy(msg_queue[1], msg_queue[2], 80);
-	    memset(msg_queue[2], 0, 80);
-	    num_msgs--;
-	}
-    }
-}
-
-void draw_msgs()
-{
-    int i;
-    for (i=0; i<num_msgs; i++)
-	textout(xbuf, dat[F_MINI].dat, msg_queue[i], SCREEN_W-16-text_length(dat[F_MINI].dat, msg_queue[i]), 3+6*i, GREEN - (num_msgs-1-i)*6);
-}
-
-
-
 /* status */
 
 struct
@@ -924,17 +884,17 @@ struct
     int weap;
     int shortcut;
     char *s;
-} status_order[] = 
+} weapon_order[] = 
 {
-    { W_MINE, w_mine, KEY_ENTER, "" },
-    { W_KNIFE, w_knife, KEY_TILDE, "~" },
-    { W_PISTOL, w_pistol, KEY_1, "1" },
-    { W_SHOTGUN, w_shotgun, KEY_2, "2" },
-    { W_UZI, w_uzi, KEY_3, "3" },
-    { W_M16, w_m16, KEY_4, "4" },
-    { W_MINI, w_minigun, KEY_5, "5" },
-    { W_BOW, w_bow, KEY_6, "6" },
-    { W_ROCKET, w_bazooka, KEY_7, "7" },
+    { W_MINE,       w_mine,     KEY_ENTER,  "a" },  // actually enter symbol
+    { W_KNIFE,      w_knife,    KEY_TILDE,  "~" },
+    { W_PISTOL,     w_pistol,   KEY_1,      "1" },
+    { W_SHOTGUN,    w_shotgun,  KEY_2,      "2" },
+    { W_UZI,        w_uzi,      KEY_3,      "3" },
+    { W_M16,        w_m16,      KEY_4,      "4" },
+    { W_MINI,       w_minigun,  KEY_5,      "5" },
+    { W_BOW,        w_bow,      KEY_6,      "6" },
+    { W_ROCKET,     w_bazooka,  KEY_7,      "7" },
     { 0 }
 };
 
@@ -946,13 +906,13 @@ void draw_status()
 
     text_mode(-1);
 
-    while (status_order[i].pic)
+    while (weapon_order[i].pic)
     {
-	if (player[local].have[status_order[i].weap])
+	if (player[local].have[weapon_order[i].weap])
 	{
-	    draw_sprite(xbuf, dat[status_order[i].pic].dat, 
-		6 + (player[local].cur_weap==status_order[i].weap ? 6 : 0), y);
-	    textout(xbuf, dat[F_MINI].dat, status_order[i].s, 0, y+10, RED);
+	    draw_sprite(xbuf, dat[weapon_order[i].pic].dat, 
+		6 + (player[local].cur_weap==weapon_order[i].weap ? 6 : 0), y);
+	    textout(xbuf, dat[F_MINI].dat, weapon_order[i].s, 0, y+10, RED);
 	    y-=14;
 	}
 	i++;
@@ -1000,18 +960,18 @@ inline void select_weapon()
     int y = SCREEN_H-6-16, i = 0;
     PLAYER *guy = &player[local];
 
-    while (status_order[i].pic)
+    while (weapon_order[i].pic)
     {
-	if (guy->have[status_order[i].weap])
+	if (guy->have[weapon_order[i].weap])
 	{
 	    if (((mouse_b & 2) && mouse_x >= 6 && mouse_x <= 6+16 &&
 		mouse_y >= y && mouse_y <= y+16) ||
-		key[status_order[i].shortcut])
+		key[weapon_order[i].shortcut])
 	    {
-		if (status_order[i].weap==w_mine && guy->num_mines>0)
+		if (weapon_order[i].weap==w_mine && guy->num_mines>0)
 		    guy->drop_mine = 1;
 		else
-		    guy->select = status_order[i].weap;
+		    guy->select = weapon_order[i].weap;
 		return; 
 	    }
 	    y-=14; 
@@ -1026,6 +986,7 @@ void get_local_input()
     player[local].down = key[KEY_DOWN] | key[KEY_G] | key[KEY_S];
     player[local].left = key[KEY_LEFT] | key[KEY_F] | key[KEY_A];
     player[local].right = key[KEY_RIGHT] | key[KEY_H] | key[KEY_D];
+    player[local].respawn = key[KEY_SPACE] & (!player[local].alive);
 
     player[local].fire = 0;
     player[local].drop_mine = 0;
@@ -1037,68 +998,20 @@ void get_local_input()
     }
 }
 
-void inline send_long(long val)
-{
-    skSend(val & 0xff);
-    skSend((val>>8) & 0xff);
-    skSend((val>>16) & 0xff);
-    skSend((val>>24) & 0xff);
-}
-
-long inline recv_long()
-{
-    while (skReady() < 4);
-    return skRecv() | (skRecv()<<8) | (skRecv()<<16) | (skRecv()<<24);
-}
-
-void send_local_input()
-{
-    skSend('s');                        //1
-    skSend(local);                      //2
-    skSend(player[local].up);           //3
-    skSend(player[local].down);         //4
-    skSend(player[local].left);         //5
-    skSend(player[local].right);        //6
-    skSend(player[local].fire);         //7
-    skSend(player[local].drop_mine);    //8
-    skSend(player[local].select);       //9
-    send_long(player[local].angle);     //13
-};
-
-void recv_remote_inputs()
-{
-    int pl;
-
-    for (;;)
-    {
-	while (skReady()<12);
-	if (skRecv()=='s')
-	{
-	    pl = skRecv();
-	    player[pl].up = skRecv();
-	    player[pl].down = skRecv();
-	    player[pl].left = skRecv();
-	    player[pl].right = skRecv();
-	    player[pl].fire = skRecv();
-	    player[pl].drop_mine = skRecv();
-	    player[pl].select = skRecv();
-	    player[pl].angle = recv_long();
-	    return;
-	}
-	else
-	{
-	    suicide("Out of sync, maybe");
-	}
-    }
-}
-
-void move_player(int pl)
+void update_player(int pl)
 {
     PLAYER *guy;
     int kx, ky, a, t, x, y;
     int move_legs = 0;
 
     guy = &player[pl];
+
+    /* respawning */
+    if (guy->respawn)
+	respawn_player(pl);
+
+    if (!guy->alive)
+	return;
 
     /* selecting weapon */
     if (guy->select)
@@ -1132,7 +1045,7 @@ void move_player(int pl)
 		if (guy->health>200)
 		    guy->health = 200;
 		map.ammo[ky][kx] = 0;
-		add_msg("<BURP>");
+		add_msg("<BURP>", pl);
 	    }
 	    break;
 	case A_COKE:
@@ -1147,7 +1060,7 @@ void move_player(int pl)
 	    guy->num_mines+=1;
 	    guy->have[w_mine] = 1;
 	    map.ammo[ky][kx] = 0;
-	    add_msg("GOT YERSELF A MINE");
+	    add_msg("GOT YERSELF A MINE", pl);
 	    break;
 	case A_ROCKET:
 	    guy->num_rockets+=3;
@@ -1156,13 +1069,13 @@ void move_player(int pl)
 	case A_SHELL:
 	    guy->num_shells+=8;
 	    map.ammo[ky][kx] = 0;
-	    add_msg("POCKET FULL A SHELLS");
+	    add_msg("POCKET FULL A SHELLS", pl);
 	    break;
 	case W_BOW:
 	    guy->have[w_bow]=1;
 	    guy->num_arrows+=3;
 	    map.ammo[ky][kx] = 0;
-	    add_msg("DYNAMITE ON STICKS!");
+	    add_msg("DYNAMITE ON STICKS!", pl);
 	    break;
 	case W_M16:
 	    if (!guy->have[w_m16] && !guy->next_fire)
@@ -1170,7 +1083,7 @@ void move_player(int pl)
 	    guy->have[w_m16]=1;
 	    guy->num_bullets+=40;
 	    map.ammo[ky][kx] = 0;
-	    add_msg("GUN OF SOME SORT");
+	    add_msg("GUN OF SOME SORT", pl);
 	    break;
 	case W_MINI:
 	    if (!guy->have[w_minigun] && !guy->next_fire)
@@ -1178,7 +1091,7 @@ void move_player(int pl)
 	    guy->have[w_minigun]=1;
 	    guy->num_bullets+=50;
 	    map.ammo[ky][kx] = 0;
-	    add_msg("MINIGUN! FIND SOME MEAT!");
+	    add_msg("MINIGUN! FIND SOME MEAT!", pl);
 	    break;
 	case W_PISTOL:
 	    if (!guy->have[w_pistol] && !guy->next_fire)
@@ -1191,7 +1104,7 @@ void move_player(int pl)
 	    guy->have[w_bazooka]=1;
 	    guy->num_rockets+=2;
 	    map.ammo[ky][kx] = 0;
-	    add_msg("BAARRZOOKA!");
+	    add_msg("BAARRZOOKA!", pl);
 	    break;
 	case W_SHOTGUN:
 	    if (!guy->have[w_shotgun] && !guy->next_fire)
@@ -1292,7 +1205,7 @@ void move_player(int pl)
 
     /* impaled on spikes ? */
     if (tile_collide(guy->x+3, guy->y+16)==T_SPIKE)
-	hurt_player(pl, 3, 0);  // armour doesn't affect spikes
+	hurt_player(pl, 1, 0);  // armour doesn't affect spikes
 
     /* climb down ladder */
     if (guy->down)
@@ -1392,7 +1305,7 @@ void move_player(int pl)
     if (move_legs)
     {
 	if (--guy->leg_tics<0) {
-	    guy->leg_tics=LEG_TICS;
+	    guy->leg_tics=LEG_ANIM;
 	    if (++guy->leg_frame>3)
 		guy->leg_frame=0;
 	}
@@ -1429,17 +1342,103 @@ void move_player(int pl)
 
 
 
-/* the loop / helpers */
+/* serial/net */
 
-void draw_spotlight()
+#define SER_CONNECTPLS  '?'
+#define SER_THROWDICE   '@'
+#define SER_PLAYERSTAT  's'
+#define SER_QUITGAME    'x'
+
+void inline send_long(long val)
+{
+    skSend(val & 0xff);
+    skSend((val>>8) & 0xff);
+    skSend((val>>16) & 0xff);
+    skSend((val>>24) & 0xff);
+}
+
+long inline recv_long()
+{
+    while (skReady() < 4);
+    return skRecv() | (skRecv()<<8) | (skRecv()<<16) | (skRecv()<<24);
+}
+
+void send_local_input()
+{
+    if (num_players>1)
+    {
+	skSend(SER_PLAYERSTAT); 
+	skSend(local);                      //1
+	skSend(player[local].up);           //2
+	skSend(player[local].down);         //3
+	skSend(player[local].left);         //4
+	skSend(player[local].right);        //5
+	skSend(player[local].fire);         //6
+	skSend(player[local].drop_mine);    //7
+	skSend(player[local].select);       //8
+	skSend(player[local].respawn);      //9 
+	skSend(player[local].facing);       //10
+	send_long(player[local].angle);     //14
+    }
+};
+
+void recv_remote_inputs()
+{
+    int pl;
+
+    if (num_players>1)
+    {
+	for (;;)
+	{
+	    while (!skReady());
+	    switch (skRecv())
+	    {
+		case SER_PLAYERSTAT:
+		    while (skReady()<13);
+		    pl = skRecv();
+		    player[pl].up = skRecv();
+		    player[pl].down = skRecv();
+		    player[pl].left = skRecv();
+		    player[pl].right = skRecv();
+		    player[pl].fire = skRecv();
+		    player[pl].drop_mine = skRecv();
+		    player[pl].select = skRecv();
+		    player[pl].respawn = skRecv();
+		    player[pl].facing = skRecv();
+		    player[pl].angle = recv_long();
+		    return;
+
+		case SER_QUITGAME:
+		    while (!skReady());
+		    pl = skRecv();
+		    player[pl].alive = 0;
+		    num_players--;
+		    add_msg("REMOTE PLAYER HAS LEFT", -1);
+		    return;
+
+		default:
+		    // FIXME
+		    suicide("Invalid code received.  Possibly sync problem.");
+	    }
+	}
+    }
+}
+
+
+
+/* the loop */
+
+void inline draw_spotlight()
 {
     int u, v;
     int flash=0; 
 
     u = player[local].x-px-96;
     v = player[local].y-py-96;
-    if (!crap_comp && (player[local].fire_frame || player[local].firing) && 
-	player[local].cur_weap != w_knife && player[local].cur_weap != w_bow)
+    if ((player[local].fire_frame || player[local].firing) && 
+	player[local].cur_weap != w_knife && 
+	player[local].cur_weap != w_bow && 
+	player[local].alive) 
 	flash = 1;
     if (flash) {
        u += (random()%10) - 5;
@@ -1448,45 +1447,48 @@ void draw_spotlight()
     clear(xbuf);
     blit(dbuf, xbuf, u, v, u, v, 192, 192);
 
-    if (!crap_comp)
-    {
-	if (flash)
-	    draw_trans_sprite(xbuf, spotlight2, u, v);
-	else
-	    draw_trans_sprite(xbuf, spotlight, u, v);
-    }
+    if (flash)
+	draw_trans_sprite(xbuf, spotlight2, u, v);
     else
-	draw_sprite(xbuf, spotlight, u, v);
+	draw_trans_sprite(xbuf, spotlight, u, v);
 }
 
 void game_loop()
 {
     int shakex = 0, shakey = 0;
-    int bx, by;
-    int i;
-    int drops;
+    int bx, by, i;
+    int frames_dropped;
 
     speed_counter = 0;
 
     while (!key[KEY_ESC])
     {
-	drops = 0;
-	while (speed_counter > 0 && drops < 2) 
+	frames_dropped = 0;
+	while (speed_counter > 0 && frames_dropped < 2) 
 	{
 	    respawn_tiles();
 	    respawn_ammo();
 	    tiles_in_pain();
 
 	    get_local_input();
-	    send_local_input();
-	    recv_remote_inputs();
-	    move_player(0);
-	    move_player(1);
+	    switch (comm)
+	    {
+		case serial:
+		    send_local_input();
+		    recv_remote_inputs();
+		    break;
+
+		default: break;
+	    }
+
+	    for (i=0; i<MAX_PLAYERS; i++)
+		update_player(i);
+
 	    update_explo();
-	    move_mine();
+	    update_mine();
 	    touch_mines();
-	    move_bullets();
-	    move_particles();
+	    update_bullets();
+	    update_particles();
 
 	    update_msgs();
 
@@ -1505,7 +1507,7 @@ void game_loop()
 	    }
 
 	    speed_counter--;
-	    drops++;
+	    frames_dropped++;
 	}
 
 	/* tile backdrop */
@@ -1552,10 +1554,16 @@ void game_loop()
 	draw_msgs();
 
 	//vsync();
-	clear(dbuf);
 	show_mouse(NULL);
 	blit(xbuf, screen, 0, 0, 0 + shakex, 0 + shakey, SCREEN_W, SCREEN_H);
-	show_mouse(screen);
+	if (player[local].alive)
+	    show_mouse(screen);
+    }
+
+    if (comm==serial && num_players>1)
+    {
+	skSend(SER_QUITGAME);
+	skSend(local);
     }
 }
 
@@ -1563,31 +1571,91 @@ void game_loop()
 
 /* main */
 
+int connect_serial(int comport)
+{
+    int l = 0, r = 0;
+
+    skOpen(comport, BAUD_19200, STOP_1 | BITS_8 | PARITY_NONE);
+
+    for (;;)
+    {
+	skSend(SER_CONNECTPLS);
+
+	if (skRecv()==SER_CONNECTPLS)
+	    break;
+
+	if (key[KEY_ESC]) 
+	{
+	    skClose();
+	    return 0; 
+	}
+    }
+
+    while (skRecv()==SER_CONNECTPLS);
+
+    // connected, throw dice
+    skSend(SER_THROWDICE);
+
+    while (skRecv() != SER_THROWDICE) 
+    {
+	if (key[KEY_ESC]) 
+	{
+	    skClose();
+	    return 0; 
+	}
+    };
+
+    while (l==r)
+    {
+	l = (random()%255) + 1;     // 1-255
+	skSend(l);
+	while (r==0)
+	{
+	    r = skRecv();
+	    if (key[KEY_ESC]) 
+	    {
+		skClose();
+		return 0; 
+	    }
+	}
+    }
+
+    if (l>r)    // l>r we win
+    {
+	local = 0;
+	send_long(seed);
+    }
+    else        // l<r we lose
+    {
+	local = 1;
+	seed = recv_long();
+    }
+
+    num_players = 2;
+    comm = serial;
+    return 1;
+}
+
 int main(int argc, char **argv)
 {
     int i;
-    time_t seed;
+
+    /* ego ego ego */
+    puts("Red Pixel " VERSION_STR " by Psyk Software, 1998.");
 
     /* init allegro */
     allegro_init();
+    install_timer();
+    install_keyboard();
     if (install_mouse()==-1)
     {
 	printf("Install a mouse driver.");
 	exit(1);
     }
-    install_timer();
-    install_keyboard();
 
     /* lock stuff */
     LOCK_VARIABLE(speed_counter);
     LOCK_FUNCTION(increment_speed_counter);
-
-    /* options */
-    if (argc>1 && !strcmp("-crap", argv[1]))
-    {
-	crap_comp = 1;
-	printf("You have a crap computer.\n");
-    }
 
     /* load datafile */
     dat = load_datafile("blood.dat");
@@ -1596,39 +1664,43 @@ int main(int argc, char **argv)
 	printf("Error loading blood.dat\n");
 	return 1;
     }
+    puts("data loaded");
 
-    /* init screen etc */
-    set_gfx_mode(GFX_VGA, 320, 200, 0, 0);
-    dbuf = create_bitmap(SCREEN_W, SCREEN_H);
-    xbuf = create_bitmap(SCREEN_W, SCREEN_H);
-    set_palette(dat[GAMEPAL].dat);
+    /* alloc */
+    bullets = malloc(max_bullets * sizeof(PARTICLE));
+    mine = malloc(max_mines * sizeof(MINE));
+    if (!bullets || !mine)
+	suicide("bullets and mines malloc failed");
+    reset_bullets(0);
+    reset_mines(0);
+    puts("bullets and mines alloc'd and reset");
 
     /* colour / translucency tables */
     create_rgb_table(&rgb_table, dat[GAMEPAL].dat, NULL);
     rgb_map = &rgb_table; 
     create_light_table(&light_table, dat[GAMEPAL].dat, 0, 0, 0, NULL);
     color_map = &light_table;
+    puts("light table created");
 
     /* spot lights */
     spotlight = create_bitmap(192,192);
     spotlight2 = create_bitmap(192,192);
-    if (!crap_comp)
-    {
-	clear(spotlight);
-	for (i=0; i<256; i++)
-	    circlefill(spotlight, 96, 96, 96-i/4, i);
 
-	clear(spotlight2);
-	for (i=0; i<256; i++)
-	    circlefill(spotlight2, 96, 96, 96-i/4, (i+48>255) ? 255 : i+48);
-    }
-    else
-    {
-	RGB rgb = { 0, 0, 0 };
-	set_color(1, &rgb);
-	clear_to_color(spotlight, 1);
-	circlefill(spotlight, 96, 96, 96, 0);
-    }
+    clear(spotlight);
+    for (i=0; i<256; i++)
+	circlefill(spotlight, 96, 96, 96-i/4, i);
+    clear(spotlight2);
+    for (i=0; i<256; i++)
+	circlefill(spotlight2, 96, 96, 96-i/4, (i+48>255) ? 255 : i+48);
+
+    puts("spotlights created");
+
+    /* init screen etc */
+    if (set_gfx_mode(GFX_VGA, 320, 200, 0, 0)<0)
+	suicide("Could not set 320x200x256 video mode... WTF?!");
+    dbuf = create_bitmap(SCREEN_W, SCREEN_H);
+    xbuf = create_bitmap(SCREEN_W, SCREEN_H);
+    set_palette(dat[GAMEPAL].dat);
 
     /* misc */
     set_mouse_sprite(dat[XHAIR].dat);
@@ -1641,82 +1713,31 @@ int main(int argc, char **argv)
     seed = time(NULL);
     srandom(seed);
 
-    /* ready */
     install_int_ex(increment_speed_counter, BPS_TO_TIMER(GAME_SPEED));
 
-    /* connect serial */
-    skOpen(COM2, BAUD_19200, STOP_1 | BITS_8 | PARITY_NONE);
-    rest(500);
-    skClear();
-    printf("Comms port opened, connecting \n");
-    for (i=0; i<10; i++)
-    {
-	skSend('@');
-	printf(".");
-	fflush(stdout);
-	if (skRecv()=='@') break;
-	if (key[KEY_ESC])
-	    suicide("Aborted"); 
-	skClear();
-	rest(1000);
-    }
-
-    if (i==10)
-	suicide("Could not connect");
-
-    printf("\nConnected\n");
-
-    // connected, throw dice
-    {
-	int l = 0, r = 0;
-
-	while (l==r)
-	{
-	    do {
-		l = random()%256;
-	    } while (l=='@');
-
-	    skSend(l);
-	    printf("Local die %d\n", l); 
-	    do {
-		printf("Waiting for remote die\n");
-		while (!skReady());
-		r = skRecv();
-	    } while (r=='@');
-	    printf("Remote die %d\n", r); 
-	}
-
-	if (l>r)
-	{
-	    printf("We win!  Local 0  Remote 1  Seed %d\n", seed);
-	    local = 0;
-	    send_long(seed);
-	    srandom(seed);
-	}
-	else
-	{
-	    printf("They win :(  Local 1  Remote 0\n");
-	    local = 1;
-	    seed = recv_long();
-	    printf("Seed = %d\n", seed);
-	    srandom(seed);
-
-	}
-
-	next_position = random()%(24*24);
-
-	respawn_player(0);
-	respawn_player(1);
-    }
-
-    /* set */
     //intro();
 
-    printf("Press space...\n");
-    while (!key[KEY_SPACE]);
+    /* connect serial */
+    comm = single; 
+    if (connect_serial(COM2))
+    {
+    }
+    else 
+    {
+	 num_players = 1;
+    }
 
-    /* go */
-    game_loop();
+    while (key[KEY_ESC]);
+
+    srandom(seed);
+    next_position = random()%(24*24);
+
+    for (i=0; i<num_players; i++)
+	respawn_player(i);
+    game_loop(); 
+
+    if (comm==serial)
+	skClose();
 
     /* bye bye */
     killall();

@@ -1,8 +1,13 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <allegro.h>
-#include "blood.h"  // datafile
+#include <allegro.h>    // not good but anyway
+#include "blood.h"      // datafile
+
+
+
+#define VERSION_STR "v0.666"
+
 
 
 #define GREY    16
@@ -30,6 +35,8 @@ typedef struct {
 	int x, y;
     } start[24];
 } MAP;
+
+
 
 typedef struct
 {

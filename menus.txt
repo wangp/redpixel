@@ -1,0 +1,25 @@
+Start Game-->
+	(name and colour)-->
+		Serial-->
+			Connecting......
+			Select Deathmatch Level (with chat box)
+			(game loop)
+		IPX-->
+			Host Game-->
+				Select Deathmatch Level
+				Name the game
+				Wait for people to join (with chat box)
+				(game loop)
+			Join Game-->
+				(search for network games)
+				Select game to join
+				(game loop)
+		TCP/IP-->
+			Not implemented yet.  Encourage me by giving me $$$!
+Options-->
+		Sound volume
+		Music volume
+		CD Music / default mod music
+Credits
+Quit-->
+		Are you sure?

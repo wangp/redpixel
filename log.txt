@@ -1,0 +1,13 @@
+6 june      map editor
+7-9 june    initial game engine
+10 june     serial code
+11 june     clean up + found name for game + serial perfected :) + dynamic 
+	    bullet and mine allocation
+
+
+Red Pixel
+
+code : Tjaden
+graphics : Airstryk
+
+Psyk 1998
