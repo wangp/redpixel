@@ -163,6 +163,7 @@ int get_name()
 	if ((k>>8) == KEY_BACKSPACE && len > 0)
 	{
 	    local_name[len-1] = 0;
+	    play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
 	}
 	else if (len < MAX_NAME_LEN)    // ascii key
 	{
@@ -171,10 +172,12 @@ int get_name()
 		local_name[len] = ch;
 		local_name[len+1] = 0;
 	    }
+	    play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
 	}
     }
 }
 
+/*
 int get_colour()
 {
     int k;
@@ -215,52 +218,226 @@ int get_colour()
 	    if (++local_colour==16) local_colour = 0;
     }
 }
+*/
 
 
 // helpers to select maps
 
-#define MAX_MAPS    60
-
-struct
+typedef struct MAPFILE
 {
     char fn[80];
-    char on_local;
-} map_list[MAX_MAPS];
+    struct MAPFILE *next;
+} MAPFILE;
 
-int num_maps;
+MAPFILE maphead, *curmap, *tmpmap;
+
+int num_maps = 0;
 
 // retrieve map filenames from ./maps/*.wak
+
 void get_map_filenames()
 {
     struct ffblk f;
     int i;
 
-    num_maps = 0;
-
-    for (i=0; i<MAX_MAPS; i++)
+    curmap = maphead.next;
+    while (curmap)
     {
-	if ((i==0 && findfirst("maps/*.wak", &f, FA_RDONLY)) ||
-	    (i>0 && findnext(&f)))
+	tmpmap = curmap->next;
+	free(curmap);
+	curmap = tmpmap;
+    }
+
+    maphead.next = NULL;
+    num_maps = 0;
+    i = 0;
+
+    curmap = &maphead;
+    for (;;)
+    {
+	if (i==0)
 	{
-	    map_list[i].fn[0] = 0;
-	    return;
+	    i = 1;
+	    if (findfirst("maps/*.wak", &f, FA_RDONLY))
+		return;
+	}
+	else
+	{
+	    if (findnext(&f))
+		return;
 	}
 
-	strcpy(map_list[i].fn, "MAPS/");
-	strcat(map_list[i].fn, f.ff_name);
-	map_list[i].on_local = 1;
+	tmpmap = malloc(sizeof(MAPFILE));
+	strcpy(tmpmap->fn, "MAPS/");
+	strcat(tmpmap->fn, f.ff_name);
+	curmap->next = tmpmap;
+	tmpmap->next = NULL;
+	curmap = tmpmap;
 	num_maps++;
     }
 }
 
+void free_map_filenames()
+{
+    curmap = maphead.next;
+    while (curmap)
+    {
+	tmpmap = curmap->next;
+	free(curmap);
+	curmap = tmpmap;
+    }
+
+    num_maps = 0;
+}
+
+#define MAPLIST_START   'M'
+#define MAPLIST_END     'm'
+
+// send 
+// recv and compare map filenames
+// then sort
+
+MAPFILE *match(char *fn)
+{
+    MAPFILE *t;
+    t = maphead.next;
+    while (t)
+    { 
+	// disregard case
+	if (stricmp(get_filename(t->fn), fn)==0)
+	    return t; 
+	t =t->next; 
+    }
+
+    return NULL;
+}
+
+void trade_map_filenames()
+{
+    char buf[80];
+    int pos, ch, finish, order;
+    MAPFILE *a, *b, *c, *d;
+
+    // send first (no paths)
+    curmap = maphead.next;
+    while (curmap)
+    {
+	skSend(MAPLIST_START);
+	skSendString(get_filename(curmap->fn));
+	skSend(0);
+	curmap = curmap->next;
+    }
+    skSend(MAPLIST_END);
+
+    // now recv 
+    for (;;)
+    {
+	ch = skRecv();
+	if (ch==MAPLIST_START)
+	{
+	    // get filename
+	    pos = 0;
+	    do {
+		while (!skReady());
+		ch = skRecv();
+		buf[pos++] = ch;
+	    } while (ch);
+
+	    tmpmap = match(buf);
+	    if (tmpmap)
+	    {
+		tmpmap->fn[0] = 'Q'; 
+		// mark (replace M from maps/*.wak to Q) 
+	    }
+	}
+	else if (ch==MAPLIST_END)
+	    break;
+    } 
+
+    // delete locals that aren't marked
+    // fix up marked 
+    curmap = maphead.next;
+    tmpmap = &maphead;
+    while (curmap)
+    {
+	if (curmap->fn[0]=='Q') //marked, fix up
+	{
+	    curmap->fn[0] = 'M';
+	    curmap=curmap->next;
+	    tmpmap=tmpmap->next;
+	}
+	else    // not marked, kill
+	{
+	    tmpmap->next = curmap->next;
+	    free(curmap);
+	    curmap = tmpmap->next;
+	    num_maps--;
+	}
+    } 
+
+    // shitty bubble sort 
+    do
+    {
+	finish = 1;
+	curmap = maphead.next;
+	tmpmap = &maphead;
+
+	while (curmap && curmap->next)
+	{
+	    order = strcmp(curmap->fn, curmap->next->fn);
+	    if (order>0)    // gotta swap
+	    {
+		finish = 0;
+
+		// tmpmap---->curmap---->curmap.next----->curmap.next.next
+		//    1         2             3                 4
+
+		// needs to go:
+		//      1       3             2                 4
+
+		// then end with curmap at ^^^^^^ here
+		// and tmpmap ^^^^^^ here (one before
+
+		a = tmpmap;
+		b = curmap;
+		c = curmap->next;
+		if (c)
+		    d = curmap->next->next;
+		else 
+		    d = NULL;
+
+		a->next = c;
+		c->next = b;
+		b->next = d;
+
+		curmap = b;
+		tmpmap = c;
+	    }
+	    else
+	    {
+		tmpmap = tmpmap->next;
+		curmap = curmap->next;
+	    }
+	}
+    } while (!finish);
+}
+
 // allow map selection
 // w/ chat box 
+
+#define CHAT_INCOMING   1
+#define CHAT_KEYDOWN    2
+#define CHAT_KEYUP      3
+#define CHAT_F10        4
+#define CHAT_LEAVE      5
+
 char *select_map()
 {
     int top = 0, selected = 0, i, k, y;
     int chatting = 0, line = -1;
     char chatbox[6][80] = { "", "", "", "", "", "" };
     char cur[80] = "", temp[80], ch;
+    int remote;
 
     for (;;)
     {
@@ -271,13 +448,19 @@ char *select_map()
 	textout(dbuf, small, "GRAVEYARD", 20, 10, RED);
 	textout_centre(dbuf, small, "UP/DOWN TO SELECT, F10 TO START", 160, 120, RED);
 
-	for (i=0; i<9; i++) {
-	    if (i<num_maps && map_list[top+i].fn[0])
+	curmap = maphead.next;
+	for (i=0; i<top; i++)
+	    curmap = curmap->next;
+
+	for (i=0; i<9; i++) 
+	{
+	    if (i+top<num_maps)
 	    {
 		int c = WHITE;
 		if (top+i==selected)
 		    c = YELLOW;
-		textout(dbuf, small, get_filename(map_list[top+i].fn), 20, 25 + i*10, c);
+		textout(dbuf, small, get_filename(curmap->fn), 20, 25 + i*10, c);
+		curmap = curmap->next;
 	    }
 	}
 	textout(dbuf, small, "*", 10, 25 + (selected-top)*10, RED);
@@ -288,7 +471,7 @@ char *select_map()
 	y = 20;
 	for (i=0; i<num_players; i++)
 	{
-	    blit(dat[players[i].colour + BLOB000].dat, dbuf, 0, 0, 180, y, 16, 16);
+	    //blit(dat[players[i].colour + BLOB000].dat, dbuf, 0, 0, 180, y, 16, 16);
 	    textout(dbuf, small, players[i].name, 200, y + 5, WHITE);
 	    y += 20;
 	}
@@ -313,33 +496,67 @@ char *select_map()
 	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
 
 	// wait for keypress
-	k = readkey();
+	for(;;)
+	{
+	    if (keypressed())
+	    {
+		remote = 0;
+		k = readkey();
+		break;
+	    }
+
+	    if (comm==serial && skReady())
+	    {
+		k = 0;
+		remote = skRecv();
+		break;
+	    }
+	}
 
 	// down arrow
-	if ((k>>8) == KEY_DOWN)
+	if ((k>>8) == KEY_DOWN || remote == CHAT_KEYDOWN)
 	{
 	    if (++selected>=num_maps)
 		selected--;
 	    else if (selected>=top+9)
 		top++;
+
+	    if ((k>>8)==KEY_DOWN && comm==serial)
+		skSend(CHAT_KEYDOWN);
 	}
 
 	// up arrow
-	if ((k>>8) == KEY_UP)
+	if ((k>>8) == KEY_UP || remote == CHAT_KEYUP)
 	{
 	    if (--selected < 0)
 		selected = 0;
 	    else if (selected<top)
 		top--;
+
+	    if ((k>>8)==KEY_UP && comm==serial)
+		skSend(CHAT_KEYUP);
 	}
 
 	// esc... get out
-	if ((k>>8) == KEY_ESC)
+	if ((k>>8) == KEY_ESC || remote == CHAT_LEAVE)
+	{
+	    if ((k>>8) == KEY_ESC && comm==serial)
+		skSend(CHAT_LEAVE);
 	    return NULL;
+	}
 
 	// f10.. start game
-	if ((k>>8) == KEY_F10)
-	    return map_list[selected].fn;
+	if ((k>>8) == KEY_F10 || remote == CHAT_F10)
+	{
+	    if ((k>>8) == KEY_F10 && comm==serial)
+		skSend(CHAT_F10);
+
+	    curmap = maphead.next;
+	    while (selected--)
+		curmap = curmap->next;
+
+	    return curmap->fn;
+	}
 
 	// enter.. send chat
 	if ((k>>8) == KEY_ENTER)
@@ -361,15 +578,51 @@ char *select_map()
 		cur[0] = 0;
 
 		chatting = 0;
+
+		play_sample(dat[WAV_INCOMING].dat, 255, 128, 1000, 0);
+
+		if (comm==serial)
+		{
+		    skSend(CHAT_INCOMING);
+		    skSendString(temp);
+		    skSend(0);
+		}
 	    }
+	}
+
+	// recv chat
+	if (remote==CHAT_INCOMING)
+	{ 
+	    int pos=0;
+
+	    // scroll?
+	    if (++line>5) 
+	    {
+		for (i=0; i<5; i++)
+		    strcpy(chatbox[i], chatbox[i+1]);
+		line--;
+	    }
+
+	    do
+	    {
+		while (!skReady());
+		remote = skRecv();
+		temp[pos++]=remote;
+	    } while (remote);
+
+	    strcpy(chatbox[line], temp);
+
+	    play_sample(dat[WAV_INCOMING].dat, 255, 128, 1000, 0);
 	}
 
 	// if backspace
 	if ((k>>8) == KEY_BACKSPACE && chatting)
 	{
 	    i = strlen(cur);
-	    if (i)
+	    if (i) {
 		cur[i-1] = 0;
+		play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
+	    }
 	}
 
 	// else, into chat box
@@ -382,6 +635,7 @@ char *select_map()
 		cur[i] = ch;
 		cur[i+1] = 0;
 		chatting = 1;
+		play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
 	    }
 	}
     } 
@@ -394,6 +648,7 @@ char *select_map()
 #define SER_CONNECTPLS  '?'
 #define SER_CONNECTOK   '!'
 #define SER_THROWDICE   '@'
+#define SER_MYNAMEIS    ''
 
 int linkup()
 {
@@ -425,7 +680,7 @@ int linkup()
 	}
     }
 
-    textout(screen, dat[MINI].dat, "TOUCHED", 16, y+8, WHITE);
+    textout(screen, dat[MINI].dat, "TOUCHED.. CONTINUING ON TO THROW DICE", 16, y+8, WHITE);
     return 1;
 }
 
@@ -496,48 +751,119 @@ int connect_serial(int comport)
 	seed = recv_long();
     }
 
+    srandom(seed);
+    next_position = random()%(24*24);
+    rnd_index = random()%600;
+    irnd_index = random()%600;
+
     num_players = 2;
     comm = serial;
     return 1;
 }
+
+void trade_names()
+{
+    int pos, player, ch, left;
+
+    // send name
+    skSend(SER_MYNAMEIS);
+    skSend(local);
+    skSendString(players[local].name);
+    skSend(0);
+
+    left = num_players-1;
+
+    // get remote name
+
+    do 
+    {
+	while (skRecv() != SER_MYNAMEIS);
+	while (!skReady());
+	player = skRecv();
+
+	pos = 0;
+	do
+	{
+	    while (!skReady());
+	    ch = skRecv();
+	    players[player].name[pos++] = ch; 
+	} while (ch);
+
+	left--;
+    } while (left);
+}
+
+void score_sheet()
+{
+    int i, y;
+
+    show_mouse(NULL);
+    clear(screen);
+    textout_centre(screen, dat[MINI].dat, "FRAGS", 160, 50, RED);
+
+    y = 70;
+
+    for (i=0; i<16; i++)
+    {
+	if (players[i].exist)
+	{
+	    textprintf(screen, dat[MINI].dat, 100, y, WHITE, "%s: %d FRAGS", players[i].name, players[i].frags);
+	    y+=16;
+	}
+    }
+
+    speed_counter = 0;
+    while (speed_counter < GAME_SPEED);
+
+    clear_keybuf();
+    while (!keypressed() && !mouse_b);
+    clear_keybuf();
+    while (mouse_b);
+}
+
+extern int com_port;    // run.c
 
 void serial_func()
 {
     char *fn;
 
     // name and colour
-    if (!get_name() || !get_colour())
+    if (!get_name() /*|| !get_colour()*/)
 	return;
 
     // connect
-    if (!connect_serial(COM2)) {
+    if (!connect_serial(com_port)) {
 	skClose();
 	return;
     }
 
-    // set up few things
-    seed = time(NULL);
-    srandom(seed);
-    next_position = random()%(24*24);
-    rnd_index = random()%600;
-    irnd_index = random()%600;
-
     no_germs();
     strcpy(players[local].name, local_name);
-    players[local].colour = local_colour;
+    trade_names();
 
     // get list of maps (from local and remote)
     get_map_filenames();
-    // FIXME
+    trade_map_filenames();
+
+    if (!num_maps)
+	return;
 
     // select level
     fn = select_map();
     if (!fn) return;
     load_map(fn);
 
-    // game loop
     spawn_players();
+
+    // final synching
+    skSend(SER_CONNECTOK);
+    while (skRecv()!=SER_CONNECTOK);
+
+    // go
+    play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
     game_loop();
+
+    score_sheet();
 
     // back to root menu
     enter_menu(root_menu); 
@@ -552,7 +878,7 @@ void single_func()
     char *fn;
 
     // name and colour
-    if (!get_name() || !get_colour())
+    if (!get_name() /*|| !get_colour()*/)
 	return;
 
     // set up few things
@@ -578,6 +904,7 @@ void single_func()
 
     // game loop
     spawn_players();
+    play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
     game_loop();
 
     // back to root menu
@@ -669,21 +996,6 @@ void blubber(BLUBBER *start)
 	blit(light, screen, 0, 0, 0, 0, 320, 200);
 	show_mouse(screen);
 
-	// click
-	if (mouse_b & 1)
-	{
-	    for (i=0; i<count; i++)
-	    {
-		// if touch menu item
-		if (touch(i))
-		{
-		    // do action
-		    while (mouse_b);
-		    cur[i].proc(&cur[i], MSG_CLICK, 0);
-		}
-	    }
-	}
-
 	// prev menu
 	if (key[KEY_ESC] || mouse_b & 2)
 	{
@@ -697,7 +1009,26 @@ void blubber(BLUBBER *start)
 	    if (bp->thing)
 		enter_menu(bp->thing);
 	}
+
+	// click
+	if (mouse_b & 1)
+	{
+	    for (i=0; i<count; i++)
+	    {
+		// if touch menu item
+		if (touch(i))
+		{
+		    // do action
+		    while (mouse_b);
+		    cur[i].proc(&cur[i], MSG_CLICK, 0);
+		    while (key[KEY_ESC] || mouse_b);
+		    break;
+		}
+	    }
+	}
     }
+
+    free_map_filenames();
 }
 
 

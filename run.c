@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
+#include <string.h>
+#include <stdarg.h>
 #include <seer.h>
 #include "common.h"
 #include "run.h"
@@ -74,7 +76,8 @@ int shake_factor;   // screen shakes
 
 int heart_frame = 0, 
     heart_anim = 0;
-
+int blood_frame = 0,
+    blood_anim = 0;
 
 
 
@@ -171,6 +174,7 @@ int inline irnd()
 inline int tile_collide(int x, int y) 
 {
     return map.tile[y/16][x/16];
+
 }
 
 inline int bb_collide(BITMAP *spr1, int x1, int y1, BITMAP *spr2, int x2, int y2)
@@ -202,6 +206,7 @@ inline int find_distance(int x1, int y1, int x2, int y2)
     b = y1-y2;
     a *= a;
     b *= b;
+    // yeah, returning an ints real accurate
     return (int)sqrt((float)a + (float)b);
 }
 
@@ -230,6 +235,37 @@ inline int num_ammo(int pl, int weapon)
 inline void snd_local(int snd)
 {
     play_sample(dat[snd].dat, 255, 128, 1000, 0);
+
+}
+
+void snd_3d(int snd, int maxvol, int sourcex, int sourcey)
+{
+    int dist, pan;
+
+    dist = find_distance(players[local].x, players[local].y, sourcex, sourcey) /2;
+
+    if (sourcex < players[local].x)
+	pan = 128 - dist * 3;
+    else
+	pan = 128 + dist * 3;
+
+    if (pan<0) pan =0;
+    else if (pan>255) pan=255;
+
+    maxvol-=dist;
+    if (maxvol>0)
+	play_sample(dat[snd].dat, maxvol, pan, 1000, 0);
+}
+
+void add_msg(char *, int);
+
+void Xmsg(int targ, char *fmt, ...)
+{
+    va_list va;
+    char buf[200];
+    va_start(va, fmt);
+    vsprintf(buf, fmt, va);
+    add_msg(buf, targ);
 }
 
 
@@ -684,7 +720,12 @@ int hurt_tile(int u, int v, int dmg, int tag)
 	    spawn_explo(u*16, v*16, X_EXPLO0, 2);
 	    map.tiletics[v][u] = TILE_RESPAWN_RATE;
 	    if (t==T_BAR)
-		blast(u*16+8, v*16+8, BARREL_DMG, tag);
+	    {
+		u = u*16+8;
+		v = v*16+8;
+		blast(u, v, BARREL_DMG, tag);
+		snd_3d(WAV_EXPLODEBAR, 150, u, v);
+	    }
 	}
 	return 2; 
     }
@@ -838,6 +879,8 @@ void touch_backpacks()
 			if (players[j].num_mines)
 			    players[j].have[w_mine] = 1;
 			backpacks[i].alive = 0; 
+			add_msg("YOU STOLE A BACKPACK", j);
+			snd_local(WAV_PICKUP);
 		    }
 		}
 	    }
@@ -906,6 +949,7 @@ void respawn_player(int pl)
 	    guy->have[w_knife] = 1; 
 	    guy->cur_weap = guy->pref_weap = w_knife; 
 	    guy->visor_tics = 0;
+	    guy->bloodlust = guy->blood_tics = 0;
 
 	    spawn_explo(guy->x, guy->y, RESPAWN0, 7); 
 	    return;
@@ -968,12 +1012,25 @@ void hurt_player(int pl, int dmg, int protect, int tag, int deathseq)
 
 	players[pl].health = 0;
 	if (tag==pl)    // haha, suicide!
+	{
 	    players[tag].frags--;
+	    if (deathseq==D_IMPALE000)
+		Xmsg(-1, "%s WAS IMPALED", players[pl].name);
+	    else
+		Xmsg(-1, "%s COMMITTED SUICIDE", players[pl].name);
+	}
 	else
+	{
 	    players[tag].frags++;
-    }
+	    Xmsg(-1, "%s WAS FRAGGED BY %s", players[pl].name, players[tag].name);
+	}
 
-    play_sample(dat[WAV_ARR+(irnd()%5)].dat, 255, 128, 1000, 0);
+	snd_3d(WAV_DEAD1+(irnd()%5), 255, players[pl].x, players[pl].y);  // close enough
+    }
+    else
+    {
+	snd_3d(WAV_ARR+(irnd()%5), 255, players[pl].x, players[pl].y);  // close enough
+    }
 }
 
 inline int gun_pic(int pl)
@@ -1024,7 +1081,7 @@ void draw_players()
 	h = ((BITMAP *)dat[gun].dat)->h / 2;
 
 	//draw_sprite(dbuf, dat[guy->colour + BLOB000].dat, u - 4, v);
-	rect(dbuf, u - 4, v, u - 4 + 15, v + 15, 32);
+	//rect(dbuf, u - 4, v, u - 4 + 15, v + 15, 32);
 
 	if (guy->facing==right)
 	{
@@ -1134,6 +1191,7 @@ void blow_mine(int i)
 {
     mines[i].alive = 0;
     spawn_explo(mines[i].x-2, mines[i].y-6, X_EXPLO0, 2);
+    snd_3d(WAV_EXPLODE, 255, mines[i].x, mines[i].y);
     blast(mines[i].x+3, mines[i].y, weaps[w_mine].dmg, mines[i].tag);
 }
 
@@ -1189,7 +1247,7 @@ void spawn_bullet(int pl, fixed angle, int c, int bmp)
 	    bullets[i].y = itofix(players[pl].y + 4) + fsin(players[pl].angle) * w;
 	    bullets[i].xv = fcos(angle) * speed;
 	    bullets[i].yv = fsin(angle) * speed;
-	    bullets[i].dmg = weaps[players[pl].cur_weap].dmg;
+	    bullets[i].dmg = weaps[players[pl].cur_weap].dmg * (players[pl].bloodlust+1);
 	    bullets[i].colour = c;
 	    bullets[i].bmp = bmp;
 	    bullets[i].tag = pl;
@@ -1243,10 +1301,13 @@ void update_bullets()
 		    {
 			spawn_explo(u, v, X_EXPLO0, 2);
 			blast(u, v, bullets[i].dmg, bullets[i].tag);
+			snd_3d(WAV_EXPLODE, 255, u, v);
 		    }
 		    else
 		    {
 			spawn_explo(u, v, 0, 1);
+			if ((irnd()%8)==0)
+			    snd_3d(WAV_RIC+(irnd()%2), 255, u, v);
 		    }
 		}
 	    }
@@ -1437,6 +1498,9 @@ void draw_status()
     if (players[local].visor_tics)
 	draw_sprite(dbuf, dat[A_GOGGLES+(heart_frame>2 ? 1 : heart_frame)].dat, 152, 9);
 
+    if (players[local].blood_tics)
+	draw_sprite(dbuf, dat[A_BLOODLUST+blood_frame].dat, 152+18, 9);
+
     draw_sprite(dbuf, dat[HEART1+(heart_frame>2 ? 1 : heart_frame)].dat, 6, 9);
     draw_sprite(dbuf, dat[A_ARMOUR].dat, 60, 9);
     textprintf(dbuf, dat[UNREAL].dat, 24, 3, -1, "%3d", players[local].health);
@@ -1521,9 +1585,10 @@ inline void select_weapon()
     {
 	if (guy->have[weapon_order[i].weap])
 	{
-	    if (((mouse_b & 2) && mouse_x >= 6 && mouse_x <= 6+16 &&
+	    if ((((mouse_b & 2) && mouse_x >= 6 && mouse_x <= 6+16 &&
 		mouse_y >= y && mouse_y <= y+16) ||
-		key[weapon_order[i].shortcut])
+		key[weapon_order[i].shortcut]) &&
+		weapon_order[i].weap != guy->cur_weap)
 	    {
 		if (weapon_order[i].weap==w_mine && guy->num_mines>0)
 		    guy->drop_mine = 1;
@@ -1574,6 +1639,11 @@ void update_player(int pl)
     if (guy->visor_tics)
 	--guy->visor_tics;
 
+    /* degrading bloodlust */
+    if (guy->blood_tics)
+	if (--guy->blood_tics==0)
+	    guy->bloodlust = 0;
+
     /* selecting weapon */
     if (guy->select)
     {
@@ -1596,7 +1666,7 @@ void update_player(int pl)
 		    if (guy->armour>300)
 			guy->armour = 300;
 		    map.ammo[ky][kx] = 0;
-		    play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		    snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		} 
 		break;
 
@@ -1604,14 +1674,14 @@ void update_player(int pl)
 		guy->num_arrows+=7;
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, 0);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
 	    case A_BULLET:
 		guy->num_bullets+=30;
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, 0);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
 	    case A_CHICKEN:
@@ -1639,14 +1709,14 @@ void update_player(int pl)
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, 0);
 		add_msg("GOT YERSELF A MINE", pl);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
 	    case A_ROCKET:
 		guy->num_rockets+=3;
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, 0);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
 	    case A_SHELL:
@@ -1654,12 +1724,24 @@ void update_player(int pl)
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, 0);
 		add_msg("POCKET FULL A SHELLS", pl);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
 	    case A_GOGGLES:
 		guy->visor_tics = GAME_SPEED * 60;
 		map.ammo[ky][kx] = 0;
+		add_msg("LIGHT-AMP ENABLED", pl);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
+		break;
+
+	    case A_BLOODLUST:
+		guy->blood_tics = GAME_SPEED * 30;
+		guy->bloodlust = 1;
+		map.ammo[ky][kx] = 0;
+		add_msg("YOU ARE THE SPAWN OF SATAN!", pl);
+		add_msg("GO KILL SOMETHING!!", pl);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
+		snd_local(WAV_LETSPARTY);
 		break;
 
 	    case W_BOW:
@@ -1667,7 +1749,7 @@ void update_player(int pl)
 		guy->num_arrows+=3;
 		map.ammo[ky][kx] = 0;
 		add_msg("DYNAMITE ON STICKS!", pl);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
 	    case W_M16:
@@ -1675,7 +1757,7 @@ void update_player(int pl)
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, w_m16);
 		add_msg("M16", pl);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
 	    case W_MINI:
@@ -1683,14 +1765,14 @@ void update_player(int pl)
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, w_minigun);
 		add_msg("MINIGUN! FIND SOME MEAT!", pl);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
 	    case W_PISTOL:
 		guy->num_bullets+=10;
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, w_pistol);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
 	    case W_ROCKET:
@@ -1698,21 +1780,21 @@ void update_player(int pl)
 		guy->num_rockets+=2;
 		map.ammo[ky][kx] = 0;
 		add_msg("BAARRZOOKA!", pl);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
 	    case W_SHOTGUN:
 		guy->num_shells+=4;
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, w_shotgun);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
 	    case W_UZI:
 		guy->num_bullets+=30;
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, w_uzi);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 	}
     }
@@ -1733,7 +1815,7 @@ void update_player(int pl)
 		    auto_weapon(pl, 0);
 		} else {
 		    spawn_bullet(pl, guy->angle, GREY, 0);
-		    play_sample(dat[WAV_MINIGUN].dat, 255, 128, 1000, 0);
+		    snd_3d(WAV_MINIGUN, 255, guy->x, guy->y);
 		}
 		break;
 
@@ -1743,7 +1825,7 @@ void update_player(int pl)
 		    auto_weapon(pl, 0);
 		} else {
 		    spawn_bullet(pl, guy->angle, GREY, 0);
-		    play_sample(dat[WAV_M16].dat, 255, 128, 1000, 0);
+		    snd_3d(WAV_M16, 255, guy->x, guy->y);
 		}
 		break;
 
@@ -1753,7 +1835,7 @@ void update_player(int pl)
 		    auto_weapon(pl, 0);
 		} else {
 		    spawn_bullet(pl, guy->angle, GREY, 0);
-		    play_sample(dat[WAV_UZI].dat, 255, 128, 1000, 0);
+		    snd_3d(WAV_UZI, 255, guy->x, guy->y);
 		}
 		break;
 
@@ -1763,7 +1845,7 @@ void update_player(int pl)
 		    auto_weapon(pl, 0);
 		} else {
 		    spawn_bullet(pl, guy->angle, GREY, 0);
-		    play_sample(dat[WAV_UZI].dat, 255, 128, 1000, 0);
+		    snd_3d(WAV_UZI, 255, guy->x, guy->y);
 		}
 		break;
 
@@ -1779,7 +1861,7 @@ void update_player(int pl)
 		    spawn_bullet(pl, guy->angle,             YELLOW, 0);
 		    spawn_bullet(pl, guy->angle + itofix(2), YELLOW, 0);
 		    spawn_bullet(pl, guy->angle + itofix(4), YELLOW, 0);
-		    play_sample(dat[WAV_SHOTGUN].dat, 255, 128, 1000, 0);
+		    snd_3d(WAV_SHOTGUN, 255, guy->x, guy->y);
 		}
 		break;
 
@@ -1791,7 +1873,7 @@ void update_player(int pl)
 		else 
 		{
 		    spawn_bullet(pl, guy->angle, 0, J_ROCKET);
-		    play_sample(dat[WAV_ROCKET].dat, 255, 128, 1000, 0);
+		    snd_3d(WAV_ROCKET, 255, guy->x, guy->y);
 		}
 		break;
 
@@ -1801,12 +1883,15 @@ void update_player(int pl)
 		    auto_weapon(pl, 0);
 		}
 		else
+		{
 		    spawn_bullet(pl, guy->angle, 0, J_ARROW);
+		    snd_3d(WAV_BOW, 255, guy->x, guy->y);
+		} 
 		break;
 
 	    case w_knife:
 		spawn_bullet(pl, guy->angle, 0, J_KNIFE);
-		play_sample(dat[WAV_KNIFE].dat, 255, 128, 1000, 0);
+		snd_3d(WAV_KNIFE, 255, guy->x, guy->y);
 		break;
 	}
 
@@ -1835,6 +1920,7 @@ void update_player(int pl)
 	guy->next_fire = weaps[w_mine].reload;
 	if (--guy->num_mines<1)
 	    guy->have[w_mine] = 0;
+	snd_3d(WAV_MINE, 255, guy->x, guy->y);
     }
 
     /* impaled on spikes ? */
@@ -2017,6 +2103,8 @@ void clean_player(int pl)
 
 char packet[20];
 
+int endgame = 0;
+
 void inline send_long(long val)
 {
     skSend(val & 0xff);
@@ -2086,11 +2174,12 @@ void recv_remote_inputs()
 		case SER_QUITGAME:
 		    while (!skReady());
 		    pl = skRecv();
-		    clean_player(pl);
+		    //clean_player(pl);
 		    num_players--;
-		    add_msg("REMOTE PLAYER HAS LEFT", -1);
+		    Xmsg(-1, "%s HAS LEFT THE DUNGEON", players[pl].name);
 		    speed_counter = 0;
 		    skSend(SER_QUITOK);
+		    endgame = 1;
 		    return;
 
 		default:
@@ -2130,18 +2219,24 @@ void game_loop()
     int shakex = 0, shakey = 0;
     int bx, by, i;
     int frames_dropped;
+    int update;
 
     speed_counter = 0;
 
-    while (!key[KEY_ESC])
+    endgame = 0;
+
+    while (!key[KEY_ESC] && !endgame)
     {
 	frames_dropped = 0;
+	update = 0;
 	while (speed_counter > 0 && frames_dropped < 6) 
 	{
 	    get_local_input();
 	    if (comm==serial) {
 		send_local_input();
 		recv_remote_inputs();
+		if (endgame)
+		    break;
 	    }
 
 	    respawn_tiles();
@@ -2182,11 +2277,19 @@ void game_loop()
 		    heart_frame=0;
 	    }
 
+	    if (--blood_anim<0)
+	    {
+		blood_anim = HEART_ANIM;    // just borrow this
+		if (++blood_frame>5)
+		    blood_frame =0;
+	    }
+
 	    if (key[KEY_F12])
 		show_fps = (show_fps ? 0 : 1);
 
 	    speed_counter--;
 	    frames_dropped++;
+	    update = 1;
 	}
 
 	/* tile backdrop */
@@ -2221,34 +2324,37 @@ void game_loop()
 	else
 	    players[local].facing = left;
 
-	// ready light
-	clear_to_color(light, AMBIENT_LIGHT);
-	color_map = &alpha_map;
+	if (update)
+	{
+	    // ready light
+	    clear_to_color(light, AMBIENT_LIGHT);
+	    color_map = &alpha_map;
 
-	// now draw, boy!
-	draw_mines();
-	draw_tiles_an_stuff();
-	draw_backpacks();
-	draw_bullets();
-	draw_players();
-	draw_particles();
-	draw_blods();
-	draw_explo();
-	draw_corpses();
+	    // now draw, boy!
+	    draw_mines();
+	    draw_tiles_an_stuff();
+	    draw_backpacks();
+	    draw_bullets();
+	    draw_players();
+	    draw_particles();
+	    draw_blods();
+	    draw_explo();
+	    draw_corpses();
 
-	if (!players[local].visor_tics ||
-	    (players[local].visor_tics < GAME_SPEED*3 && (players[local].visor_tics%2)==0))
-	    draw_spotlight();
+	    if (!players[local].visor_tics ||
+		(players[local].visor_tics < GAME_SPEED*3 && (players[local].visor_tics%2)==0))
+		draw_spotlight();
 
-	draw_status(); 
-	draw_msgs();
+	    draw_status(); 
+	    draw_msgs();
 
-	show_mouse(NULL);
-	blit(dbuf, screen, 0, 0, 0 + shakex, 0 + shakey, SCREEN_W, SCREEN_H);
-	if (players[local].health)
-	    show_mouse(screen);
+	    show_mouse(NULL);
+	    blit(dbuf, screen, 0, 0, 0 + shakex, 0 + shakey, SCREEN_W, SCREEN_H);
+	    if (players[local].health)
+		show_mouse(screen);
 
-	frame_counter++;
+	    frame_counter++;
+	}
     }
 
     if (comm==serial && num_players>1)
@@ -2259,7 +2365,7 @@ void game_loop()
 	while (skRecv() != SER_QUITOK);
     }
 
-    while (key[KEY_ESC]);
+    while (key[KEY_ESC] && mouse_b);
     clear_keybuf();
 }
 
@@ -2278,6 +2384,7 @@ void no_germs()
     memset(blods, 0, MAX_BLODS * sizeof(BLOD));
     memset(corpses, 0, MAX_CORPSES * sizeof(CORPSE));
     oldest_corpse = 0;
+    num_msgs =0;
 }
 
 
@@ -2287,6 +2394,8 @@ void intro();   // intro.c
 void menu();    // menu.c
 void credits(); // creds.c
 
+int com_port = COM2;
+
 int main(int argc, char **argv)
 {
     scScript scrpt;
@@ -2294,11 +2403,15 @@ int main(int argc, char **argv)
     int x, y, loc;
 
     /* read in stats from stats.sc */
-    scrpt = scCompile_File("stats.sc");
-    if (scErrorNo)
+    scrpt = scLoad_Script("stats.cs");
+    if (!scrpt)
     {
-	printf("%s\n> %s\n", scErrorMsg, scErrorLine);
-	return 1;
+	scrpt = scCompile_File("stats.sc");
+	if (scErrorNo)
+	{
+	    printf("%s\n> %s\n", scErrorMsg, scErrorLine);
+	    return 1;
+	}
     }
 
     prog = scCreate_Instance(scrpt, "");
@@ -2369,10 +2482,23 @@ int main(int argc, char **argv)
 	}
     }
 
-    /* map editor ? */
+    /* map editor ?  comm port ? */
     for (x=1; x<argc; x++)
+    {
+	strlwr(argv[x]);
 	if (strcmp(argv[x], "-edit")==0)
 	    return mapper();
+
+	// FIXME-->comport selection should be in menu
+	if (strcmp(argv[x], "-com1")==0)
+	    com_port = COM1;
+	if (strcmp(argv[x], "-com2")==0)
+	    com_port = COM2;
+	if (strcmp(argv[x], "-com3")==0)
+	    com_port = COM3;
+	if (strcmp(argv[x], "-com4")==0)
+	    com_port = COM4;
+    }
 
     /* alloc */
     bullets = malloc(max_bullets * sizeof(PARTICLE));

@@ -102,6 +102,8 @@ typedef struct
 
     char leg_frame, leg_tics;
     int visor_tics;
+    int blood_tics;
+    int bloodlust;
     char firing, fire_frame, fire_anim, next_fire;
     char facing;
 

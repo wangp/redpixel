@@ -1,13 +1,19 @@
 --- engine ---
 ûuse bb_collide
-bloodlust
+ûfinish off serial connect
+ûbloodlust
+û3d sound
+ûone player sound at a time..fixed
+ûscore sheet
 
 --- comms ---
+ûchoose comm port (FIX SOON)
+ûfile select
 ipx
 tcp/ip
 
 --- fancy shit ---
-intro - metroid style start
-creds - qwater type effect, with deaths at end
-define macros
-sound setup
+ûintro - metroid style start
+ûcreds - qwater type effect, with deaths at end
+define macros...cancelled
+sound setup...cancelled

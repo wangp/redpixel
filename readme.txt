@@ -1,63 +1,71 @@
 
-		      {12}r e d {4}ù {12}p i x e l
 
-		{4}copyright psyk software 1998
-		    {4}all rights reserved
-			{4}and all that
-
-			 {12}-   -   - 
-
-    {12}note {4}this game is unfinished
-	 {4}this readme is boring
-	 {4}the sounds need work
-	 {4}ipx and internet play are not implemented yet
-	 {12}not to be distributed, yet
-
-    {12}to play {4}connect two puters via serial cable to com2
-	    {4}have your mice plugged into com1 or something
-	    {4}run 'red' on both computers
-	    {4}it should automagically connect
-
-    {12}controls {4}use the mouse to aim
-	     {4}left click to shoot
-	     {4}right click on weapon icon to switch weapons
-
-	     {4}use the keyboard to move :-
-
-		 {4}up down left right
-		 {4}w s a d
-		 {4}t g f h
-		 {4}i k j l
-
-	     {4}tab to see frags
-		 {4}note: they will all say 'tjaden' (for now)
-
-	     {4}f12 to see fps
-
-	     {4}esc to quit
-
-    {12}credits
-	{4}    code: {12}peter wang
-	{4}graphics: {12}david wang
-	{4}  sounds: various sources including doom, cyberdogs, dune2, 
-					    {4}commando, mech2 demo
+{12}                    r {4}. {12}e {4}. {12}d   {4}.   {12}p {4}.{12}i {4}. {12}x {4}. {12}e {4}. {12}l
 
 
+{4}                      copyright 1998 psyk software
 
 
+{4}                            -   -   -   -   -
 
 
+{12}#include <std_disclaimer.h>
+
+{4}   "I do not accept responsibility for any effects, adverse or otherwise, 
+{4}    that this code may have on you, your computer, your sanity, your dog, 
+{4}    and anything else that you can think of. Use it at your own risk."
 
 
+{12}Story
+
+{4}    You have been thrown in a dungeon with a handful of other prisoners.
+{4}    Contained within the dungeon are various magical objects, mostly weapons,
+{4}    which respawn after a certain time period.
+
+{4}    Surrounded by such weapons of destruction, you cannot resist the
+{4}    temptation. {12}You must kill something!
 
 
-	{2}Enjoy the death while you can.
+{12}Controls
 
-	{8}wow, uppercase and a different colour
+{4}    Move your little man with the keyboard:
+
+{12}            W               T                   Up
+{12}        A   S   D       F   G   H       Left    Down    Right
+
+{4}    Aim his gun with the mouse. 
+
+{12}        Left click to shoot. 
+
+{4}    On the left of the screen the weapons you collect will be displayed.
+
+{12}        Right click on them to select.
+
+{12}        Or use the number keys across the top of the keyboard.
+
+{12}        Press Enter to drop a mine.
+
+{4}    Other stuff:
+
+{12}        TAB to see your scores.
+
+{12}        ESC to quit.
 
 
+{12}Completeness
+
+{4}    Red Pixel is only 70% completed. There is still IPX and Internet play
+{4}    to be done.  It is possible I will do IPX soon, if there is any interest,
+{4}    but Internet play is a little harder, so may never see the light of day.
+
+{4}    BTW, if anyone wants, you can get the source code from me and do it 
+{4}    yourself.
 
 
+{12}Contact
 
+{4}    Email me at tjaden@alphalink.com.au, or tjaden@psynet.net (which will 
+{4}    redirect to whatever mail account I use at that time)
 
+{4}    Tell me what you think, and if you find any bugs, well.. keep quiet. :)
 

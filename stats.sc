@@ -12,12 +12,15 @@ export anim;
 
 int respawn(int item)
 {
+    // 40 is tics per sec
+
     switch (item)
     {
 	case A_CHICKEN: return 40 * 120;
 	case A_COKE:    return 40 * 60;
 	case A_ARMOUR:  return 40 * 360;
 	case A_GOGGLES: return 40 * 360;
+	case A_BLOODLUST: return 40 * 360;
 
 	case A_BULLET:  return 40 * 30;
 	case A_SHELL:   return 40 * 20;

@@ -18,6 +18,8 @@
 24 june     colour selection
 28 june     removed flamer/bottles + uses scripts for stats + credits
 	    + intro
+11 july     did name trading, score sheet, some synch fixes, serial chat
+	    + 3d sound + serial file select thing
 
 
 Red Pixel
