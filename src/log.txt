@@ -115,3 +115,9 @@ now back to school, so less done
 		Demo playback intermission screens
 		Demo playback slow motion key (s) and switch follow (enter)
 		Error checking for load and save map
+
+28 May		Made stats.fst default :-)
+		Separated menu system and game launch code
+		Modularised and cleaned up some things
+		run.c renamed to engine.c!
+		

@@ -1,9 +1,13 @@
-#ifndef RUN_H
-#define RUN_H
+#ifndef __included_run_h
+#define __included_run_h
 
-// for the benefit of the SeeR scripts
-// (enums not supported yet -- v0.6a)
-// NOTE> don't use seer now but just lazy
+
+#define MAX_PLAYERS	2	/* too many assumptions already   
+				 * made about this :-P  */
+
+#define GAME_SPEED  	40	/* max FPS */
+
+
 #define w_knife     1
 #define w_pistol    2
 #define w_bow       3
@@ -141,15 +145,7 @@ extern PLAYER players[];
 extern volatile int speed_counter;
 
 extern int record_demos;
-
-
-//-------------------------------------------------------- RNG ---------------
-
-int rnd();
-void srnd(unsigned long seed);
-
-int irnd();
-void sirnd(unsigned long seed);
+extern int com_port;
 
 
 //-------------------------------------------------------- connection type ---
@@ -175,5 +171,9 @@ void retain_players();
 void restore_players();
 
 void game_loop();
+
+void engine_init();
+void engine_shutdown();
+
 
 #endif;

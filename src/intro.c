@@ -24,12 +24,11 @@
  */
 
 #include <allegro.h>
+#include "globals.h"
 #include "blood.h"
 
-extern DATAFILE *dat;
-extern BITMAP *dbuf;
 
-int raster_words(char *s)
+static int raster_words(char *s)
 {
     BITMAP *txt1;
     BITMAP *txt2;
@@ -90,7 +89,7 @@ int raster_words(char *s)
 }
 
 
-int scan(int x, int y)
+static int scan(int x, int y)
 {
     BITMAP *dbuf;
     int x2, i, j=0;

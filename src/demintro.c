@@ -24,11 +24,11 @@
 
 
 #include <allegro.h>
-#include "run.h"
-#include "common.h"
 #include "demo.h"
 #include "demintro.h"
+#include "engine.h"
 #include "blood.h"
+#include "colours.h"
 
 
 

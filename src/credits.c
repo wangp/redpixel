@@ -24,12 +24,13 @@
 
 
 #include <allegro.h>
-#include "common.h"
-#include "run.h"
+#include "globals.h"
+#include "colours.h"
 #include "blood.h"
+#include "version.h"
 
 
-char *text[] =
+static char *text[] =
 {
     "", "", "", "", "", "", "", "", "", "",
     "", "", "", "", "", "", "", "", "", "",

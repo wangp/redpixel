@@ -1,5 +1,5 @@
-#ifndef _included_demo_h_
-#define _included_demo_h_
+#ifndef __included_demo_h
+#define __included_demo_h
 
 
 #define DEMO_SET_RNG_SEED	's'

@@ -22,23 +22,30 @@
  *  Game engine.
  */
 
-
 #include <stdio.h>
-#include <time.h>
 #include <math.h>
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <allegro.h>
 #include "fastsqrt/fastsqrt.h"
 #include "sk.h"
-#include "common.h"
+#include "map.h"
 #include "rg_rand.h"
-#include "run.h"
+#include "engine.h"
+#include "menu.h"
+#include "launch.h"
 #include "stats.h"
 #include "statlist.h"
 #include "setweaps.h"
 #include "demo.h"
 #include "demintro.h"
+#include "rnd.h"
+#include "globals.h"
+#include "colours.h"
+#include "resource.h"
+#include "blood.h"
+#include "main.h"
 
 
 //---------------------------------------------------------------- maxs ------
@@ -64,14 +71,6 @@ int max_backpacks =     50;
 
 //---------------------------------------------------------------- globals ---
 
-DATAFILE    *dat;
-BITMAP      *dbuf;
-BITMAP      *light;
-
-RGB_MAP     rgb_table;
-COLOR_MAP   alpha_map;
-COLOR_MAP   light_map;
-
 comm_t comm;
 
 
@@ -95,18 +94,16 @@ int         num_players;
 
 //---------------------------------------------------------------- local -----
 
-int local;          // local player
+int local;          	// local player
 
 int mx, my,             // top left of map in tiles
     offsetx, offsety,   //  && the offset
     px, py;             // top left of map in pixels
 
-int shake_factor;   // screen shakes
+int shake_factor; 
 
 int heart_frame = 0, heart_anim = 0;
 int blood_frame = 0, blood_anim = 0;
-
-int record_demos = 0;
 
 
 //------------------------------------------------------------ timer ---------
@@ -136,54 +133,12 @@ END_OF_FUNCTION(fps_timer);
 
 //------------------------------------------------------------ cyanide -------
 
-void killall()
-{
-    unload_datafile(dat);
-    destroy_bitmap(dbuf);
-    destroy_bitmap(light);
-    free(bullets);
-    free(mines);
-    free(backpacks);
-    allegro_exit();
-}
-
 void suicide(char *s)
 {
-    killall();
+    shutdown();
     skClose();
     allegro_message("%s\n", s);
     exit(1);
-}
-
-
-//----------------------------------------------- random number generator ----
-
-static long _rnd;
-
-int rnd()
-{
-    return (_rnd = longrand(_rnd));
-}
-
-void srnd(unsigned long seed)
-{
-    _rnd = slongrand(seed);
-}
-
-
-// this one is used for the more important stuff
-// the stuff that has to be synchronised
-
-static long _irnd;
-
-int irnd()
-{
-    return (_irnd = longrand(_irnd));
-}
-
-void sirnd(unsigned long seed)
-{
-    _irnd = slongrand(seed);
 }
 
 
@@ -1072,8 +1027,6 @@ inline int gun_pic(int pl)
 	case w_bazooka: return P_ROCKET0;
 	case w_shotgun: return P_SHOTGUN0;
 	case w_uzi: return P_UZI0;
-	//case w_flamer: return P_FLAMER0;
-	//case w_bottle: return P_BOT0;
 	default: return 0;
     }
 }
@@ -2375,8 +2328,6 @@ void recv_remote_inputs()
 
 //---------------------------------------------------------- demo ------------
 
-int load_map_wrapper(char *fn);
-
 void recv_demo_inputs()
 {
     int pl, ch, x;
@@ -2495,7 +2446,7 @@ void render()
     clear_to_color(light, AMBIENT_LIGHT);
     color_map = &alpha_map;
 
-    // now draw, boy!
+    // now draw!
     draw_mines();
     draw_tiles_an_stuff();
     draw_backpacks();
@@ -2525,8 +2476,7 @@ void render()
 
     frame_counter++;
 
-    //-- screen shots --
-#if 1				   /* dodgy web design stuff */
+    /* screenshots: dodgy web design stuff */
     {
 	static char ss_name[80];
 	static int ss_num = 0;
@@ -2537,7 +2487,6 @@ void render()
 	    save_pcx(ss_name, dbuf, dat[GAMEPAL].dat);
 	}
     }
-#endif
 }
 
 void game_loop()
@@ -2719,65 +2668,17 @@ void restore_players()
     }
 }
 
-//---------------------------------------------------------- main ------------
 
-int mapper();   // mapper.c
-void intro();   // intro.c
-void menu();    // menu.c
-void set_menu_message(char *msg);
-void credits(); // creds.c
-
-int com_port = COM2;
-
-char game_path[1024], *game_path_p;
-
-
-void usage(char *options)
+void engine_init()
 {
-    /* :) */
-    allegro_message("See manual for help on these options: %s\n", options);
-}
-
-
-void show_version(int legal)
-{
-    allegro_message("Red Pixel " VERSION_STR " by Psyk Software " VERSION_YEAR ".\n"
-		    "http://www.psynet.net/tjaden/\n%s",
-		    (legal 
-		     ? ("Licensed under the GNU Lesser General Public Licence.\n"
-			"See COPYING for details.\n")
-		     : ""));
-}
-
-
-int main(int argc, char *argv[])
-{
-    int skip_intro = 0;
-    int lcd_cur = 0;
-    int alt_stats = 0;
-    int x, y;
-
     build_sqrt_table(); 
 
-    /* init allegro */
-    allegro_init();
+    bullets = malloc(max_bullets * sizeof(PARTICLE));
+    mines = malloc(max_mines * sizeof(MINE));
+    backpacks = malloc(max_backpacks * sizeof(BACKPACK));
+    if (!bullets || !mines || !backpacks)
+	suicide("Bullets or mines or backpacks malloc failed");
     
-    if (install_mouse() <= 0) {
-#ifdef TARGET_DJGPP
-	allegro_message("\nRed Pixel requires a mouse to play.\n"
-			"Please install a mouse driver (e.g. mouse.com).\n\n");
-#else
-	allegro_message("\nRed Pixel requires a mouse to play.\n"
-			"Please check your Allegro mouse port settings\n"
-			"and make sure you have permissions to the device.\n\n");
-#endif
-	return 1;
-    }
-    
-    install_timer();
-    install_keyboard();
-    install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);
-
     /* install timer interrupts */
     LOCK_VARIABLE(speed_counter);
     LOCK_FUNCTION(speed_timer);
@@ -2785,115 +2686,15 @@ int main(int argc, char *argv[])
     LOCK_VARIABLE(frame_counter);
     install_int_ex(speed_timer, BPS_TO_TIMER(GAME_SPEED));
     install_int_ex(fps_timer, BPS_TO_TIMER(1));
-
-    /* set up game path */
-    strcpy(game_path, argv[0]);
-    game_path_p = get_filename(game_path);
-
-    /* load datafile */
-    strcpy(game_path_p, "blood.dat");
-    dat = load_datafile(game_path);
-    if (!dat)
-    {
-	allegro_message("Error loading blood.dat\n");
-	return 1;
-    }
-    
-    /* Command line args.  */
-    {
-	int c;
-	
-	while (1) {
-	    char *options = "hveqld1234s:";
-	    
-	    c = getopt(argc, argv, options);
-	    if (c < 0) break;
-	    
-	    switch (c) {
-		case 'h': usage(options); return 0;
-		case 'v': show_version(1); return 0;
-		case 'e': return mapper();
-		case 'q': skip_intro = 1; break;
-		case 'l': lcd_cur = 1; break;
-		case 'd': record_demos = 1; break;
-		case '1': com_port = COM1; break;
-		case '2': com_port = COM2; break;
-		case '3': com_port = COM3; break;
-		case '4': com_port = COM4; break;
-		case 's': 
-		    if (!optarg) {
-			allegro_message("No stats file specified!\n");
-			return 1;
-		    }
-		    else if (!read_stats(optarg, stat_block)) {
-			allegro_message("Error reading %s.\n", optarg);
-			return 1;
-		    }
-		    
-		    set_menu_message(get_filename(optarg));
-		    alt_stats = 1;
-	 	    break;
-		
-		case '?':
-		default:
-		    return 1;
-	    }
-	}
-    }
-
-    /* stats, if none read yet */
-    if (!alt_stats) {
-	strcpy(game_path_p, "stats");
-	if (!read_stats(game_path, stat_block)) {
-	    allegro_message("Error reading %s.\n", game_path);
-	    return 1;
-	}
-    }
-
-    set_weapon_stats();
-
-    /* alloc */
-    bullets = malloc(max_bullets * sizeof(PARTICLE));
-    mines = malloc(max_mines * sizeof(MINE));
-    backpacks = malloc(max_backpacks * sizeof(BACKPACK));
-    if (!bullets || !mines || !backpacks)
-	suicide("Bullets or mines or backpacks malloc failed");
-
-    /* colour / lighting / translucency tables */
-    create_rgb_table(&rgb_table, dat[GAMEPAL].dat, NULL);
-    rgb_map = &rgb_table;
-
-    create_light_table(&light_map, dat[GAMEPAL].dat, 0, 0, 0, NULL);
-
-    for (x = 0; x < 256; x++)
-	for (y = 0; y < 256; y++)
-	    alpha_map.data[x][y] = MIN(x+y, 255);
-
-    /* init screen etc */
-    if (set_gfx_mode(GFX_AUTODETECT, 320, 200, 0, 0) < 0)
-	suicide("Error setting 320x200 video mode.");
-    set_window_title("Red Pixel");
-    set_palette(dat[GAMEPAL].dat);
-    dbuf = create_bitmap(SCREEN_W, SCREEN_H);
-    light = create_bitmap(SCREEN_W, SCREEN_H);
-    if (lcd_cur)
-	set_mouse_sprite(dat[XHAIRLCD].dat);
-    else
-	set_mouse_sprite(dat[XHAIR].dat);
-    set_mouse_sprite_focus(2, 2);
-    set_mouse_speed(1, 1);
-
-    if (!skip_intro)
-	intro();
-
-    menu();
-
-    /* bye bye */
-    killall();
-
-    show_version(0);
-
-    return 0;
 }
 
-END_OF_MAIN()
+
+void engine_shutdown()
+{
+    remove_int(fps_timer);
+    remove_int(speed_timer);
+    
+    free(bullets);
+    free(mines);
+    free(backpacks);
+}

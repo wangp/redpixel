@@ -4,7 +4,7 @@
 
 
 #include <allegro.h>
-#include "run.h"
+#include "engine.h"
 #include "stats.h"
 #include "statlist.h"
 #include "setweaps.h"

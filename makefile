@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -O3 -m486 -Isrc -Isrc/sk 
+CFLAGS = -Wall -O3 -m486 -Isrc/include -Isrc/sk
 
 ifdef DJDIR
 	# djgpp.
@@ -14,16 +14,21 @@ else
 endif
 
 MODULES = \
-	common		\
-	creds		\
+	credits		\
 	demintro	\
 	demo		\
+	engine		\
 	fastsqrt	\
+	globals		\
 	intro		\
+	launch		\
+	main		\
+	map		\
 	mapper		\
 	menu		\
+	resource	\
 	rg_rand		\
-	run		\
+	rnd		\
 	setweaps	\
 	skdos		\
 	sklinux		\

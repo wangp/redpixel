@@ -29,13 +29,13 @@
 #include <string.h>
 #include <allegro.h>
 #include "demo.h"
-#include "run.h"
+#include "engine.h"
 #include "stats.h"
 #include "statlist.h"
 #include "setweaps.h"
 
 
-char demo_description[128] = "";
+char demo_description[128];
 
 
 static PACKFILE *fp;

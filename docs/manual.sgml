@@ -52,8 +52,8 @@ the original <tt/redpixel.txt/.
 <p>New in 0.11:
 
 <itemize>
-<item>Linux port and maps by Peter Sundling (kaffepeter@telia.com)
-<item>stats.fst file
+<item>Linux port, and maps, by Peter Sundling (kaffepeter@telia.com)
+<item>faster weapon stats
 <item>three maps by Mike (see maps/authors.txt)
 <item>mouse wheel support (Linux only)
 <item>keyboard control in menu

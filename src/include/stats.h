@@ -1,5 +1,5 @@
-#ifndef _included_stats_h_
-#define _included_stats_h_
+#ifndef __included_stats_h
+#define __included_stats_h
 
 enum STAT_TYPE { 
     ST_INT = 0, 
@@ -16,4 +16,4 @@ int read_stats(char *fn, STAT_VAR *block);
 void for_every_stat(STAT_VAR *block, int (*proc)(STAT_VAR *sv));
 
 
-#endif _included_stats_h_
+#endif 

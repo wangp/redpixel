@@ -1,5 +1,5 @@
-#ifndef _included_statlist_h_
-#define _included_statlist_h_
+#ifndef __included_statlist_h
+#define __included_statlist_h
 
 
 #define XXX(x) extern int st_##x;

@@ -19,18 +19,22 @@
  *  Email: tjaden@psynet.net
  *  WWW:   http://www.psynet.net/tjaden/
  * 
- *  Shared code between engine and map editor.
+ *  Map loading/saving.
  */
 
 
 #include <stdio.h>
+#include <string.h>
 #include <allegro.h>
-#include "common.h"
+#include "map.h"
+#include "blood.h"
+#include "engine.h"
+#include "stats.h"
+#include "statlist.h"
+#include "resource.h"
 
 
-// globals 
-
-MAP map;    // jes the one
+MAP map;    
 
 
 //------------------------------------------------------------------- lists --
@@ -231,4 +235,22 @@ int load_map(char *fn)
 
     pack_fclose(fp);
     return 0;
+}
+
+
+
+
+/* Needed, mostly for Unix, because of some of old case-insensitive
+ * filename assumptions. */
+
+int load_map_wrapper(char *fn)
+{
+    char path[MAX_PATH_LENGTH], tmp[MAX_PATH_LENGTH];
+
+    strcpy(path, get_resource(R_SHARE, "maps/"));
+  
+    strlwr(strcpy(tmp, fn));
+    strcat(path, tmp);
+
+    return load_map(path);
 }

@@ -24,17 +24,17 @@
  */
 
 
-#include "common.h"
+#include <allegro.h>
+#include "map.h"
+#include "resource.h"
+#include "globals.h"
+#include "colours.h"
+#include "blood.h"
 
 
 
-extern DATAFILE *dat;
-extern BITMAP *dbuf;
-
-
-
-int tile_count;
-int ammo_count;
+static int tile_count;
+static int ammo_count;
 
 
 
@@ -49,18 +49,18 @@ enum {
 #define SEL_CHOOSE  1
 #define SEL_EDIT    2
 
-void (*selector)();
+static void (*selector)();
 
-int first[m_num];
-int chosen[m_num];
-
-
-
-int mx, my;
+static int first[m_num];
+static int chosen[m_num];
 
 
 
-void selector_tiles(int command)
+static int mx, my;
+
+
+
+static void selector_tiles(int command)
 {
     int i;
     int kx, ky;
@@ -95,7 +95,7 @@ void selector_tiles(int command)
     }
 }
 
-void selector_ammo(int command)
+static void selector_ammo(int command)
 {
     int i;
     int kx, ky;
@@ -130,7 +130,7 @@ void selector_ammo(int command)
     }
 }
 
-void selector_players(int command)
+static void selector_players(int command)
 {
     int kx, ky;
     kx = mouse_x / 16;
@@ -189,7 +189,7 @@ void selector_players(int command)
 
 
 
-void map_edit()
+static void map_edit()
 {
     int u, v;
     int dirty = 1;
@@ -237,7 +237,7 @@ void map_edit()
 	    if (key[KEY_S])
 	    {
 		char tmp[1024];
-		replace_filename(tmp, game_path, "maps/", 1024);
+		strcpy(tmp, get_resource(R_SHARE, "maps/"));
 		
 		if (file_select("Save As...", tmp, "wak"))
 		    if (save_map(tmp) < 0)
@@ -248,7 +248,7 @@ void map_edit()
 	    else if (key[KEY_L])
 	    {
 		char tmp[1024];
-		replace_filename(tmp, game_path, "maps/", 1024);
+		strcpy(tmp, get_resource(R_SHARE, "maps/"));
 
 		if (file_select("Load...", tmp, "wak"))
 		    if (load_map(tmp) < 0)
