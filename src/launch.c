@@ -1,23 +1,6 @@
 /*
  *  Red Pixel, a violent game.
  *  Copyright (C) 1999 Psyk Software.
- *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- * 
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- * 
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *  Email: tjaden@psynet.net
- *  WWW:   http://www.psynet.net/tjaden/
  * 
  *  Game launching.
  */
@@ -39,10 +22,11 @@
 #include "globals.h"
 #include "main.h"
 #include "map.h"
+#include "music.h"
 #include "player.h"
 #include "resource.h"
 #include "rnd.h"
-#include "rpcd.h"
+#include "scrblit.h"
 #include "setweaps.h"
 #include "sk.h"
 #include "skhelp.h"
@@ -91,8 +75,9 @@ static void quit_proc()
 
 static void error_screen(char *err) 
 {
-    clear(screen);
-    textout_centre(screen, dat[MINI].dat, err, 160, 90, WHITE);
+    clear_bitmap(dbuf);
+    textout_centre(dbuf, dat[MINI].dat, err, 160, 90, WHITE);
+    blit_to_screen(dbuf);
 
     while (!keypressed() && !mouse_b)
 	;
@@ -119,21 +104,23 @@ static int prompt(char *string, char *dest, int maxlen)
 	/* screen output */
 	strcpy(temp, dest);
 	strcat(temp, "_");
-	clear(dbuf);
+	clear_bitmap(dbuf);
 	textout_centre(dbuf, small, string, 160, 70, WHITE);
 	textout_centre(dbuf, small, temp,   160, 90, WHITE);
-	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
+	blit_to_screen(dbuf);
 
 	/* handle keypress */	
 	k = readkey();
 
 	if ((k >> 8) == KEY_ENTER) {
-	    while (key[KEY_ENTER]);
+	    while (key[KEY_ENTER])
+		yield_timeslice();
 	    return 1;
 	}
 
 	if ((k >> 8) == KEY_ESC) {
-	    while (key[KEY_ESC]);
+	    while (key[KEY_ESC])
+		yield_timeslice();
 	    return 0;
 	}
 
@@ -187,7 +174,7 @@ static int num_maps;
 
 static void get_map_filenames()
 {
-    struct ffblk f;
+    struct al_ffblk f;
     int i;
     char path[MAX_PATH_LENGTH];
 
@@ -208,18 +195,18 @@ static void get_map_filenames()
     while (1) {
 	if (i == 0) {
 	    i = 1;
-	    if (findfirst(path, &f, FA_RDONLY))
+	    if (al_findfirst(path, &f, FA_RDONLY))
 		return;
 	}
 	else {
-	    if (findnext(&f)) {
-		findclose(&f);
+	    if (al_findnext(&f)) {
+		al_findclose(&f);
 		return;
 	    }
 	}
 
 	tmpmap = malloc(sizeof(MAPFILE));
-	strcpy(tmpmap->fn, ff_name(f));
+	strcpy(tmpmap->fn, f.name);
 	strupr(tmpmap->fn);	/* font only has uppercase */
 	curmap->next = tmpmap;
 	tmpmap->next = NULL;
@@ -327,7 +314,7 @@ static void trade_map_filenames()
 	    skSendString(buf);
 	    
 	    curmap = curmap->next;
-	    putpixel(screen, x++, 180, RED);
+	    putpixel(screen, x++, SCREEN_H - 20, RED);
 	    
 	    if (!curmap)
 		skSend(MAPLIST_END);
@@ -340,7 +327,7 @@ static void trade_map_filenames()
 	    ch = skRecv();
 	    if (ch == MAPLIST_START) {
 		receive_string(buf);
-		putpixel(screen, x++, 180, LBLUE);
+		putpixel(screen, x++, SCREEN_H - 20, LBLUE);
 		
 		tmpmap = match(buf);
 		if (tmpmap) 
@@ -372,7 +359,7 @@ static void trade_map_filenames()
 	    num_maps--;
 	}
 
-	putpixel(screen, x++, 180, GREEN);
+	putpixel(screen, x++, SCREEN_H - 20, GREEN);
     } 
 }
 
@@ -407,10 +394,10 @@ static char *select_map()
 	readkey();
 
     while (1) {
-	clear(dbuf);
+	clear_bitmap(dbuf);
 	
 	/* recording demos reminder */
-	textout_right(dbuf, small, record_reminder, SCREEN_W-10, 2, DARKGREY);
+	textout_right(dbuf, small, record_reminder, 320-10, 2, DARKGREY);
 	
 	/* map select */
 	textout(dbuf, small, "GRAVEYARD", 20, 10, RED);
@@ -454,7 +441,7 @@ static char *select_map()
 	}
 
 	/* blit onto screen  */
-	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
+	blit_to_screen(dbuf);
 
 	/* Wait for keypress.  */
 	while (1) {
@@ -495,7 +482,8 @@ static char *select_map()
 
 	/* escape key */
 	if ((k >> 8) == KEY_ESC || (remote == CHAT_RETURN)) {
-	    while (key[KEY_ESC]);
+	    while (key[KEY_ESC])
+		yield_timeslice();
 	    if ((k >> 8) == KEY_ESC && (comm == peerpeer))
 		skSend(CHAT_RETURN);
 	    return return_str;
@@ -607,22 +595,26 @@ static void score_sheet()
     int i, y;
 
     show_mouse(NULL);
-    blit(dat[FRAGDROP].dat, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
-    textout_centre(screen, dat[MINI].dat, "FRAGS", 160, 50, RED);
+    blit(dat[FRAGDROP].dat, dbuf, 0, 0, 0, 0, 320, 200);
+    textout_centre(dbuf, dat[MINI].dat, "FRAGS", 160, 50, RED);
 
     y = 70;
 
     for (i = 0; i < num_players; i++) {
-	textprintf(screen, dat[MINI].dat, 100, y, WHITE,
+	textprintf(dbuf, dat[MINI].dat, 100, y, WHITE,
 		   "%s: %d FRAGS", players[i].name, players[i].frags);
 	y += 16;
     }
+
+    blit_to_screen(dbuf);
 
     rest(500);
     clear_keybuf();
     while (!keypressed() && !mouse_b);
     clear_keybuf();
     while (mouse_b);
+
+    music_stop();
 }
 
 
@@ -689,7 +681,7 @@ static void do_session()
 	if (load_map_wrapper(fn) < 0)
 	    break;
 	demo_write_change_map(fn);
-	rpcd_play_random_track();
+	music_play_random_track();
 
 	/* Init players.  */
 	retain_players();
@@ -733,7 +725,8 @@ static int peerpeer_negotiate_environment()
     skSend(PEERPEER_THROWDICE);
     while (skRecv() != PEERPEER_THROWDICE) {
 	if (key[KEY_ESC]) {
-	    while (key[KEY_ESC]);
+	    while (key[KEY_ESC])
+		yield_timeslice();
 	    skClose();
 	    return 0;
 	}
@@ -745,7 +738,8 @@ static int peerpeer_negotiate_environment()
 
 	while (!skReady()) {
 	    if (key[KEY_ESC]) {
-		while (key[KEY_ESC]);
+		while (key[KEY_ESC])
+		    yield_timeslice();
 		skClose();
 		return 0; 
 	    }
@@ -840,8 +834,8 @@ static int serial_linkup()
 	return 0;
     }
 
-    clear(screen);
-    textprintf(screen, dat[MINI].dat, 16, 16, WHITE,
+    clear_bitmap(dbuf);
+    textprintf(dbuf, dat[MINI].dat, 16, 16, WHITE,
 #ifdef TARGET_LINUX
 	       "/DEV/TTYS%d OPENED", com_port
 #else
@@ -850,8 +844,9 @@ static int serial_linkup()
 	       );
 
     y = 24;
-    textout(screen, dat[MINI].dat, msg, 16, y, WHITE);
+    textout(dbuf, dat[MINI].dat, msg, 16, y, WHITE);
     x = text_length(dat[MINI].dat, msg) + 16;
+    blit_to_screen(dbuf);
 
     /* Do NOT remove this.  */
     rest(500);
@@ -860,8 +855,9 @@ static int serial_linkup()
     while (1) {
 	skSend(SER_CONNECTPLS);
 
-	textout(screen, dat[MINI].dat, ".", x, y, WHITE);
-	if ((x += 4) > SCREEN_W-16)
+	textout(dbuf, dat[MINI].dat, ".", x, y, WHITE);
+	blit_to_screen(dbuf);
+	if ((x += 4) > 320-16)
 	    y += 8, x = 16;
 
 	if (skRecv() == SER_CONNECTPLS)
@@ -870,14 +866,16 @@ static int serial_linkup()
 	speed_counter = 0;
 	while (speed_counter < GAME_SPEED) {
 	    if (key[KEY_ESC]) {
-		while (key[KEY_ESC]);
+		while (key[KEY_ESC])
+		    yield_timeslice();
 		skClose();
 		return 0; 
 	    }
 	}
     }
 
-    textout(screen, dat[MINI].dat, "TOUCHED", 16, y+8, WHITE);
+    textout(dbuf, dat[MINI].dat, "TOUCHED", 16, y+8, WHITE);
+    blit_to_screen(dbuf);
     return 1;
 }
 
@@ -946,7 +944,7 @@ static void single_proc()
  * 
  *----------------------------------------------------------------------*/
 	
-#ifdef LIBNET_CODE
+#ifndef NO_LIBNET_CODE
 
 static char *connect_msg;
 static int no_error;
@@ -954,8 +952,9 @@ static int no_error;
 static int libnet_connect_callback()
 {
     if (connect_msg) {
-	clear(screen);
-	textout_centre(screen, dat[MINI].dat, connect_msg, 160, 90, WHITE);
+	clear_bitmap(dbuf);
+	textout_centre(dbuf, dat[MINI].dat, connect_msg, 160, 90, WHITE);
+	blit_to_screen(dbuf);
 
 	/* only need to do this once */
 	connect_msg = 0;
@@ -1060,7 +1059,7 @@ static void demo_playback_proc()
     
     /* fade out, for end of movie feel */
     fade_out(4);
-    clear(screen);
+    clear_bitmap(screen);
     set_palette(dat[GAMEPAL].dat);
         
     score_sheet();
@@ -1102,7 +1101,7 @@ static BLUBBER serial_menu[] =
 
 #endif /* !TARGET_WINDOWS */
 
-#ifdef LIBNET_CODE
+#ifndef NO_LIBNET_CODE
 
 static BLUBBER libnet_menu[] =
 {
@@ -1119,7 +1118,7 @@ static BLUBBER startgame_menu[] =
 #ifndef TARGET_WINDOWS
     { join_menu, "Serial", 	serial_menu },
 #endif
-#ifdef LIBNET_CODE
+#ifndef NO_LIBNET_CODE
     { join_menu, "Sockets",	libnet_menu },
 #endif
     { menu_proc, "Play Demo", 	demo_playback_proc },

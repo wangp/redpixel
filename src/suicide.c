@@ -1,6 +1,6 @@
-/* suicide.c
- *
- * Peter Wang <tjaden@psynet.net>
+/*
+ *  Red Pixel, a violent game.
+ *  Copyright (C) 1999 Psyk Software.
  */
 
 

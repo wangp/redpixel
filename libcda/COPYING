@@ -1,0 +1,24 @@
+libcda is in part derived from BCD.  The original licence is below:
+
+  "You may use, modify, redistribute, and generally hack it about in
+  any way you like, but if you do you must send me something in
+  exchange.  This could be a complimentary copy of a game, an addition
+  or improvement to BCD, a bug report, some money (this is
+  particularly encouraged if you use BCD in a commercial product), or
+  just a copy of your AUTOEXEC.BAT if you don't have anything
+  better. If you redistribute BCD or make a game using it, it would be
+  nice if you mentioned me somewhere in the credits."
+
+I emailed Brennan about changing the licence to giftware some time
+ago, but received no reply.  I'm changing the licence a little anyway,
+to reflect the new situation.  Think of it as "relaxed swapware", or
+giftware by another name.
+
+  You may use, modify, redistribute, and generally hack it about in
+  any way you like, but if you do you should contribute something in
+  exchange.  This could be a complimentary copy of a game, an addition
+  or improvement to libcda, a bug report, some money, or just a copy of
+  your AUTOEXEC.BAT or .bashrc if you don't have anything better.  If
+  you redistribute libcda or make a game using it, it would be nice if
+  you mentioned the contributors somewhere in the credits.
+

@@ -1,6 +1,10 @@
-/*
+/* 
+ *  Red Pixel, a violent game.
+ *  Copyright (C) 1999 Psyk Software.
+ * 
  *  Just some common globals that don't belong.
  */
+
 
 #include <sys/time.h>
 #include <allegro.h>

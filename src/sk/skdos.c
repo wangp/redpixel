@@ -1,5 +1,5 @@
 /*  SK - Serial Communications
- *      by Peter Wang  (tjaden@alphalink.com.au -or- tjaden@psynet.net)
+ *      by Peter Wang  (tjaden@alphalink.com.au -or- tjaden@users.sf.net)
  *
  *  These routines were originally basically just a port of Andre' LaMothes
  *  routines from 'Tricks of the Game Programming Gurus'. 

@@ -1,15 +1,18 @@
-/* rpcd.c - Red Pixel libcda wrapper
- *
- * Peter Wang <tjaden@psynet.net>
+/*
+ *  Red Pixel, a violent game.
+ *  Copyright (C) 1999 Psyk Software.
+ * 
+ *  libcda wrapper.
  */
 
 
-#ifdef LIBCDA_CODE
+#ifndef NO_LIBCDA_CODE
 
 
 #include <time.h>
-#include <libcda.h>
+#include "libcda.h"
 #include "rg_rand.h"
+#include "rpcd.h"
 
 
 static int inited;
@@ -54,12 +57,27 @@ void rpcd_play_random_track()
 	rnd = longrand(rnd);
 	i = (rnd % t1) + 1;
 	
+
 	if ((i < t0) || !cd_is_audio(i))
 	    continue;
 	
 	cd_play_from(i);
 	break;
     }
+}
+
+
+void rpcd_poll()
+{
+    if (cd_current_track() == 0)
+	if (cd_get_tracks(NULL, NULL))
+	    rpcd_play_random_track();
+}
+
+
+void rpcd_stop()
+{
+    cd_stop();
 }
 
 
@@ -73,6 +91,8 @@ void rpcd_play_random_track()
 void rpcd_init() {}
 void rpcd_shutdown() {}
 void rpcd_play_random_track() {}
+void rpcd_poll() {}
+void rpcd_stop() {}
 
 
-#endif /* LIBCDA_CODE */
+#endif /* NO_LIBCDA_CODE */

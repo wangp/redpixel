@@ -1,23 +1,6 @@
 /*
  *  Red Pixel, a violent game.
  *  Copyright (C) 1999 Psyk Software.
- *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- * 
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- * 
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *  Email: tjaden@psynet.net
- *  WWW:   http://www.psynet.net/tjaden/
  * 
  *  Map editor: three hour job.
  *  06 June, 1998 
@@ -75,7 +58,7 @@ static void selector_tiles(int command)
 	    { 
 		if (first[m_tile]+i < tile_count &&
 		    tiles[first[m_tile]+i].pic != -1)
-		    draw_sprite(dbuf, dat[tiles[first[m_tile]+i].pic].dat, i*16, SCREEN_H-16);
+		    draw_sprite(dbuf, dat[tiles[first[m_tile]+i].pic].dat, i*16, 200-16);
 	    }
 	    break;
 
@@ -276,7 +259,7 @@ static void map_edit()
 
 	/* drawing */
 	if (dirty) {
-	    clear(dbuf);
+	    clear_bitmap(dbuf);
 
 	    for (v=0; v<(SCREEN_H-16)/16; v++)
 		for (u=0; u<SCREEN_W/16; u++) {
@@ -319,7 +302,7 @@ int mapper()
     set_window_title("Red Pixel map editor");
     
     dbuf = create_bitmap(SCREEN_W, SCREEN_H);
-    clear(dbuf);
+    clear_bitmap(dbuf);
 
     text_mode(-1);
     set_mouse_sprite_focus(0,0);

@@ -2,11 +2,6 @@
  *  Red Pixel, a violent game.
  *  Copyright (C) 1999 Psyk Software.
  * 
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- * 
  *  Game loop (including rendering)
  */
 
@@ -24,9 +19,11 @@
 #include "input.h"
 #include "main.h"
 #include "map.h"
+#include "music.h"
 #include "packet.h"
 #include "player.h"
 #include "rnd.h"
+#include "scrblit.h"
 #include "sk.h"
 
 #include "backpack.h"
@@ -69,7 +66,7 @@ static void draw_spotlight()
 	&& (players[local].health)) {
 	u = (rnd() % 10) - 5;
 	v = (rnd() % 10) - 5;
-	blit(light, light, 0, 0, u, v, SCREEN_W, SCREEN_H);
+	blit(light, light, 0, 0, u, v, 320, 200);
     }
 
     color_map = &light_map;
@@ -154,14 +151,14 @@ static void draw_status()
     /* dead, don't continue */
     if ((comm != demo) && (players[local].health == 0)) {
 	textout(dbuf, dat[UNREAL].dat, "PRESS SPACE TO RESPAWN",
-		20, SCREEN_H - 30, -1);
+		20, 200 - 30, -1);
 	return;
     }
 
     text_mode(-1);
 
     i = 0;
-    y = SCREEN_H - 6 - 16;
+    y = 200 - 6 - 16;
     while (weapon_order[i].pic) {
 	if (players[local].have[weapon_order[i].weap]) {
 	    draw_sprite(dbuf, dat[weapon_order[i].pic].dat,
@@ -174,7 +171,7 @@ static void draw_status()
 		sprintf(buf, "%d", ammo);
 		textout(dbuf, dat[MINI].dat, buf, 24, y + 6, YELLOW);
 		if (weapon_order[i].weap == players[local].cur_weap)
-		    textout(dbuf, dat[UNREAL].dat, buf, SCREEN_W - 48, SCREEN_H - 24, -1);
+		    textout(dbuf, dat[UNREAL].dat, buf, 320 - 48, 200 - 24, -1);
 	    }
 
 	    y -= 14;
@@ -249,8 +246,8 @@ static void render()
     if (ftmp) 
 	fblit(dbuf, ftmp);
 
-    show_mouse(NULL);	/* FIXME: use scare mouse instead */
-    blit(ftmp ? ftmp : dbuf, screen, 0, 0, 0 + shakex, 0 + shakey, SCREEN_W, SCREEN_H);
+    show_mouse(NULL);
+    blit_to_screen_offset(ftmp ? ftmp : dbuf, shakex, shakey);
     if (players[local].health && (comm != demo))
 	show_mouse(screen);
 
@@ -266,9 +263,11 @@ void game_loop()
     int i;
     
     if (filtered) ftmp = create_bitmap(dbuf->w, dbuf->h);
-    if (ftmp) clear(ftmp);
+    if (ftmp) clear_bitmap(ftmp);
 
     speed_counter = 0;
+
+    show_mouse(screen);
 
     while (1) {
 	frames_dropped = 0;
@@ -320,7 +319,7 @@ void game_loop()
 			local = 1 - local;
 			add_msgf(-1, "< NOW WATCHING %s >", players[local].name);
 
-			key[KEY_ENTER] = 0;	/* bleh */
+			//key[KEY_ENTER] = 0;	/* bleh */
 		    }
 		
 		    /* screenshots: dodgy web design stuff */
@@ -338,7 +337,7 @@ void game_loop()
 			    }
 			    
 			    speed_counter = 1;
-			    key[KEY_P] = 0;
+			    //key[KEY_P] = 0;
 			}
 		    }
 
@@ -399,7 +398,7 @@ void game_loop()
 
 	    if (key[KEY_F12]) {
 		show_fps = (show_fps ? 0 : 1);
-		key[KEY_F12] = 0;
+		//key[KEY_F12] = 0;
 	    }
 	    
 	    speed_counter--;
@@ -409,6 +408,8 @@ void game_loop()
 
 	if (update)
 	    render();
+
+	music_poll();
 
 	if (key[KEY_ESC] || want_quit)
 	    break;
@@ -420,7 +421,8 @@ void game_loop()
 	    rest(10);
     }
 
-    while (key[KEY_ESC] && mouse_b) ;
+    while (key[KEY_ESC] && mouse_b)
+	yield_timeslice();
     clear_keybuf();
     
   quit:

@@ -12,7 +12,7 @@
 
 <title> Red Pixel: The Manual
 
-<author> Peter Wang, <tt> tjaden@psynet.net </tt>
+<author> Peter Wang, <tt> tjaden@users.sf.net </tt>
 
 <date> Second edition for Red Pixel v0.11, June 2000
 <!-- First edition for Red Pixel v0.9, August 1999 -->
@@ -156,7 +156,7 @@ the original `redpixel.txt'.
       <item> mingw32: http://www.mingw.org/
       <item> Allegro: http://www.talula.demon.co.uk/allegro/
       <item> Libnet: http://www.canvaslink.com/libnet/
-      <item> libcda: http://www.psynet.net/tjaden/
+      <item> libcda: http://www.alphalink.com.au/~tjaden/
     </itemize>
 
 
@@ -506,8 +506,8 @@ the original `redpixel.txt'.
 <sect> Contacting Psyk Software
 
 <p> <tscreen> <verb>
-Email: tjaden@psynet.net
-WWW:   http://www.psynet.net/tjaden/
+Email: tjaden@users.sf.net
+WWW:   http://www.alphalink.com.au/~tjaden/
 </verb> </tscreen>
 
 

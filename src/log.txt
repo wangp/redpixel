@@ -189,3 +189,15 @@ now back to school, so less done
 		Compile `fastsqrt.c' without optimisations, as gcc "2.96"
 			miscompiles it and breaks demos (grr!)
 		Released a patch as 0.11.2
+
+23 September    Updated for Allegro 3.9.38 (al_findfirst, etc.)
+
+8 December	Updated email address
+		Changed licence to zlib	
+		Included libcda and libnet into source tree and made
+			them on by default
+		Updated the build system
+		Added jgmod support
+		Added support for different screen sizes for platforms
+			that don't support 320x200 (by stretching)
+		Wrote wrapper around CD audio and module support

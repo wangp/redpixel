@@ -88,7 +88,7 @@ struct drv {
 
 static struct drv table[] = {
     { SK_SERIAL, &__sk__serial },
-#ifdef LIBNET_CODE
+#ifndef NO_LIBNET_CODE
     { SK_LIBNET, &__sk__libnet },
 #endif
     { 0, 0 }

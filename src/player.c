@@ -2,11 +2,6 @@
  *  Red Pixel, a violent game.
  *  Copyright (C) 1999 Psyk Software.
  * 
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- * 
  *  Players.
  */
 
@@ -437,11 +432,14 @@ int num_ammo(int pl, int weapon)
 
 void get_local_input()
 {
+    int mx = mouse_x * 320.0/SCREEN_W;
+    int my = mouse_y * 200.0/SCREEN_H;
+
     players[local].angle = find_angle(players[local].x - px + 3,
 				      players[local].y - py + 4,
-				      mouse_x, mouse_y);
+				      mx, my);
     
-    players[local].facing = (mouse_x + px > players[local].x) ? right : left;
+    players[local].facing = (mx + px > players[local].x) ? right : left;
 
     players[local].up = key[KEY_UP] | key[KEY_T] | key[KEY_W];
     players[local].down = key[KEY_DOWN] | key[KEY_G] | key[KEY_S];

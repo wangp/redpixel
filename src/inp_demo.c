@@ -2,11 +2,6 @@
  *  Red Pixel, a violent game.
  *  Copyright (C) 1999 Psyk Software.
  * 
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- * 
  *  Demo file input.
  */
 
@@ -16,9 +11,9 @@
 #include "demo.h"
 #include "demintro.h"
 #include "map.h"
+#include "music.h"
 #include "packet.h"
 #include "player.h"
-#include "rpcd.h"
 
 
 int recv_demo_inputs()
@@ -43,7 +38,7 @@ int recv_demo_inputs()
 		return -1;
 	    }
 
-	    rpcd_play_random_track();
+	    music_play_random_track();
 
 	    retain_players();
 	    reset_engine();

@@ -1,14 +1,14 @@
- /*
+/*
  * Hack!  Libnet pretending to be serial 
  * 
  * Currently hard-wired to use socket drivers.
  */
 
-#ifdef LIBNET_CODE
+#ifndef NO_LIBNET_CODE
 
 
 #include <string.h>
-#include <libnet.h>
+#include "libnet.h"
 #include "sk.h"
 #include "skintern.h"
 

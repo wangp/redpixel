@@ -5,6 +5,8 @@
 void rpcd_init();
 void rpcd_shutdown();
 void rpcd_play_random_track();
+void rpcd_poll();
+void rpcd_stop();
 
 
 #endif

@@ -1,23 +1,6 @@
 /*
  *  Red Pixel, a violent game.
  *  Copyright (C) 1999 Psyk Software.
- *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- * 
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- * 
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *  Email: tjaden@psynet.net
- *  WWW:   http://www.psynet.net/tjaden/
  * 
  *  Game credits.
  */
@@ -29,6 +12,7 @@
 #include "globals.h"
 #include "fblit.h"
 #include "main.h"
+#include "scrblit.h"
 #include "version.h"
 
 
@@ -55,10 +39,8 @@ END_OF_STATIC_FUNCTION(timer_func);
 static char *text[] = {
         FULLSCREEN,
 	"rRED PIXEL ", NL,
-	"VERSION " VERSION_STR,
-	BLANK2,
+	"VERSION " VERSION_STR, NL,
 	"COPYRIGHT PSYK SOFTWARE " VERSION_YEAR,
-	"LICENSED UNDER GNU LGPL",
 	BLANK3,
 	"rCODE + ADDITIONAL GRAPHICS",
 	BLANK2,
@@ -114,8 +96,8 @@ void credits()
     clear_keybuf();
     show_mouse(NULL);
 
-    clear(screen);
-    clear(dbuf);
+    clear_bitmap(screen);
+    clear_bitmap(dbuf);
 
     h = text_height(dat[MINI].dat);
 
@@ -127,7 +109,7 @@ void credits()
 	    line++;
 	}
 
-	clear(bmp);
+	clear_bitmap(bmp);
 	for (i = -1; i < 200 / h; i++) {
 	    if (!theend) {
 		if (text[line+i][0] == 'x')
@@ -141,14 +123,14 @@ void credits()
 	
 	if (ftmp) 
 	    fblit(ftmp, dbuf);
-	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
+	blit_to_screen(dbuf);
 
 	while (timer == 0)
 	    ;
     }
 
     fade_out(6);
-    clear(screen);
+    clear_bitmap(screen);
     set_palette(dat[GAMEPAL].dat);
 
     while (key[KEY_ESC] || mouse_b)

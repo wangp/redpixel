@@ -1,23 +1,6 @@
 /*
  *  Red Pixel, a violent game.
  *  Copyright (C) 1999 Psyk Software.
- *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- * 
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- * 
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *  Email: tjaden@psynet.net
- *  WWW:   http://www.psynet.net/tjaden/
  * 
  *  Main.
  */
@@ -35,8 +18,8 @@
 #include "launch.h"
 #include "mapper.h"
 #include "menu.h"
+#include "music.h"
 #include "resource.h"
-#include "rpcd.h"
 #include "setweaps.h"
 #include "sk.h"
 #include "stats.h"
@@ -66,9 +49,62 @@ static void usage(char *options)
 static void show_version()
 {
     allegro_message("Red Pixel " VERSION_STR " by Psyk Software " VERSION_YEAR ".\n"
-		    "http://www.psynet.net/tjaden/\n"
-		    "Licensed under the GNU Lesser General Public Licence.\n"
-		    "See COPYING for details.\n");
+		    "http://www.alphalink.com.au/~tjaden/\n");
+}
+
+
+/* see also scrblit.c */
+static int set_video_mode(void)
+{
+    if (set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 320, 200, 0, 0) == 0)
+	goto done;
+    
+    if (set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 320, 240, 0, 0) == 0) {
+	set_mouse_range(0, 20, 319, 219);
+	goto done;
+    }
+    
+    if (set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 400, 0, 0) == 0)
+	goto done;
+    
+    if (set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0) == 0) {
+	set_mouse_range(0, 40, 640, 439);
+	goto done;
+    }
+    
+    if (set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 400, 0, 0) == 0)
+	goto done;
+    
+    if (set_gfx_mode(GFX_AUTODETECT, 320, 200, 0, 0) < 0)
+	return -1;
+    
+  done:
+    
+    clear_bitmap(screen);
+    return 0;
+}
+
+
+
+static BITMAP *stretched_mouse_sprite;
+
+static void free_stretched_mouse_sprite(void)
+{
+    if (stretched_mouse_sprite) {
+	destroy_bitmap(stretched_mouse_sprite);
+	stretched_mouse_sprite = NULL;
+    }
+}
+
+static void set_stretched_mouse_sprite(BITMAP *sprite, int factor, int hotx, int hoty)
+{
+    free_stretched_mouse_sprite();
+    stretched_mouse_sprite = create_bitmap(sprite->w * factor, sprite->h * factor);
+    clear_bitmap(stretched_mouse_sprite);
+    stretch_blit(sprite, stretched_mouse_sprite, 0, 0, sprite->w, sprite->h,
+		 0, 0, stretched_mouse_sprite->w, stretched_mouse_sprite->h);
+    set_mouse_sprite(stretched_mouse_sprite);
+    set_mouse_sprite_focus(hotx * factor, hoty * factor);
 }
 
 
@@ -79,10 +115,11 @@ void main_shutdown()
     engine_shutdown();
     
     unload_dat();
+    free_stretched_mouse_sprite();
     destroy_bitmap(dbuf);
     destroy_bitmap(light);
     
-    rpcd_shutdown();
+    music_shutdown();
 }
 
 
@@ -140,7 +177,6 @@ int main(int argc, char *argv[])
     srand(time(0));
 
     allegro_init();
-    rpcd_init();
     set_window_title("Red Pixel");
     
     install_timer();
@@ -158,8 +194,11 @@ int main(int argc, char *argv[])
 	return 1;
     }
     
-    if (!mute)
+    if (!mute) {
+	reserve_voices(32, -1);
 	install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);
+	music_init();
+    }
 
     /* set up game path */
     set_game_path(argv[0]);
@@ -198,8 +237,7 @@ int main(int argc, char *argv[])
    
     setup_lighting();
 
-    /* init visuals */
-    if (set_gfx_mode(GFX_AUTODETECT, 320, 200, 0, 0) < 0) {
+    if (set_video_mode() < 0) {
 	main_shutdown();
 	allegro_message("Error setting video mode.\n"
 #ifdef TARGET_LINUX
@@ -214,10 +252,10 @@ int main(int argc, char *argv[])
     if (filtered)
 	fblit_init(dat[GAMEPAL].dat);
     
-    dbuf = create_bitmap(SCREEN_W, SCREEN_H);
-    light = create_bitmap(SCREEN_W, SCREEN_H);
-    set_mouse_sprite(dat[lcd_cur ? XHAIRLCD : XHAIR].dat);
-    set_mouse_sprite_focus(2, 2);
+    dbuf = create_bitmap(320, 200);
+    light = create_bitmap(320, 200);
+    set_stretched_mouse_sprite(dat[lcd_cur ? XHAIRLCD : XHAIR].dat,
+			       (SCREEN_W == 640) ? 2 : 1, 2, 2);
     set_mouse_speed(1, 1);
 
     if (!skip_intro)

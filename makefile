@@ -1,154 +1,82 @@
 #
-# Makefile for gcc (linux; djgpp; mingw32)
-#
-# Special options:
-#   make with mingw32:   make MINGW32=1
-#   make without Libnet: make WITHOUT_LIBNET=1
-#   make with libcda:    make WITH_LIBCDA=1
+# Master makefile to get libnet, libcda, jgmod built before getting
+# into building Red Pixel itself (see makefile.red).
 #
 
-CC = gcc
-INCLUDES = -Isrc -Isrc/include -Isrc/sk
-CFLAGS = -Wall -O2 -mpentium -ffast-math -fomit-frame-pointer \
-	-funroll-loops $(INCLUDES)
 
-ifdef DEBUG
-	CFLAGS += -g
+# Platform detection.
+
+ifneq ($(findstring Linux,$(shell uname)),)
+PLATFORM := LINUX
 endif
 
-ifdef MINGW32
-	PLATFORM = WINDOWS
-	GAME = redwin.exe
-	LDFLAGS = -mwindows
-	ALLEGRO = -lalleg
-	LIBNET = -lnet -lwsock32
-	LIBCDA = -lcda
-	PLATFORM_MODULES = getopt skdummy
-	OBJDIR = obj/win
-else
+ifdef MINGW
+PLATFORM := MINGW
+endif
+
 ifdef DJDIR
-	PLATFORM = DJGPP
-	GAME = reddos.exe
-	ALLEGRO = -lalleg
-	LIBNET = -lnet
-	LIBCDA = -lcda
-	PLATFORM_MODULES = skdos
-	OBJDIR = obj/djgpp
-else
-	PLATFORM = LINUX
-	GAME = redpixel
-	ifndef STATIC
-		ALLEGRO = `allegro-config --libs`
-	else
-	    	# Personal use only.
-		ALLEGRO = $(HOME)/allegro-3.9.32x/lib/unix/liballeg.a -lm \
-			-L/usr/X11R6/lib -lXxf86dga -lXxf86vm -lXext -lX11
-	endif
-	LIBNET = -lnet
-	LIBCDA = -lcda
-	PLATFORM_MODULES = sklinux
-	OBJDIR = obj/linux
-endif
+PLATFORM := DJGPP
 endif
 
-CFLAGS += -DTARGET_$(PLATFORM)
-LIBS = $(ALLEGRO) 
 
-ifndef WITHOUT_LIBNET
-	CFLAGS += -DLIBNET_CODE
-	LIBS += $(LIBNET)
+
+# default target.
+
+all: libnet libcda jgmod thegame
+
+
+
+# libnet.
+
+ifeq "$(PLATFORM)" "LINUX"
+LIBNET_MAKEFILE := linux.mak
 endif
 
-ifdef WITH_LIBCDA
-	CFLAGS += -DLIBCDA_CODE
-	LIBS += $(LIBCDA)
+ifeq "$(PLATFORM)" "MINGW"
+LIBNET_MAKEFILE := mingw.mak
 endif
 
-COMMON_MODULES = \
-	backpack	\
-	blast		\
-	blod		\
-	bullet		\
-	corpse		\
-	credits		\
-	demintro	\
-	demo		\
-	engine		\
-	explo		\
-	fastsqrt	\
-	fblit		\
-	gameloop	\
-	globals		\
-	inp_demo	\
-	inp_peer	\
-	intro		\
-	launch		\
-	main		\
-	map		\
-	mapper		\
-	menu		\
-	message		\
-	mine		\
-	particle	\
-	player		\
-	plupdate	\
-	resource	\
-	rg_rand		\
-	rnd		\
-	rpcd		\
-	setweaps	\
-	sk		\
-	sklibnet	\
-	skhelp		\
-	sound		\
-	stats		\
-	statlist	\
-	suicide		\
-	tiles		\
-	vector		\
-	weapon
-	
-MODULES = $(COMMON_MODULES) $(PLATFORM_MODULES)
+ifeq "$(PLATFORM)" "DJGPP"
+LIBNET_MAKEFILE := djgpp.mak
+endif
 
-OBJS = $(addprefix $(OBJDIR)/,$(addsuffix .o,$(MODULES)))
+LIBNET := libnet/lib/libnet.a
+
+$(LIBNET):
+	cp libnet/makfiles/$(LIBNET_MAKEFILE) libnet/port.mak
+	make -C libnet lib
+
+libnet: $(LIBNET)
 
 
-vpath %.c src src/engine src/sk src/fastsqrt
 
-$(GAME): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+# libcda.
 
-$(OBJDIR)/%.o: %.c
-	$(COMPILE.c) -o $@ $<
+LIBCDA := libcda/libcda.a
 
-# compile without optimisations for buggy gccs (at least, RedHat's gcc 2.96)
-$(OBJDIR)/fastsqrt.o: src/fastsqrt/fastsqrt.c
-	$(CC) -Wall $(INCLUDES) -c -o $@ $<
+$(LIBCDA):
+	make -C libcda libcda.a
 
-obj/depend:
-	gcc $(CFLAGS) -MM src/*.c src/sk/*.c | sed 's,^\(.*[.]o:\),obj/*/\1,' > $@
+libcda: $(LIBCDA)
 
 
-.PHONY = depend compress suidroot strip clean cleaner 
 
-depend: obj/depend
+# jgmod.
 
-compress: $(GAME)
-	upx $<
+ifeq "$(PLATFORM)" "LINUX"
 
-suidroot:
-	chown root.allegro $(GAME)
-	chmod 4750 $(GAME)
-	
-strip:
-	strip $(GAME)
+JGMOD := jgmod/lib/unix/libjgmod.a
 
-clean: 
-	rm -f $(OBJS) core
+$(JGMOD):
+	make -C jgmod/src -f makefile.lnx ../lib/unix/libjgmod.a
 
-cleaner: 
-	rm -f $(GAME) obj/depend 
+endif
+
+jgmod: $(JGMOD)
 
 
--include obj/depend
+
+# Red Pixel.
+
+include makefile.red
 

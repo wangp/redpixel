@@ -1,23 +1,6 @@
 /*
  *  Red Pixel, a violent game.
  *  Copyright (C) 1999 Psyk Software.
- *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- * 
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- * 
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *  Email: tjaden@psynet.net
- *  WWW:   http://www.psynet.net/tjaden/
  * 
  *  Menu system.
  */
@@ -28,6 +11,7 @@
 #include "blood.h"
 #include "globals.h"
 #include "menu.h"
+#include "scrblit.h"
 
 
 #define big	dat[UNREAL].dat
@@ -139,8 +123,9 @@ void set_menu_message(char *msg)
 
 static int inline touch(int item)
 {
-    return ((mouse_y >= (top + (item * 32) + (text_height(big) / 2) - 16))
-	 && (mouse_y <= (top + (item * 32) + (text_height(big) / 2) + 16)));
+    int my = mouse_y * 200.0/SCREEN_H;
+    return ((my >= (top + (item * 32) + (text_height(big) / 2) - 16))
+	 && (my <= (top + (item * 32) + (text_height(big) / 2) + 16)));
 }
 
 
@@ -216,18 +201,18 @@ void blubber(BLUBBER *start)
 	    /* Add spotlight. */
 	    y = (top + selected * 32) + (text_height(big) / 2 - 192 / 2);
 		
-	    clear(light);
+	    clear_bitmap(light);
 	    blit(dbuf, light, 160 - 192/2, y, 160 - 192/2, y, 192, 192);
 	    draw_trans_sprite(light, dat[L_SPOT].dat, 160 - 192/2, y);
 	    
 	    /* Little message space.  */
 	    if (menu_message[0]) 
 		textout_right(light, dat[MINI].dat, menu_message,
-			      SCREEN_W-2, SCREEN_H - text_height(dat[MINI].dat), 8);
+			      320-2, 200 - text_height(dat[MINI].dat), 8);
 	    
 	    /* Blit to screen.  */
 	    scare_mouse();
-	    blit(light, screen, 0, 0, 0, 0, 320, 200);
+	    blit_to_screen(light);
 	    unscare_mouse();
 	 
 	    dirty = 0;

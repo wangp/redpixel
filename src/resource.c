@@ -1,9 +1,9 @@
-/* resource.c
- *
- * Peter Wang <tjaden@psynet.net>
+/* 
+ *  Red Pixel, a violent game.
+ *  Copyright (C) 1999 Psyk Software.
+ * 
+ *  TODO: This will one day implement proper Unix file system handling.
  */
-
-/* TODO: This will one day implement proper Unix file system handling.  */
 
 
 #include <string.h>

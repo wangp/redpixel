@@ -1,4 +1,5 @@
 Unix path stuff
+demo keys are not working right (search for '//' comments)
 do not spawn in same place
 network error checking (should not be necessary because using RDM)
 eventually replace native SK serial with Libnet serial

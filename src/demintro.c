@@ -2,23 +2,6 @@
  *  Red Pixel, a violent game.
  *  Copyright (C) 1999 Psyk Software.
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- * 
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- * 
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- *  Email: tjaden@psynet.net
- *  WWW:   http://www.psynet.net/tjaden/
- * 
  *  Demo playback intermission screens.
  */
 
@@ -31,6 +14,13 @@
 #include "engine.h"
 #include "globals.h"
 #include "player.h"
+#include "scrblit.h"
+
+
+/* Although the real screen can be a different size, the screen we
+ * work with is always 320x200.  */
+#define screen_w	320
+#define screen_h	200
 
 
 static void fade_in_and_out(BITMAP *buf, int wait, int allow_int)
@@ -40,7 +30,7 @@ static void fade_in_and_out(BITMAP *buf, int wait, int allow_int)
     /* Fade in, then out.  */
     show_mouse(NULL);
     set_palette(black_palette);
-    blit(buf, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+    blit_to_screen(buf);
     fade_in(dat[GAMEPAL].dat, 8);
     
     /* wait a bit */
@@ -48,7 +38,7 @@ static void fade_in_and_out(BITMAP *buf, int wait, int allow_int)
 	rest(100);
         
     fade_out(8);
-    clear(screen);
+    clear_bitmap(screen);
     
     /* Restore palette.  */
     set_palette(dat[GAMEPAL].dat);
@@ -68,11 +58,11 @@ void introduce_demo()
     BITMAP *buf;
     FONT *small = dat[MINI].dat;
     FONT *big = dat[UNREAL].dat;
-    int cx = SCREEN_W / 2, cy = SCREEN_H / 2;
+    int cx = screen_w / 2, cy = screen_h / 2;
 	
-    buf = create_bitmap(SCREEN_W, SCREEN_H);
+    buf = create_bitmap(screen_w, screen_h);
     if (buf) {
-	clear(buf);
+	clear_bitmap(buf);
 	
 	textout_centre(buf, big, players[0].name, cx, cy - 40, -1);
 	textout_centre(buf, small, "VS", cx, cy, WHITE);
@@ -96,11 +86,11 @@ void introduce_map(char *mapname)
     BITMAP *buf;
     FONT *small = dat[MINI].dat;
     FONT *big = dat[UNREAL].dat;
-    int cx = SCREEN_W / 2, cy = SCREEN_H / 2;
+    int cx = screen_w / 2, cy = screen_h / 2;
 	
-    buf = create_bitmap(SCREEN_W, SCREEN_H);
+    buf = create_bitmap(screen_w, screen_h);
     if (buf) {
-	clear(buf);
+	clear_bitmap(buf);
 	
 	textout_centre(buf, big, mapname, cx, cy - 20, -1);
 	

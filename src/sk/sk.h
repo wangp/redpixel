@@ -26,7 +26,7 @@ int skSetDriver (int);
 void skSetConfigPath (const char *);
 
 
-#ifdef LIBNET_CODE
+#ifndef NO_LIBNET_CODE
 extern int (*_sk_libnet_open_callback) ();
 #endif
 
