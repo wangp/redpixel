@@ -1,6 +1,13 @@
 #include "common.h"
 
 
+// globals
+
+
+
+
+// map stuff
+
 MAP map;
 
 
@@ -27,10 +34,13 @@ LIST ammos[] =
     { W_MINE,    3 },
     { A_ROCKET,  4 },
     { A_SHELL,   5 },
+    { W_BOTTLE,  6 },
+    { A_FUEL,    7 },
     { A_CHICKEN, 20 },
     { A_COKE,    21 },
     { A_ARMOUR,  50 }, 
     { A_GOGGLES, 60 },
+    { A_BLOODLUST, 70 },
     { W_BOW,     100 },
     { W_M16,     101 },
     { W_MINI,    102 },
@@ -81,6 +91,9 @@ int ammo_respawn_rate(int pic)
 	case A_COKE: return 1300;
 	case A_ARMOUR: return 2000;
 	case A_GOGGLES: return 4300; 
+	case W_BOTTLE: return 1700;
+	case A_FUEL: return 1900;
+	case W_FLAME: return 4300;
 	case W_BOW: return 3600;
 	case W_M16: return 3500;
 	case W_MINI: return 3800;
@@ -95,7 +108,7 @@ int ammo_respawn_rate(int pic)
 
 
 
-char file_hdr[] = "­WACKER­";
+char file_hdr[] = "­WACKED­";
 
 void reset_map()
 {
@@ -139,8 +152,8 @@ void save_map(char *fn)
     for (v=0; v<map.h; v++)
 	for (u=0; u<map.w; u++)
 	{
-	    pack_putc(pic2num(tiles, map.tile[v][u]), fp);
-	    pack_putc(pic2num(ammos, map.ammo[v][u]), fp);
+	    pack_iputw(pic2num(tiles, map.tile[v][u]), fp);
+	    pack_iputw(pic2num(ammos, map.ammo[v][u]), fp);
 	}
 
     pack_fclose(fp);
@@ -177,8 +190,8 @@ void load_map(char *fn)
     for (v=0; v<map.h; v++)
 	for (u=0; u<map.w; u++)
 	{
-	    map.tileorig[v][u] = map.tile[v][u] = num2pic(tiles, pack_getc(fp));
-	    map.ammoorig[v][u] = map.ammo[v][u] = num2pic(ammos, pack_getc(fp));
+	    map.tileorig[v][u] = map.tile[v][u] = num2pic(tiles, pack_igetw(fp));
+	    map.ammoorig[v][u] = map.ammo[v][u] = num2pic(ammos, pack_igetw(fp));
 
 	    if (map.tile[v][u]==T_WOOD || map.tile[v][u]==T_CRATE ||
 		map.tile[v][u]==T_BAR)

@@ -38,10 +38,13 @@ DATAFILE    *dat;
 BITMAP      *dbuf;
 BITMAP      *light;
 
-
 RGB_MAP     rgb_table;
 COLOR_MAP   alpha_map;
 COLOR_MAP   light_map;
+
+time_t seed;
+
+comm_t comm;
 
 
 
@@ -73,15 +76,6 @@ int shake_factor;   // screen shakes
 int heart_frame = 0, 
     heart_anim = 0;
 
-time_t seed;
-
-
-enum {
-    single,     // boring...
-    serial,     // done
-    ipx,        // not yet..
-    tcpip       // keep dreaming!
-} comm;
 
 
 
@@ -98,12 +92,14 @@ struct
     { 3, 20, 12 },  // knife
     { 4, 20, 14 },  // pistol
     { 4, 28, 40 },  // bow
-    { 6, 24, 7 },   // shotty 5xshells per shot
+    { 6, 24, 7 },   // shotty 5 x shells per shot
     { 3, 8, 12 },   // uzi
     { 2, 5, 15 },   // m16
     { 1, 1, 5 },    // minigun
     { 6, 40, 65 },  // zooka
-    { 0, 25, 45 }   // mine
+    { 0, 25, 45 },  // mine
+    { 10, 30, 55 }, // bottle
+    { 3, 3, 2 }     // flamer 4 x particles
 };
 
 
@@ -190,7 +186,14 @@ int inline irnd()
 inline int tile_collide(int x, int y) 
 {
     return map.tile[y/16][x/16];
+}
 
+inline int bb_collide(BITMAP *spr1, int x1, int y1, BITMAP *spr2, int x2, int y2)
+{
+    if ((x1 > x2 + spr2->w) || (x2 > x1 + spr1->w) ||
+	(y1 > y2 + spr2->h) || (y2 > y1 + spr1->h))
+	return 0;
+    return 1;
 }
 
 inline fixed find_angle(int x1, int y1, int x2, int y2)
@@ -221,6 +224,24 @@ inline void draw_light(int bmp, int cx, int cy)
 {
     BITMAP *mask = dat[bmp].dat;
     draw_trans_sprite(light, mask, cx-(mask->w/2), cy-(mask->h/2));
+}
+
+inline int num_ammo(int pl, int weapon)
+{
+    switch (weapon)
+    {
+	case w_pistol:
+	case w_uzi:
+	case w_m16:
+	case w_minigun: return players[pl].num_bullets;
+	case w_shotgun: return players[pl].num_shells;
+	case w_bazooka: return players[pl].num_rockets;
+	case w_bow:     return players[pl].num_arrows;
+	case w_mine:    return players[pl].num_mines;
+	case w_bottle:  return players[pl].num_bottles;
+	case w_flamer:  return players[pl].num_fuel;
+	default: return -1;
+    }
 }
 
 
@@ -585,7 +606,7 @@ void draw_corpses()
 
 void blow_mine(int num);
 int hurt_tile(int u, int v, int dmg, int tag);
-void hurt_player(int pl, int dmg, int protect, int tag);
+void hurt_player(int pl, int dmg, int protect, int tag, int deathseq);
 
 void blast(int x, int y, int dmg, int tag)
 {
@@ -635,7 +656,7 @@ void blast(int x, int y, int dmg, int tag)
 	    {
 		d = find_distance(u, v, x, y) / 16;
 		if (d==0) d=1;
-		hurt_player(i, dmg / d, 1, tag);
+		hurt_player(i, dmg / d, 1, tag, 0);
 		angle = find_angle(x, y, u, v); 
 		players[i].xv += fixtoi(fcos(angle) * 15) / d;
 		players[i].yv += fixtoi(fsin(angle) * 15) / d - 1;
@@ -746,7 +767,7 @@ void reset_backpacks(int lower)
 	backpacks[i].alive = 0;
 }
 
-void spawn_backpack(int x, int y, int b, int s, int r, int a, int m)
+void spawn_backpack(int x, int y, int b, int s, int r, int a, int m, int f, int bot)
 {
     int i;
     for (i=max_backpacks-1; i>=0; i--)
@@ -760,8 +781,10 @@ void spawn_backpack(int x, int y, int b, int s, int r, int a, int m)
 	    backpacks[i].num_rockets = r;
 	    backpacks[i].num_arrows = a;
 	    backpacks[i].num_mines = m;
+	    backpacks[i].num_fuel = f;
+	    backpacks[i].num_bottles = bot;
 	    backpacks[i].alive = 1;
-	    backpacks[i].unactive = 14*CORPSE_ANIM;
+	    backpacks[i].unactive = 13*CORPSE_ANIM;
 	    return;
 	}
     }
@@ -771,7 +794,7 @@ void spawn_backpack(int x, int y, int b, int s, int r, int a, int m)
     if (backpacks==NULL)
 	suicide("Backpack overflow"); 
     reset_backpacks(max_backpacks-5);
-    spawn_backpack(x, y, b, s, r, a, m);
+    spawn_backpack(x, y, b, s, r, a, m, f, bot);
     add_msg("ALLOCED EXTRA 5 BACKPACKS", local);
 }
 
@@ -817,8 +840,7 @@ void touch_backpacks()
 	    {
 		if (players[j].health)
 		{
-		    if (backpacks[i].x+8>=players[j].x-4 && backpacks[i].x+8<=players[j].x+8 &&
-			backpacks[i].y+8>=players[j].y && backpacks[i].y+8<=players[j].y+15)
+		    if (bb_collide(dat[A_BACKPACK].dat, backpacks[i].x, backpacks[i].y, dat[P_BODY].dat, players[j].x-4, players[j].y))
 		    {
 			players[j].num_bullets += backpacks[i].num_bullets;
 			players[j].num_shells += backpacks[i].num_shells;
@@ -896,15 +918,22 @@ void respawn_player(int pl)
 	    guy->have[w_knife] = 1; 
 	    guy->cur_weap = guy->pref_weap = w_knife; 
 	    guy->visor_tics = 0;
+
+	    spawn_explo(guy->x, guy->y, RESPAWN0, 7); 
 	    return;
 	}
     } 
 }
 
-void hurt_player(int pl, int dmg, int protect, int tag)
+void spawn_players()
 {
-    int a;
+    int i;
+    for (i=0; i<num_players; i++)
+	respawn_player(i);
+}
 
+void hurt_player(int pl, int dmg, int protect, int tag, int deathseq)
+{
     if (protect) {  // armour protection
 	players[pl].armour -= dmg/2;
 	players[pl].health -= dmg/2;
@@ -922,24 +951,33 @@ void hurt_player(int pl, int dmg, int protect, int tag)
 
     if (players[pl].health<=0) 
     {
-	a = irnd()%3;
-
-	switch (a)
+	if (deathseq==D_IMPALE000)
 	{
-	    case 0:
-		spawn_corpse(players[pl].x+3, players[pl].y+15, players[pl].facing, D_ARM0, 12);
-		break;
-	    case 1:
-		spawn_corpse(players[pl].x+3, players[pl].y+15, players[pl].facing, D_BACK0, 10);
-		break;
-	    case 2:
-		spawn_corpse(players[pl].x+3, players[pl].y+15, players[pl].facing, D_HEAD0, 13);
-		break;
+	    spawn_corpse(players[pl].x+3, players[pl].y+31, players[pl].facing, D_IMPALE000, 20);
+	}
+	else
+	{
+	    switch (irnd()%4)
+	    {
+		case 0: /* arms */
+		    spawn_corpse(players[pl].x+3, players[pl].y+15, players[pl].facing, D_ARM0, 12);
+		    break;
+		case 1: /* drops backpack */
+		    spawn_corpse(players[pl].x+3, players[pl].y+15, players[pl].facing, D_BACK0, 10);
+		    break;
+		case 2: /* head */
+		    spawn_corpse(players[pl].x+3, players[pl].y+15, players[pl].facing, D_HEAD0, 13);
+		    break;
+		case 3: /* legs */
+		    spawn_corpse(players[pl].x+3, players[pl].y+15, players[pl].facing, D_LEGS000, 18);
+		    break;
+	    }
 	}
 
 	spawn_backpack(players[pl].x, players[pl].y, players[pl].num_bullets/2,
 	    players[pl].num_shells/2, players[pl].num_rockets/2, 
-	    players[pl].num_arrows/2, players[pl].num_mines/2);
+	    players[pl].num_arrows/2, players[pl].num_mines/2,
+	    players[pl].num_fuel/2, players[pl].num_bottles/2);
 
 	players[pl].health = 0;
 	if (tag==pl)    // haha, suicide!
@@ -949,6 +987,24 @@ void hurt_player(int pl, int dmg, int protect, int tag)
     }
 
     play_sample(dat[WAV_DEAD1+(irnd()%5)].dat, 255, 128, 1000, 0);
+}
+
+inline int gun_pic(int pl)
+{
+    switch (players[pl].cur_weap)
+    {
+	case w_bow: return P_BOW0;
+	case w_knife: return P_KNIFE0;
+	case w_m16: return P_M160;
+	case w_minigun: return P_MINI0;
+	case w_pistol: return P_PISTOL0;
+	case w_bazooka: return P_ROCKET0;
+	case w_shotgun: return P_SHOTGUN0;
+	case w_uzi: return P_UZI0;
+	case w_flamer: return P_FLAMER0;
+	case w_bottle: return P_BOT0;
+	default: return 0;
+    }
 }
 
 void draw_players()
@@ -967,19 +1023,7 @@ void draw_players()
 	u = guy->x-px;
 	v = guy->y-py;
 
-	switch (guy->cur_weap)
-	{
-	    case w_bow: gun = P_BOW0; break;
-	    case w_knife: gun = P_KNIFE0; break;
-	    case w_m16: gun = P_M160; break;
-	    case w_minigun: gun = P_MINI0; break;
-	    case w_pistol: gun = P_PISTOL0; break;
-	    case w_bazooka: gun = P_ROCKET0; break;
-	    case w_shotgun: gun = P_SHOTGUN0; break;
-	    case w_uzi: gun = P_UZI0; break;
-	    default: gun = 0; break;
-	}
-
+	gun = gun_pic(i);
 	if (guy->facing == left)
 	    gun += 4;
 
@@ -992,15 +1036,24 @@ void draw_players()
 	w = ((BITMAP *)dat[gun].dat)->w / 2;
 	h = ((BITMAP *)dat[gun].dat)->h / 2;
 
+	//draw_sprite(dbuf, dat[guy->colour + BLOB000].dat, u - 4, v);
+	rect(dbuf, u - 4, v, u - 4 + 15, v + 15, 32);
+
 	if (guy->facing==right)
 	{
-	    draw_sprite(dbuf, dat[P_BODY].dat, u, v);
+	    if (guy->cur_weap==w_flamer)
+		draw_sprite(dbuf, dat[P_FUELPACK].dat, u, v);
+	    else
+		draw_sprite(dbuf, dat[P_BODY].dat, u, v);
 	    draw_sprite(dbuf, dat[P_LEG0+guy->leg_frame].dat, u-1, v);
 	    rotate_sprite(dbuf, dat[gun].dat, u+3-w, v+6-h, guy->angle);
 	}
 	else
 	{
-	    draw_sprite_h_flip(dbuf, dat[P_BODY].dat, u, v);
+	    if (guy->cur_weap==w_flamer)
+		draw_sprite_h_flip(dbuf, dat[P_FUELPACK].dat, u, v);
+	    else
+		draw_sprite_h_flip(dbuf, dat[P_BODY].dat, u, v);
 	    draw_sprite_h_flip(dbuf, dat[P_LEG0+guy->leg_frame].dat, u-8, v);
 	    rotate_sprite(dbuf, dat[gun].dat, u+2-w, v+6-h, guy->angle - itofix(128)); 
 	}
@@ -1138,23 +1191,29 @@ void reset_bullets(int lower)
 	bullets[i].life = 0;
 }
 
-void spawn_bullet(int tag, int x, int y, fixed angle, int speed, int dmg, int c, int bmp)
+void spawn_bullet(int pl, fixed angle, int c, int bmp, int flame)
 {
-    int i;
+    int i, speed, w;
+
     for (i=max_bullets-1; i>=0; i--)
     {
 	if (!bullets[i].life)
 	{
-	    bullets[i].x = itofix(x);
-	    bullets[i].y = itofix(y);
+	    speed = flame ? 4 : 8;
+
+	    w = (((BITMAP *)dat[gun_pic(pl)].dat)->w / 3);
+
+	    bullets[i].x = itofix(players[pl].x + 3) + fcos(players[pl].angle) * w;
+	    bullets[i].y = itofix(players[pl].y + 4) + fsin(players[pl].angle) * w;
 	    bullets[i].xv = fcos(angle) * speed;
 	    bullets[i].yv = fsin(angle) * speed;
-	    bullets[i].dmg = dmg;
+	    bullets[i].dmg = weaps[players[pl].cur_weap].dmg;
 	    bullets[i].colour = c;
 	    bullets[i].bmp = bmp;
-	    bullets[i].tag = tag;
+	    bullets[i].tag = pl;
 	    bullets[i].angle = angle;
 	    bullets[i].life = 1;
+	    bullets[i].flame = flame * 30;
 	    return;
 	}
     }
@@ -1164,7 +1223,7 @@ void spawn_bullet(int tag, int x, int y, fixed angle, int speed, int dmg, int c,
     if (bullets==NULL)
 	suicide("Bullet overflow"); 
     reset_bullets(max_bullets-50);
-    spawn_bullet(tag, x, y, angle, speed, dmg, c, bmp);
+    spawn_bullet(pl, angle, c, bmp, flame);
     add_msg("ALLOCED EXTRA 50 BULLETS", local);
 }
 
@@ -1180,6 +1239,20 @@ void update_bullets()
 
 	    if (bullets[i].bmp==J_KNIFE)
 		bullets[i].angle += (bullets[i].xv>0) ? itofix(20) : -itofix(20);
+	    else if (bullets[i].flame)
+	    {
+		if (--bullets[i].flame==0)
+		    bullets[i].life = 0;
+		else
+		{
+		    bullets[i].angle += itofix((irnd()%7)-3);
+		    bullets[i].xv = fcos(bullets[i].angle) * 4;
+		    bullets[i].yv = fsin(bullets[i].angle) * 4;
+		    // 160-175  orange - yellow
+		    //bullets[i].colour = (rnd()%(175-160))+160;
+		    bullets[i].colour--;
+		}
+	    }
 
 	    if (bullets[i].x < itofix(0)     || bullets[i].y < itofix(0) ||
 		bullets[i].x > itofix(map.w*16) || bullets[i].y > itofix(map.h*16))
@@ -1253,7 +1326,7 @@ void touch_bullets()
 			if (bullets[i].bmp==J_ROCKET || bullets[i].bmp==J_ARROW)
 			    blast(x, y, bullets[i].dmg, bullets[i].tag);
 			else
-			    hurt_player(j, bullets[i].dmg, 1, bullets[i].tag);
+			    hurt_player(j, bullets[i].dmg, 1, bullets[i].tag, 0);
 		    }
 		}
 	    }
@@ -1303,102 +1376,18 @@ struct
 } weapon_order[] = 
 {
     { W_MINE,       w_mine,     KEY_ENTER,  "a" },  // actually enter symbol
-    { W_KNIFE,      w_knife,    KEY_TILDE,  "~" },
-    { W_PISTOL,     w_pistol,   KEY_1,      "1" },
-    { W_SHOTGUN,    w_shotgun,  KEY_2,      "2" },
-    { W_UZI,        w_uzi,      KEY_3,      "3" },
-    { W_M16,        w_m16,      KEY_4,      "4" },
-    { W_MINI,       w_minigun,  KEY_5,      "5" },
-    { W_BOW,        w_bow,      KEY_6,      "6" },
-    { W_ROCKET,     w_bazooka,  KEY_7,      "7" },
+    { W_KNIFE,      w_knife,    KEY_1,      "1" },
+    { W_PISTOL,     w_pistol,   KEY_2,      "2" },
+    { W_SHOTGUN,    w_shotgun,  KEY_3,      "3" },
+    { W_UZI,        w_uzi,      KEY_4,      "4" },
+    { W_M16,        w_m16,      KEY_5,      "5" },
+    { W_MINI,       w_minigun,  KEY_6,      "6" },
+    { W_FLAME,      w_flamer,   KEY_7,      "7" },
+    { W_BOW,        w_bow,      KEY_8,      "8" },
+    { W_ROCKET,     w_bazooka,  KEY_9,      "9" },
+    { W_BOTTLE,     w_bottle,   KEY_0,      "0" }, 
     { 0 }
 };
-
-int inline num_ammo(int pl, int weapon)
-{
-    switch (weapon)
-    {
-	case w_pistol:
-	case w_uzi:
-	case w_m16:
-	case w_minigun:
-	    return players[pl].num_bullets;
-	case w_shotgun:
-	    return players[pl].num_shells;
-	case w_bazooka:
-	    return players[pl].num_rockets;
-	case w_bow:
-	    return players[pl].num_arrows;
-	case w_mine:
-	    return players[pl].num_mines;
-	default: 
-	    return -1;
-    }
-}
-
-int next_best[] = { w_minigun, w_m16, w_shotgun, w_uzi, w_pistol, 0 };
-
-void auto_weapon(int pl, int new_weapon)
-{
-    PLAYER *guy = &players[pl];
-    int i;
-
-    // theory
-    // 1) NEVER select bow or bazooka for you
-    // 2) if you get a NEW weapon that is better than your preferred weapon, 
-    //      then change to that
-    // 3) if you get ammo for your preferred weapon, then select your 
-    //      preferred weapon
-    // 4) if your preferred weapon runs out of ammo, choose next best
-
-    // if you get a new weapon that is better than your preferred weapon,
-    //  change to it
-
-    if (players[pl].have[new_weapon])
-	new_weapon = 0;
-
-    if (new_weapon)
-    {
-	i = 0;
-	while (next_best[i])
-	{
-	    if ((new_weapon==next_best[i] && num_ammo(pl, new_weapon)) ||
-		(guy->cur_weap==next_best[i] && num_ammo(pl, guy->cur_weap)))
-	    {
-		players[pl].cur_weap = players[pl].pref_weap = next_best[i];
-		players[pl].have[new_weapon] = 1;
-		return;
-	    }
-	    i++;
-	}
-    }
-
-    // if you have ammo for your pref weapon, then use pref weapon
-    if (num_ammo(pl, guy->pref_weap)) {
-	guy->cur_weap = guy->pref_weap;
-	return;
-    }
-
-    // otherwise no ammo, select next best weapon that you 
-    //  (a) are in possesion of 
-    //  (b) have ammo for
-    i = 0;
-    while (next_best[i])
-    {
-	if (players[pl].have[next_best[i]] && 
-	    num_ammo(pl, next_best[i])) 
-	{
-	    players[pl].cur_weap = next_best[i];
-	    if (players[pl].pref_weap==w_bazooka || players[pl].pref_weap==w_bow)
-		players[pl].pref_weap = players[pl].cur_weap;
-	    return;
-	}
-	i++;
-    }
-
-    // nothing, just this bit of shit
-    players[pl].cur_weap = w_knife;
-}
 
 typedef struct {
     int frags;
@@ -1484,12 +1473,76 @@ void draw_status()
     draw_sprite(dbuf, dat[A_ARMOUR].dat, 60, 9);
     textprintf(dbuf, dat[UNREAL].dat, 24, 3, -1, "%3d", players[local].health);
     textprintf(dbuf, dat[UNREAL].dat, 78, 3, -1, "%3d", players[local].armour);
-    textprintf(dbuf, dat[UNREAL].dat, 16, 25, -1, "FRAGS: %d", players[local].frags); 
+    //textprintf(dbuf, dat[UNREAL].dat, 16, 25, -1, "FRAGS: %d", players[local].frags); 
 }
 
 
 
 /* handle player movement / input */
+
+int next_best[] = { w_minigun, w_flamer, w_m16, w_shotgun, w_uzi, w_pistol, 0 };
+
+void auto_weapon(int pl, int new_weapon)
+{
+    PLAYER *guy = &players[pl];
+    int i;
+
+    // theory
+    // 1) NEVER select bow or bazooka for you
+    // 2) if you get a NEW weapon that is better than your preferred weapon, 
+    //      then change to that
+    // 3) if you get ammo for your preferred weapon, then select your 
+    //      preferred weapon
+    // 4) if your preferred weapon runs out of ammo, choose next best
+
+    // if you get a new weapon that is better than your preferred weapon,
+    //  change to it
+
+    if (players[pl].have[new_weapon])
+	new_weapon = 0;
+
+    if (new_weapon)
+    {
+	i = 0;
+	while (next_best[i])
+	{
+	    if ((new_weapon==next_best[i] && num_ammo(pl, new_weapon)) ||
+		(guy->cur_weap==next_best[i] && num_ammo(pl, guy->cur_weap)))
+	    {
+		players[pl].cur_weap = players[pl].pref_weap = next_best[i];
+		players[pl].have[new_weapon] = 1;
+		return;
+	    }
+	    i++;
+	}
+    }
+
+    // if you have ammo for your pref weapon, then use pref weapon
+    if (num_ammo(pl, guy->pref_weap)) {
+	guy->cur_weap = guy->pref_weap;
+	return;
+    }
+
+    // otherwise no ammo, select next best weapon that you 
+    //  (a) are in possesion of 
+    //  (b) have ammo for
+    i = 0;
+    while (next_best[i])
+    {
+	if (players[pl].have[next_best[i]] && 
+	    num_ammo(pl, next_best[i])) 
+	{
+	    players[pl].cur_weap = next_best[i];
+	    if (players[pl].pref_weap==w_bazooka || players[pl].pref_weap==w_bow)
+		players[pl].pref_weap = players[pl].cur_weap;
+	    return;
+	}
+	i++;
+    }
+
+    // nothing, just this bit of shit
+    players[pl].cur_weap = w_knife;
+}
 
 inline void select_weapon()
 {
@@ -1557,7 +1610,7 @@ void update_player(int pl)
     if (guy->select)
 	guy->cur_weap = guy->pref_weap = guy->select;
 
-    /* picking up stuff */
+    /* picking up stuff ie. pickups */
     kx = (guy->x+3)/16;
     ky = (guy->y+6)/16; 
     a = map.ammo[ky][kx];
@@ -1637,6 +1690,22 @@ void update_player(int pl)
 		map.ammo[ky][kx] = 0;
 		break;
 
+	    case A_FUEL:
+		guy->num_fuel+=100;
+		map.ammo[ky][kx] = 0;
+		auto_weapon(pl, 0);
+		add_msg("LET'S BURN SOMETHING", pl);
+		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		break;
+
+	    case W_BOTTLE:
+		guy->num_bottles++;
+		guy->have[w_bottle] = 1;
+		map.ammo[ky][kx] = 0;
+		add_msg("GOT YERSELF A BOTTLE", pl);
+		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		break;
+
 	    case W_BOW:
 		guy->have[w_bow]=1;
 		guy->num_arrows+=3;
@@ -1689,6 +1758,13 @@ void update_player(int pl)
 		auto_weapon(pl, w_uzi);
 		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
 		break;
+
+	    case W_FLAME:
+		guy->num_fuel+=50;
+		map.ammo[ky][kx] = 0;
+		auto_weapon(pl, w_flamer);
+		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
+		break;
 	}
     }
 
@@ -1702,12 +1778,24 @@ void update_player(int pl)
 
 	switch (guy->cur_weap)
 	{
+	    case w_flamer:
+		if (--guy->num_fuel < 0) {
+		    fired = guy->num_fuel = 0;
+		    auto_weapon(pl, 0);
+		} else {
+		    spawn_bullet(pl, guy->angle, YELLOW, 0, 1);
+		    spawn_bullet(pl, guy->angle, YELLOW, 0, 1);
+		    spawn_bullet(pl, guy->angle, YELLOW, 0, 1);
+		    spawn_bullet(pl, guy->angle, YELLOW, 0, 1);
+		}
+		break;
+
 	    case w_minigun:
 		if (--guy->num_bullets < 0) {
 		    fired = guy->num_bullets = 0;
 		    auto_weapon(pl, 0);
 		} else {
-		    spawn_bullet(pl, guy->x+3, guy->y+4, guy->angle, 8, weaps[guy->cur_weap].dmg, GREY, 0);
+		    spawn_bullet(pl, guy->angle, GREY, 0, 0);
 		    play_sample(dat[WAV_MINIGUN].dat, 255, 128, 1000, 0);
 		}
 		break;
@@ -1717,7 +1805,7 @@ void update_player(int pl)
 		    fired = guy->num_bullets = 0;
 		    auto_weapon(pl, 0);
 		} else {
-		    spawn_bullet(pl, guy->x+3, guy->y+4, guy->angle, 8, weaps[guy->cur_weap].dmg, GREY, 0);
+		    spawn_bullet(pl, guy->angle, GREY, 0, 0);
 		    play_sample(dat[WAV_M16].dat, 255, 128, 1000, 0);
 		}
 		break;
@@ -1727,7 +1815,7 @@ void update_player(int pl)
 		    fired = guy->num_bullets = 0;
 		    auto_weapon(pl, 0);
 		} else {
-		    spawn_bullet(pl, guy->x+3, guy->y+4, guy->angle, 8, weaps[guy->cur_weap].dmg, GREY, 0);
+		    spawn_bullet(pl, guy->angle, GREY, 0, 0);
 		    play_sample(dat[WAV_UZI].dat, 255, 128, 1000, 0);
 		}
 		break;
@@ -1737,7 +1825,7 @@ void update_player(int pl)
 		    fired = guy->num_bullets = 0;
 		    auto_weapon(pl, 0);
 		} else {
-		    spawn_bullet(pl, guy->x+3, guy->y+4, guy->angle, 8, weaps[guy->cur_weap].dmg, GREY, 0);
+		    spawn_bullet(pl, guy->angle, GREY, 0, 0);
 		    play_sample(dat[WAV_UZI].dat, 255, 128, 1000, 0);
 		}
 		break;
@@ -1749,11 +1837,11 @@ void update_player(int pl)
 		}
 		else
 		{
-		    spawn_bullet(pl, guy->x+3, guy->y+6, guy->angle - itofix(5), 8, weaps[w_shotgun].dmg, YELLOW, 0);
-		    spawn_bullet(pl, guy->x+3, guy->y+6, guy->angle - itofix(3), 8, weaps[w_shotgun].dmg, YELLOW, 0);
-		    spawn_bullet(pl, guy->x+3, guy->y+6, guy->angle,             8, weaps[w_shotgun].dmg, YELLOW, 0);
-		    spawn_bullet(pl, guy->x+3, guy->y+6, guy->angle + itofix(2), 8, weaps[w_shotgun].dmg, YELLOW, 0);
-		    spawn_bullet(pl, guy->x+3, guy->y+6, guy->angle + itofix(4), 8, weaps[w_shotgun].dmg, YELLOW, 0);
+		    spawn_bullet(pl, guy->angle - itofix(5), YELLOW, 0, 0);
+		    spawn_bullet(pl, guy->angle - itofix(3), YELLOW, 0, 0);
+		    spawn_bullet(pl, guy->angle,             YELLOW, 0, 0);
+		    spawn_bullet(pl, guy->angle + itofix(2), YELLOW, 0, 0);
+		    spawn_bullet(pl, guy->angle + itofix(4), YELLOW, 0, 0);
 		    play_sample(dat[WAV_SHOTGUN].dat, 255, 128, 1000, 0);
 		}
 		break;
@@ -1765,7 +1853,7 @@ void update_player(int pl)
 		}
 		else 
 		{
-		    spawn_bullet(pl, guy->x+3, guy->y+3, guy->angle, 8, weaps[w_bazooka].dmg, 0, J_ROCKET);
+		    spawn_bullet(pl, guy->angle, 0, J_ROCKET, 0);
 		    play_sample(dat[WAV_ROCKET].dat, 255, 128, 1000, 0);
 		}
 		break;
@@ -1776,11 +1864,11 @@ void update_player(int pl)
 		    auto_weapon(pl, 0);
 		}
 		else
-		    spawn_bullet(pl, guy->x+3, guy->y+3, guy->angle, 8, weaps[w_bow].dmg, 0, J_ARROW);
+		    spawn_bullet(pl, guy->angle, 0, J_ARROW, 0);
 		break;
 
 	    case w_knife:
-		spawn_bullet(pl, guy->x+3, guy->y+6, guy->angle, 8, weaps[w_knife].dmg, 0, J_KNIFE);
+		spawn_bullet(pl, guy->angle, 0, J_KNIFE, 0);
 		play_sample(dat[WAV_KNIFE].dat, 255, 128, 1000, 0);
 		break;
 	}
@@ -1814,7 +1902,7 @@ void update_player(int pl)
 
     /* impaled on spikes ? */
     if (tile_collide(guy->x+3, guy->y+16)==T_SPIKE)
-	hurt_player(pl, 1, 0, pl);  // armour doesn't affect spikes
+	hurt_player(pl, 1, 0, pl, D_IMPALE000); // armour doesn't affect spikes
 
     /* climb down ladder */
     if (guy->down)
@@ -1837,7 +1925,7 @@ void update_player(int pl)
 
 	    if (guy->y > map.h * 16)
 	    {
-		hurt_player(pl, 10, 0, pl);
+		hurt_player(pl, 10, 0, pl, 0);
 		return;
 	    }
 
@@ -1949,7 +2037,7 @@ void update_player(int pl)
 		(guy->cur_weap==w_m16 && guy->fire_frame==3) ||
 		(guy->cur_weap==w_pistol && guy->fire_frame==2) ||
 		(guy->cur_weap==w_uzi && guy->fire_frame==3) ||
-		(guy->cur_weap==w_minigun && guy->fire_frame!=2))
+		(guy->cur_weap==w_minigun && guy->fire_frame==2))
 	    { 
 		x = guy->x + 3 + fixtoi(fcos(guy->angle)) * 5;
 		y = guy->y + 3 + fixtoi(fsin(guy->angle)) * 5;
@@ -2253,8 +2341,7 @@ void game_loop()
 }
 
 
-
-/* main */
+/* connect via serial */
 
 int linkup()
 {
@@ -2357,6 +2444,10 @@ int connect_serial(int comport)
     return 1;
 }
 
+
+
+/* main */
+
 void no_germs()
 {
     reset_bullets(0);
@@ -2370,9 +2461,11 @@ void no_germs()
     oldest_corpse = 0;
 }
 
+void menu();    // menu.c
+
 int main(int argc, char **argv)
 {
-    int i, x, y;
+    int x, y;
 
     /* ego ego ego */
     puts("Red Pixel " VERSION_STR " by Psyk Software, 1998.");
@@ -2383,7 +2476,7 @@ int main(int argc, char **argv)
     install_keyboard();
     if (install_mouse()==-1)
     {
-	printf("Install a mouse driver.");
+	printf("Please install a mouse driver.");
 	exit(1);
     }
     install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);
@@ -2444,9 +2537,10 @@ int main(int argc, char **argv)
 
     /* go */
     //intro();
-    //menu();
+    menu();
 
     /* connect! */
+    /*
     comm = single; 
     if (connect_serial(COM2))
     {
@@ -2470,6 +2564,7 @@ int main(int argc, char **argv)
 
     if (comm==serial)
 	skClose();
+    */
 
     /* bye bye */
     killall();

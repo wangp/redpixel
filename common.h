@@ -1,7 +1,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <allegro.h>    // not good but anyway
+#include <time.h>       // not good practice but anyway
+#include <allegro.h> 
 #include "blood.h"      // datafile
 
 
@@ -43,6 +44,7 @@ typedef struct
     int pic;
     int num;
 } LIST;
+
 
 
 extern MAP map;

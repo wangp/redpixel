@@ -12,6 +12,10 @@
 16 june     uses new sk, quit bug fixed
 19 june     fixed off by one bug on ammo count, auto_weapon can now select 
 	    knife
+20 june     flamer, bottle, more deaths, new map format
+21 june     fires from end of gun + menu system
+23 june     more menu stuff
+24 june     colour selection
 
 
 Red Pixel

@@ -10,10 +10,13 @@ typedef struct
     char colour;
 
     // for bullets
-    unsigned char bmp,  // the no. of the bitmap
-		  tag,  // player who fired it
-		  dmg;  // dmg it causes
+    short           bmp;  // the no. of the bitmap
+    unsigned char   tag,  // player who fired it
+		    dmg;  // dmg it causes
     fixed angle; 
+
+    // for flamethrower
+    unsigned char flame;
 } PARTICLE;
 
 
@@ -23,7 +26,8 @@ typedef struct
     char alive;
     int x, y;
     char nopic; // if nopic, then it is just a light source
-    unsigned char pic, cur, frames, anim; 
+    short pic;
+    unsigned char cur, frames, anim; 
 } EXPLOSION;
 
 
@@ -42,7 +46,7 @@ typedef struct
 {
     char life;
     int x, y;
-    unsigned char pic;
+    short pic;
 } BLOD;
 
 
@@ -52,8 +56,8 @@ typedef struct
     char alive;
     int x, y;
     char facing;
-    unsigned char first_frame, num_frames;
-    unsigned char cur, anim;
+    short first_frame;
+    unsigned char num_frames, cur, anim;
 } CORPSE;
 
 
@@ -63,6 +67,7 @@ typedef struct
     char alive, unactive;
     int x, y;
     int num_bullets, num_shells, num_rockets, num_arrows, num_mines;
+    int num_fuel, num_bottles;
 } BACKPACK;
 
 
@@ -84,6 +89,8 @@ enum {
     w_minigun, 
     w_bazooka,
     w_mine,
+    w_bottle,
+    w_flamer,
     num_weaps
 } w_types;
 
@@ -92,6 +99,10 @@ enum {
 typedef struct
 {
     char exist;
+
+    char name[40];
+    int colour;
+
     int x, y, xv, yv, jump;
     int health, armour;
     fixed angle;
@@ -101,6 +112,8 @@ typedef struct
     int num_rockets;
     int num_mines;
     int num_arrows;
+    int num_bottles;
+    int num_fuel;
 
     int frags;
 
@@ -117,5 +130,46 @@ typedef struct
 } PLAYER;
 
 
+
+// globals
+
+extern DATAFILE    *dat;
+extern BITMAP      *dbuf;
+extern BITMAP      *light;
+
+extern RGB_MAP     rgb_table;
+extern COLOR_MAP   alpha_map;
+extern COLOR_MAP   light_map;
+
+
+extern time_t seed;
+
+
+typedef enum {
+    single,     // boring...
+    serial,     // done
+    ipx,        // not yet..
+    udp         // keep dreaming!
+} comm_t;
+
+extern comm_t comm;
+
+
+extern int local;          // local player
+extern int num_players;
+
+extern int next_position;
+extern int rnd_index;
+extern int irnd_index;
+
+extern PLAYER players[];
+
+
+
+// prototypes
+
+void no_germs();
+void spawn_players();
+void game_loop();
 
 #endif
