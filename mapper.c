@@ -176,12 +176,17 @@ void map_edit()
     selector = selector_tiles;
     reset_map();
 
-    while (!key[KEY_Q])
+    while (!key[KEY_ESC])
     {
 	if (key[KEY_PGUP] && index[mode]) 
 	    index[mode]--;
 	if (key[KEY_PGDN]) 
 	    index[mode]++;
+
+	if (key[KEY_MINUS_PAD] && map.h>32) { map.h--; rest(50); }
+	if (key[KEY_PLUS_PAD] && map.h<127) { map.h++; rest(50); }
+	if (key[KEY_SLASH2] && map.w>64) { map.w--; rest(50); }
+	if (key[KEY_ASTERISK] && map.w<127) { map.w++; rest(50); }
 
 	if (key[KEY_UP] && my) my--;
 	if (key[KEY_LEFT] && mx) mx--;

@@ -60,7 +60,7 @@ void load_map(char *fn);
 
 
 #define TILE_HEALTH         30
-#define TILE_RESPAWN_RATE   500
+#define TILE_RESPAWN_RATE   700
 
 
 int ammo_respawn_rate(int pic);

@@ -38,6 +38,7 @@ LIST ammos[] =
     { W_ROCKET,  104 },
     { W_SHOTGUN, 105 },
     { W_UZI,     106 },
+    { W_FLAME,   107 },
     { -1 }
 };
 
@@ -79,7 +80,8 @@ int ammo_respawn_rate(int pic)
 	case A_CHICKEN: return 1800;
 	case A_COKE: return 1300;
 	case A_ARMOUR: return 2000;
-	case W_BOW: return 3800;
+	case A_GOGGLES: return 4300; 
+	case W_BOW: return 3600;
 	case W_M16: return 3500;
 	case W_MINI: return 3800;
 	case W_PISTOL: return 750;

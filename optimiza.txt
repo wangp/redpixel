@@ -1,0 +1,138 @@
+
+DJGPP 2.0 optimization
+
+Compiler flags
+
+
+   1. -O2: This takes longer to compile (but not much) and the speed
+     difference is pretty big over -O0 or -O1. -O3 is also available, but it
+     goes nuts with the inlining of functions, and that can blow out your
+     cache pretty well. Give it a try and time it both ways.
+
+
+   2. -m386 and -m486: Pick which machine you are targeting. It'll still
+     work on either one if it's run on the other. Use -m486 for Pentium and
+     up, too.
+
+
+   3. -fomit-frame-pointer: If you will not be debugging or profiling. this
+     option gives gcc another register to play with (ebp), which can make all
+     the difference in tight loops.
+     (This switch will crash your program under DJGPP version 1 when run in
+     DPMI mode (under MS-Windows). In v2 (Which you are using, right?!) it
+     works fine, under Windows or not.)
+
+
+   4. -funroll-loops: I used to think -O3 would turn this on, but it
+     doesn't. Do not just turn this on for the hell of it, though. Time the
+     code before and after. It speeds up loops on 486's but won't have as
+     much effect on Pentiums and up. And the extra code size may have cache
+     side effects. But in my code, I usually turn this on for the tight
+     graphics loops.
+
+
+   5. -ffast-math: Try this flag if you are doing a lot of floating-point
+     and you don't need accuracy to the last bit (few programs really do,
+     usually scientific programs.)
+
+
+   6. -S: This option causes gcc to emit the assembler code it would feed
+     into its assembler into a .s file. Look at this. Find out exactly what
+     is being generated.
+
+   7. Flags that sometimes help, sometimes don't:
+
+      * -fforce-addr: Force all memory locations to be copied into a
+        register before doing arithmetic on them.
+
+      * -fstrength-reduce: A loop optimizer, known to occasionally
+        generate incorrect code. But you can try it.
+
+      * -funroll-all-loops: also turns on -fstrength-reduce and
+        -frerun-cse-after-loop. These days, cache coherency is everything, so
+        this option is rarely useful. If you stick to -funroll-loops, you'll get
+        a good compromise.
+
+Runtime options
+
+
+   1. __djgpp_nearptr_enable(): WARNING! This command turns off all memory
+     protection! You could blow things up bad! Of course, if you're used to
+     complete lack of memory protection (like in real-mode DOS prorgamming),
+     you'll live.
+     The point of this call is to allow you to write directly to low DOS
+     memory, like the VGA buffer. Way, way, faster than _dosmemput().
+     A decent compromise is to use far pointers, which take one extra cycle
+     per access, but keep memory protected.
+     Look here <how_to_access_vga.html> for more info.
+
+
+   2. If you're using floating point, you can control the precision of your
+     floating point calculations with _control87(). However, some FPU's do
+     better at double, some are better at single, and some automatically
+     convert everything to double. This might or might not be worth messing
+     with. You could also try using _detect_80387(), an undocumented function
+     that returns non-zero if a FPU is present, to determine whether to
+     switch to fixed-point or something.
+
+
+   3. If your code uses a lot of outports, you can try using CWSDPR0. It
+     runs your app at ring 0, which speeds up port accesses. The drawback: No
+     virtual memory. But if you're going for performance, disk swaps would
+     kill you anyway. It also locks all memory, which is nice for when you
+     want interrupt handlers and don't want to deal with locking every byte
+     they touch. You can use stubedit to force your binary to load it instead
+     of CWSDPMI.EXE. However, this won't help you in Windows or OS/2 DOS
+     boxes, which provide their own DPMI.
+
+Coding methodology
+
+
+   1. Try to avoid 16-bit variables in performance-critical code. It takes
+     1 or more extra cycles on 386/486/P5 (and it's even worse on the P6!) to
+     use the 16-bit versions of the registers. Stick to 32-bit ints and
+     8-bits chars (chars don't slow it down, just shorts. This is because
+     DJGPP runs your code in a 32-bit segment and it must issue a register
+     size override prefix (which stalls the pipeline) to specify that the
+     register width differs from the segment width.) Look here
+     <http://www.geocities.com/SiliconValley/9498/p5opt.html> for
+     Pentium-specific optimization issues.
+
+
+   2. If you need to use memcpy, try to give it fixed-length copies to do.
+     This lets DJGPP convert it to an inline rep movsl, which saves you the
+     overhead of a function call and some other calcs memcpy does. It will
+     stick on extra movsb's and movsw's as necessary; it doesn't have to be
+     longwords. It will not necessarily align the destination in this case.
+
+
+   3. Try to use
+
+
+for (i = len; i; i--)
+
+     instead of
+
+
+for (i = 0; i < len; i++)
+
+     Otherwise len must either be kept in a register or loaded from memory
+     every time. -fstrength-reduce supposedly would make this unnecessary,
+     but it sometimes produces incorrect code in this version of GCC, so it's
+     by default disabled.
+
+
+   4. Use inline assembly for your critical loops. See Brennan's Guide to
+     Inline Assembly with DJGPP2 <djgpp_asm.html>.
+
+
+   5. Alternately, you can use the inline keyword to cause any function to
+     be inlined (as fast as macros) whether you're doing C++ or C. You have
+     to call it from the same source file to get the inlining, and you can
+     still call it from an external object.
+
+
+------------------------------------------------------------------------
+     If you haven't been there, check out my main DJGPP2+Games page
+     <index.html>
+     Page provided by brennan@rt66.com <../index.html>

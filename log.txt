@@ -3,6 +3,11 @@
 10 june     serial code
 11 june     clean up + found name for game + serial perfected :) + dynamic 
 	    bullet and mine allocation
+12 june     200% better lighting + bullet hurt + distance props of blast + 
+	    even better serial
+13 june     lots
+14 june     serial connection perfected + corpses + backpacks + too much, 
+	    forgotten
 
 
 Red Pixel

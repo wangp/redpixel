@@ -48,12 +48,18 @@
 #define skINT_SER_PORT_0  0x0C  // port 0 interrupt com 1 & 3
 #define skINT_SER_PORT_1  0x0B  // port 0 interrupt com 2 & 4
 
-#define skBUFFER_SIZE   128
+#define skBUFFER_SIZE   2048
+
+
+extern char sk_desc[];
 
 
 int     skReady     ();
 int     skRecv      ();
+void    skPutback   ();
 void    skSend      (unsigned char);
+void    skSendString(unsigned char *);
+void    skWrite     (unsigned char *, int);
 void    skClear     ();
 
 void    skOpen      (int, int, int);

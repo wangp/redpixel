@@ -4,13 +4,15 @@
 
 typedef struct
 {
+    char life;
     fixed x, y;
     fixed xv, yv;
-    unsigned char colour;
-    unsigned char life;
-    unsigned char alive;
-    unsigned char tag, dmg;
-    int bmp;
+    char colour;
+
+    // for bullets
+    unsigned char bmp,  // the no. of the bitmap
+		  tag,  // player who fired it
+		  dmg;  // dmg it causes
     fixed angle; 
 } PARTICLE;
 
@@ -18,21 +20,50 @@ typedef struct
 
 typedef struct
 {
-    fixed x, y;
-    int pic;
-    char cur, frames, tics;
     char alive;
+    int x, y;
+    char nopic; // if nopic, then it is just a light source
+    unsigned char pic, cur, frames, anim; 
 } EXPLOSION;
 
 
 
 typedef struct
 {
-    int x, y;
-    char frame, tics;
-    char unactive;
     char alive;
+    int x, y;
+    char frame, anim;
+    char tag, unactive;
 } MINE;
+
+
+
+typedef struct
+{
+    char life;
+    int x, y;
+    unsigned char pic;
+} BLOD;
+
+
+
+typedef struct
+{
+    char alive;
+    int x, y;
+    char facing;
+    unsigned char first_frame, num_frames;
+    unsigned char cur, anim;
+} CORPSE;
+
+
+
+typedef struct
+{
+    char alive, unactive;
+    int x, y;
+    int num_bullets, num_shells, num_rockets, num_arrows, num_mines;
+} BACKPACK;
 
 
 
@@ -60,17 +91,10 @@ enum {
 
 typedef struct
 {
-    char alive;
-    int x, y;
-    char jump, yv, xv;
-    int health;
-    int armour;
+    char exist;
+    int x, y, xv, yv, jump;
+    int health, armour;
     fixed angle;
-    char facing;
-
-    char leg_frame, leg_tics;
-
-    char firing, fire_frame, fire_tics, next_fire;
 
     int num_bullets;
     int num_shells;
@@ -78,11 +102,18 @@ typedef struct
     int num_mines;
     int num_arrows;
 
-    unsigned char up, down, left, right, fire, drop_mine;
-    unsigned char select, respawn;
+    int frags;
 
-    unsigned char have[num_weaps];
-    unsigned char cur_weap;
+    char leg_frame, leg_tics;
+    int visor_tics;
+    char firing, fire_frame, fire_anim, next_fire;
+    char facing;
+
+    char up, down, left, right, fire, drop_mine;
+    char select, respawn;
+
+    char have[num_weaps];
+    unsigned char cur_weap, pref_weap;
 } PLAYER;
 
 

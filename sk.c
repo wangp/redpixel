@@ -1,27 +1,37 @@
-/*  SK 0.51á - Serial Communications
+/*  SK 0.51d - Serial Communications
  *      by Peter Wang  (tjaden@alphalink.com.au -or- tjaden@psynet.net)
  *
  *  These routines are based (heavily) on Andre' LaMothes routines featured
  *  in 'Tricks of the Game Programming Gurus'.  Most of the work on my part
  *  was in porting the real mode ISR to protected mode.
  *
+ *  Recently they have moved further and further away from LaMothe's code.
+ *
  *  Also thanks to Shawn Hargreaves, for I ripped out a few macros from
  *  Allegro.
  */
 
 /*  Started:    14 March 1998
- *  Modified:   15 March 1998   skClear() more efficient
- *                              added #define DEBUGME
+ *  Modified:   15 March 1998   0.51á   skClear() more efficient
+ *                                      added #define DEBUGME
+ *  Modified:   13 June 1998    0.51c   skPutback()
+ *                                      removed DEBUGME
+ *  Modified:   14 June 1998    0.51d   skSendString() skWrite()
+ *                                      open_port = 0 in skClose()
+ *                                      boosted skBUFFER_SIZE to 2K
  */
-
-//#define DEBUGME     // if #define'd, does print outs
 
 #include <dpmi.h>
 #include <go32.h>
+#include <dos.h>
 #include <pc.h>
 #include <sys/segments.h>
-//#include <stdlib.h>
 #include "sk.h"
+
+
+
+char sk_desc[] = "SK 0.51d";
+
 
 
 /*  These macros are taken from Allegro 3.0 (allegro.h)
@@ -34,13 +44,10 @@
 #endif
 
 
-static unsigned char sk_buffer[skBUFFER_SIZE];  // the receive buffer
-static volatile int  buff_end    = -1,  // indexes into receive buffer 
-		     buff_start  = -1; 
-static volatile int  num_chars   = 0;   // ready flag
+static unsigned char buffer[skBUFFER_SIZE];  // the receive buffer
+static volatile int  buf_head,          // index to where the data is written to
+		     buf_tail;          // index to where the data is read from
 static volatile int  isr_ch;            // current char (used by ISR)
-
-static volatile int  locked = 0; 
 
 static int old_int_mask;                // the old interrupt mask on the PIC
 static int open_port = 0;               // the currently open port
@@ -58,74 +65,69 @@ static _go32_dpmi_seginfo new_vector;
  */
 void skISR()
 {
-    // lock out any other functions so the buffer doesn't get corrupted
-    locked = 1;
-
     // place character into next position in buffer
     isr_ch = inportb(open_port + skRBF);
 
     // wrap buffer index around
-    if (++buff_end > skBUFFER_SIZE - 1)
-	buff_end = 0;
+    if (++buf_head > skBUFFER_SIZE - 1)
+	buf_head = 0;
 
     // move character into buffer
-    sk_buffer[buff_end] = isr_ch;
-    ++num_chars;
+    buffer[buf_head] = isr_ch;
 
     // re-enable interrupts
     outportb(skPIC_ICR, 0x20);
-
-    // unlock
-    locked = 0;
 }
 
 END_OF_FUNCTION(skISR)
 
 
-
-/*  This functions returns non-zero if there are any 
- *  characters waiting and 0 if the buffer is empty.
+/*  This functions returns the number of characters waiting
+ *  in the receive buffer.
  */
 int skReady()
 {
-    return num_chars;
+    if (buf_head >= buf_tail)
+	return buf_head - buf_tail;
+    else
+	return buf_head - buf_tail + skBUFFER_SIZE;
 }
 
 
-/*  This function reads a character from the circulating 
+/*  This function reads a character from the FIFO
  *  buffer and returns it to the caller.
  */
 int skRecv()
 { 
     int ch;
 
-    // wait for ISR to end
-    while (locked);
+    if (buf_tail == buf_head)
+	return 0;
 
-    // character(s) ready in buffer?
-    if (num_chars)
-    { 
-	// wrap buffer index if needed 
-	if (++buff_start > skBUFFER_SIZE - 1)
-	   buff_start = 0;
+    disable();
 
-	// get the character out of buffer
-	ch = sk_buffer[buff_start];
+    // wrap buffer index if needed 
+    if (++buf_tail > skBUFFER_SIZE - 1)
+       buf_tail = 0;
 
-	// one less character in buffer now
-	if (num_chars)
-	    num_chars--;
+    // get the character out of buffer
+    ch = buffer[buf_tail];
 
-#ifdef DEBUGME
-	printf("skRecv()\t%3d %c\n", ch, ch);
-#endif
+    enable();
 
-	// send data back to caller
-	return ch;
-    }
+    // send data back to caller
+    return ch;
+}
 
-    // buffer was empty return 0
-    return 0;
+
+/*  This function puts the last retrieved character back into the buffer.
+ */
+void skPutback()
+{
+    disable();
+    if (--buf_tail < 0)
+	buf_tail = skBUFFER_SIZE - 1;
+    enable();
 }
 
 
@@ -138,18 +140,36 @@ void skSend(unsigned char ch)
     // wait for transmit buffer to be empty 
     while (!(inportb(open_port + skLSR) & 0x20));
 
-    // turn off interrupts for a while
-    asm ("cli");
-
     // send the character
     outportb(open_port + skTHR, ch);
+}
 
-    // turn interrupts back on
-    asm ("sti");
 
-#ifdef DEBUGME
-    printf("skSend()\t%3d %c\n", ch, ch);
-#endif
+/*  Send a NULL terminated string.
+ */
+void skSendString(unsigned char *str)
+{
+    // while not terminated
+    while (*str)
+    {
+	// do as in skSend()
+	while (!(inportb(open_port + skLSR) & 0x20));
+	outportb(open_port + skTHR, *str++);
+    }
+}
+
+
+/*  Sends len bytes.
+ */
+void skWrite(unsigned char *str, int len)
+{
+    // send len bytes
+    while (len--)
+    {
+	// do as in skSend()
+	while (!(inportb(open_port + skLSR) & 0x20));
+	outportb(open_port + skTHR, *str++);
+    }
 }
 
 
@@ -157,12 +177,9 @@ void skSend(unsigned char ch)
  */
 void skClear()
 {
-    while (locked);
-    buff_start = buff_end = -1;
-#ifdef DEBUGME
-    printf("skClear()\tCleared %d chars\n", num_chars);
-#endif
-    num_chars = 0;
+    disable();
+    buf_tail = buf_head = 0;
+    enable();
 }
 
 
@@ -176,11 +193,10 @@ void skOpen(int port_base, int baud, int config)
     if (virgin)
     {
 	LOCK_FUNCTION(skISR);
-	LOCK_VARIABLE(sk_buffer);
-	LOCK_VARIABLE(buff_end);
-	LOCK_VARIABLE(buff_start);
+	LOCK_VARIABLE(buffer);
+	LOCK_VARIABLE(buf_head);
+	LOCK_VARIABLE(buf_tail);
 	LOCK_VARIABLE(isr_ch);
-	LOCK_VARIABLE(num_chars);
 	virgin = 0; 
     }
 
@@ -222,6 +238,9 @@ void skOpen(int port_base, int baud, int config)
     // enable interrupt on PIC
     old_int_mask = inportb(skPIC_IMR);
     outportb(skPIC_IMR, (port_base==COM1 || port_base==COM3) ? (old_int_mask & 0xEF) : (old_int_mask & 0xF7));
+
+    // clear it, just in case
+    skClear();
 }
 
 
@@ -244,5 +263,7 @@ void skClose()
 	    _go32_dpmi_set_protected_mode_interrupt_vector(skINT_SER_PORT_0, &old_vector);
 	else    /* COM2 || COM4 */
 	    _go32_dpmi_set_protected_mode_interrupt_vector(skINT_SER_PORT_1, &old_vector);
+
+	open_port = 0;
     }
 }
