@@ -1,0 +1,51 @@
+
+NEW FOR 0.9: PORT!
+	... but I probably won't do it myself (RP2). 
+		Someone else do it!
+		
+		
+     Clean up code (e.g. make globals static, etc)
+     Modularise.
+     Use linked lists rather than arrays (this was a QUICK hack!)
+     ... etc ..
+     
+     
+     ( Note that these are never going to happen, because of RP2 )
+     
+     
+     config file (com port, LCD screen, etc);
+     
+
+
+--- engine ---
+û use bb_collide
+û finish off serial connect
+û bloodlust
+û 3d sound
+û one player sound at a time..fixed
+û score sheet
+
+--- comms ---
+û choose comm port (FIX SOON)
+û file select
+o crc + file transfer
+û modem-modem
+o ipx
+o tcp/ip
+
+--- sounds ---
+û lower minigun sound
+
+--- fancy shit ---
+o more deaths
+o save your name
+o save phone no.
+o trails
+û intro - metroid style start
+û creds - qwater type effect, with deaths at end
+X define macros...cancelled
+X sound setup...cancelled
+
+--- bugs ---
+û tile at top of ladder
+o explosions stick you in tiles-

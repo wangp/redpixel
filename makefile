@@ -1,16 +1,30 @@
-all: flushsmartdrv red.exe
+CC = gcc
+CFLAGS = -Wall -O3 -m486 -Isrc -Isrc/sk
 
-OPT = -Wall -O2 -m486 -fomit-frame-pointer -ffast-math
+# Even though this game is DOS-specific...
+EXE = .exe
 
-%.o: %.c blood.h
-	gcc $(OPT) -c -o $@ $<
+all: red$(EXE)
 
-OBJ = run.o common.o sk.o skmod.o rnd.o menu.o mapper.o creds.o intro.o
+OBJS =  obj/run.o obj/common.o obj/sk.o obj/menu.o obj/mapper.o \
+	obj/stats.o obj/statlist.o obj/intro.o obj/creds.o \
+	obj/rnd.o obj/fastsqrt.o
 
-red.exe: $(OBJ)
-	gcc $(OPT) -o $@ $(OBJ) -lalleg
+obj/%.o: src/%.c
+	$(COMPILE.c) -o $@ $<
 
-flushsmartdrv: ; -@dump /q > nul
+obj/%.o: src/sk/%.c
+	$(COMPILE.c) -o $@ $<
+
+obj/%.o: src/fastsqrt/%.c
+	$(COMPILE.c) -o $@ $<
+
+red.exe: $(OBJS)
+	$(CC) -o $@ $(OBJS) -lalleg
+	
+compress: red.exe
+	upx $<
 
 clean: 
-	rm -f *.exe *.o
+	rm -f red.exe obj/*.o
+	

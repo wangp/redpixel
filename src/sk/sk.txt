@@ -1,0 +1,55 @@
+SK 0.7d, by Peter Wang (tjaden@psynet.net)
+Copyright 1999 Psyk Software.
+
+Ok, some quick docs:
+
+extern char sk_desc[];
+        Who made what.
+
+int     skReady     ();
+        Returns number of characters waiting in buffer.
+
+int     skRecv      ();
+        Returns a character from the receive buffer.
+
+void    skRead      (unsigned char *, int);
+        Reads num characters from receive buffer.
+
+void    skPutback   ();
+        Puts last read character back.
+
+void    skClear     ();
+        Clears receive buffer.
+
+int     skWaiting   ();
+        Returns num chars waiting in the send buffer.
+
+void    skSend      (unsigned char);
+        Puts a char into the send buffer.
+
+void    skSendString(unsigned char *);
+        Yep, what you're thinking.
+
+void    skWrite     (unsigned char *, int);
+        Puts num chars into send buffer.
+
+void    skFlush     ();
+        Force all characters in the send buffer to be sent.
+
+void    skHand      (unsigned int);
+
+int     detect_UART (unsigned);
+
+int     skOpen      (int, int, int);
+        Open COM port.  e.g.                   
+            opened = skOpen(COM1, BAUD_19200, STOP_1 | BITS_8 | PARITY_NONE);
+
+int     skEnableFIFO();
+        Enable FIFO buffers if hardware allows.
+
+void    skClose     ();
+        Call this at the end of the program, or whenever.
+        You MUST call this!
+
+
+I haven't used SK in a while, so check the source in case I've forgotten.

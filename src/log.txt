@@ -1,0 +1,84 @@
+6 june      map editor
+7-9 june    initial game engine
+10 june     serial code
+11 june     clean up + found name for game + serial perfected :) + dynamic 
+	    bullet and mine allocation
+12 june     200% better lighting + bullet hurt + distance props of blast + 
+	    even better serial
+13 june     lots
+14 june     serial connection perfected + corpses + backpacks + too much, 
+	    forgotten
+15 june     mostly worked on sk
+16 june     uses new sk, quit bug fixed
+19 june     fixed off by one bug on ammo count, auto_weapon can now select 
+	    knife
+20 june     flamer, bottle, more deaths, new map format
+21 june     fires from end of gun + menu system
+23 june     more menu stuff
+24 june     colour selection
+28 june     removed flamer/bottles + uses scripts for stats + credits
+	    + intro
+in here     busy doing gap
+11 july     did name trading, score sheet, some synch fixes, serial chat
+	    + 3d sound + serial file select thing
+12 july     fixed bloodlust respawn + chicken respawn, etc +
+	    arrow/rocket hitting player now causes explosion and boom sound
+now back to school, so less done
+13 july     fixed respawn bug + sorts map filenames in solo mode
+14 july     stuck in some comments in code whoo!
+15 july     cleaned up code + removed use of seer
+	    using new playing loop (see complay.txt)
+19 july     stuck in modem code.. no error detection yet tho
+24 july     tried improving serial game speed
+25 july     finally found the answer! 33 fps over serial instead of 7 fps! :)
+	    figured out that modems *should* do their on error correction
+	    improved auto select a bit
+	    centred arrow/rocket explosion
+	    decreased minigun sound volume
+26 july     made intro better
+	    fixed ladder bug
+	    backpacks have a light
+	    minigun made shorter
+	    improved serial connection routine
+	    faster serial game, w/o syncing problems!
+21 august   added death sequence: fountain
+25 august   checked with mss
+
+---------------------------- 0.9 (1999) ----------------------------
+
+13 August	cleaned up directory structure and makefile
+		removed modem code
+		removed redundant menu entries (IPX, etc.)
+		changed licence to GNU LGPL
+		game can now be run from any directory
+		`-skip' option added to skip intro screens
+		load_map does not ignore file errors anymore 
+			(it quits instead :)	
+		fixed the guy's leg walking animation speed	
+		added -lcd option
+		added RMB as mine shortcut
+		using B.Underwood's fastsqrt routines
+		added frags backdrop (from ftp.ufies.org)
+		added --help, --version, and changed cmdline options 
+			to be GNUish
+		more blood!
+		better particle generation code 
+			(ie. longer lives, more dynamic spray)
+		removed the mss.h references
+		added powerup -- SCANNER!
+		fixed weapon pickup bug, finally.  (easy too)
+		
+14 August	added stats file system
+		new stats
+		fixed rocket jumping bug
+		increased no. particles from hurt tiles
+		added SGML manual
+		new "big" font
+		
+15 August	put big LGPL banner on source files
+		changed scanner pickup to play 3d sound (fix)
+		added Q,E,R,Y weapon switching
+		
+21 August 	preparing for upload, reenabled print-scr screen shot dumping
+		--> released as 0.9 <--
+		
