@@ -119,7 +119,8 @@ int main(int argc, char *argv[])
     reserve_voices(32, -1);
 #ifdef TARGET_WINDOWS
     /* the default hardware-based mixer sounds bad with jgmod */
-    install_sound(DIGI_DIRECTAMX(0), MIDI_NONE, NULL);
+    if (install_sound(DIGI_DIRECTAMX(0), MIDI_NONE, NULL) != 0)
+	install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);    
 #else
     install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);
 #endif

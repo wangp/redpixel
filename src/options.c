@@ -280,6 +280,8 @@ void options(void)
     
     font = old_font;
 
+    show_mouse(NULL);
+
     /* In modes where not the full screen is used, we don't want the
      * top and bottom parts to be gray. */
     clear_bitmap(screen);

@@ -70,7 +70,7 @@ void spawn_backpack(int x, int y, int b, int s, int r, int a, int m)
 	suicide("Backpack overflow");
     
     _reset_backpacks(max_backpacks - 2);
-    add_msg("Allocated extra 2 backpacks", -1);
+/*      add_msg("Allocated extra 2 backpacks", -1); */
 
     spawn_backpack(x, y, b, s, r, a, m);
 }

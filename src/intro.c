@@ -8,8 +8,6 @@
  */
 
 
-#include <sys/time.h>
-#include <unistd.h>
 #include <allegro.h>
 #include "blood.h"
 #include "globals.h"
@@ -17,6 +15,11 @@
 #include "vidmode.h"
 
 
+
+#ifdef TARGET_LINUX
+
+#include <sys/time.h>
+#include <unistd.h>
 
 typedef struct timeval WATCH;
 
@@ -32,6 +35,24 @@ static unsigned long elapsed_time(WATCH *watch)
     return ((now.tv_sec - watch->tv_sec) * 1000 +
 	    (now.tv_usec - watch->tv_usec) / 1000);
 }
+
+#else
+
+typedef unsigned long WATCH;
+
+static void set_watch(WATCH *watch)
+{
+    *watch = clock() * 1000 / CLOCKS_PER_SEC;
+}
+
+static unsigned long elapsed_time(WATCH *watch)
+{
+    WATCH now;
+    set_watch(&now);
+    return (now - *watch);
+}
+
+#endif
 
 static void wait_until(WATCH *watch, unsigned long msecs_elaspsed)
 {
@@ -150,6 +171,7 @@ static int scan(int x, int y)
     BITMAP *bmp;
     int x2, i, j = 0;
     WATCH watch;
+    int keyed = 0;
 
     set_watch(&watch);
     
@@ -167,12 +189,15 @@ static int scan(int x, int y)
 	blit_to_screen(bmp);
 	x++;
 	rest(60);
-    } while ((x < x2) && (!keypressed()) &&
-	     (elapsed_time(&watch) < 3600));
+	if (keypressed()) {
+	    keyed = 1;
+            break;
+	}
+    } while ((x < x2) && (elapsed_time(&watch) < 3600));
 
     destroy_bitmap(bmp);
     
-    return !(x < x2);
+    return !keyed;
 }
 
 
@@ -194,6 +219,10 @@ void intro()
 	&& scan(160, 90)
 	&& raster_words("PRESENTS")) {
 
+	WATCH watch;
+	int step = 0;
+	set_watch(&watch);
+
 	x = 159; x2 = 160;
 	y = 99;  y2 = 100;
 
@@ -202,10 +231,12 @@ void intro()
 	    blit(dat[TITLE].dat, dbuf, x, y, x, y, x2-x, y2-y);
 	    blit_to_screen(dbuf);
 
-	    x--; x2++;
-	    y--; y2++;
-
-	    rest(8);
+	    do {
+		step += 8;
+		x--; x2++;
+		y--; y2++;
+	    } while (step < elapsed_time(&watch));
+	    wait_until(&watch, step);
 	} while (x > 0);
 
 	rest(1600);

@@ -12,6 +12,7 @@
 #include "anim.h"
 #include "blood.h"
 #include "colours.h"
+#include "cpu.h"
 #include "demo.h"
 #include "engine.h"
 #include "fblit.h"
@@ -62,6 +63,8 @@ static BITMAP *ftmp;
 
 static volatile int kb_enter;
 static volatile int kb_f12;
+static volatile int kb_f2;
+static volatile int kb_f3;
 static volatile int kb_p;
 static volatile int want_quit;
 static volatile int want_help, helping;
@@ -73,6 +76,8 @@ static void my_keyboard_lowlevel_callback(int scancode)
     switch (sc) {
 	case KEY_ENTER: kb_enter = pressed; break;
         case KEY_F12: kb_f12 = pressed; break;
+	case KEY_F2: kb_f2 = pressed; break;
+	case KEY_F3: kb_f3 = pressed; break;
 	case KEY_P: kb_p = pressed; break;
         case KEY_ESC:
 	    if ((pressed) && (!helping))
@@ -414,6 +419,10 @@ void game_loop()
 
 		    break;
 
+		case cpu:
+		    do_cpu();
+		    break;
+		    
 		default:
 		    break;
 		
@@ -468,7 +477,25 @@ void game_loop()
 		show_fps = !show_fps;
 		kb_f12 = 0;
 	    }
-	    
+
+	    if (comm == cpu) {
+		if (kb_f2) {
+		    kb_f2 = 0;
+		    if (cpu_agressiveness < 5) {
+			cpu_agressiveness++;
+			add_msgf(-1, "AI LEVEL: %s", cpu_angst_str[cpu_agressiveness-1]);
+		    }
+		}
+
+		if (kb_f3) {
+		    kb_f3 = 0;
+		    if (cpu_agressiveness > 1) {
+			cpu_agressiveness--;
+			add_msgf(-1, "AI LEVEL: %s", cpu_angst_str[cpu_agressiveness-1]);
+		    }
+		}
+	    }
+
 	    speed_counter--;
 	    frames_dropped++;
 

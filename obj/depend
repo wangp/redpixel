@@ -18,6 +18,9 @@ obj/*/bullet.o: src/bullet.c src/include/particle.h src/include/bullet.h \
 obj/*/corpse.o: src/corpse.c src/include/corpse.h src/include/anim.h \
  src/include/blood.h src/include/engine.h src/include/gameloop.h \
  src/include/globals.h src/include/map.h src/include/tiles.h
+obj/*/cpu.o: src/cpu.c src/include/blood.h src/include/cpu.h \
+ src/include/gameloop.h src/include/player.h src/include/engine.h \
+ src/include/weapon.h src/include/rnd.h src/include/tiles.h
 obj/*/credits.o: src/credits.c src/include/blood.h src/include/colours.h \
  src/include/globals.h src/include/fblit.h src/include/main.h \
  src/include/options.h src/include/version.h src/include/vidmode.h
@@ -39,15 +42,15 @@ obj/*/explo.o: src/explo.c src/include/anim.h src/include/blood.h \
  src/include/weapon.h
 obj/*/fblit.o: src/fblit.c src/include/globals.h
 obj/*/gameloop.o: src/gameloop.c src/include/gameloop.h src/include/anim.h \
- src/include/blood.h src/include/colours.h src/include/demo.h \
- src/include/engine.h src/include/fblit.h src/include/globals.h \
- src/include/input.h src/include/main.h src/include/map.h \
- src/include/music.h src/include/options.h src/include/packet.h \
- src/include/player.h src/include/weapon.h src/include/rnd.h \
- src/sk/sk.h src/include/vidmode.h src/include/backpack.h \
- src/include/blod.h src/include/bullet.h src/include/corpse.h \
- src/include/explo.h src/include/message.h src/include/mine.h \
- src/include/particle.h src/include/tiles.h
+ src/include/blood.h src/include/colours.h src/include/cpu.h \
+ src/include/demo.h src/include/engine.h src/include/fblit.h \
+ src/include/globals.h src/include/input.h src/include/main.h \
+ src/include/map.h src/include/music.h src/include/options.h \
+ src/include/packet.h src/include/player.h src/include/weapon.h \
+ src/include/rnd.h src/sk/sk.h src/include/vidmode.h \
+ src/include/backpack.h src/include/blod.h src/include/bullet.h \
+ src/include/corpse.h src/include/explo.h src/include/message.h \
+ src/include/mine.h src/include/particle.h src/include/tiles.h
 obj/*/getopt.o: src/getopt.c
 obj/*/globals.o: src/globals.c src/include/blood.h src/include/globals.h \
  src/include/resource.h
@@ -60,17 +63,16 @@ obj/*/inp_peer.o: src/inp_peer.c src/include/demo.h src/include/demintro.h \
  src/include/weapon.h src/sk/sk.h
 obj/*/intro.o: src/intro.c src/include/blood.h src/include/globals.h \
  src/include/rpjgmod.h src/include/vidmode.h
-obj/*/introold.o: src/introold.c src/include/blood.h src/include/globals.h \
- src/include/rpjgmod.h src/include/vidmode.h
 obj/*/launch.o: src/launch.c src/include/menu.h src/include/launch.h \
  src/include/credits.h src/include/blood.h src/include/colours.h \
- src/include/demo.h src/include/demintro.h src/include/engine.h \
- src/include/gameloop.h src/include/globals.h src/include/main.h \
- src/include/map.h src/include/music.h src/include/options.h \
- src/include/player.h src/include/weapon.h src/include/resource.h \
- src/include/rnd.h src/include/setweaps.h src/sk/sk.h \
- src/include/skhelp.h src/include/stats.h src/include/statlist.h \
- src/include/statlist.inc src/include/vidmode.h src/include/winhelp.h
+ src/include/cpu.h src/include/demo.h src/include/demintro.h \
+ src/include/engine.h src/include/gameloop.h src/include/globals.h \
+ src/include/main.h src/include/map.h src/include/message.h \
+ src/include/music.h src/include/options.h src/include/player.h \
+ src/include/weapon.h src/include/resource.h src/include/rnd.h \
+ src/include/setweaps.h src/sk/sk.h src/include/skhelp.h \
+ src/include/stats.h src/include/statlist.h src/include/statlist.inc \
+ src/include/vidmode.h src/include/winhelp.h
 obj/*/main.o: src/main.c src/include/main.h src/include/engine.h \
  src/include/blood.h src/include/fblit.h src/include/globals.h \
  src/include/intro.h src/include/launch.h src/include/mapper.h \

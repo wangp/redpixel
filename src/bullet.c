@@ -73,7 +73,7 @@ void spawn_bullet(int pl, fixed angle, int c, int bmp)
 	suicide("Bullet overflow");
     
     _reset_bullets(vector_size(bullets) - 50);
-    add_msg("Allocated extra 50 bullets", -1);
+/*      add_msg("Allocated extra 50 bullets", -1); */
 
     spawn_bullet(pl, angle, c, bmp);
 }

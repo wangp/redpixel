@@ -1,44 +1,59 @@
-Map		Name			Author
----------------------------------------------------
-arena		Arena			dw
-around		Around			ps
-barrlfun	Barrel Fun		bh
-castle		Castle			dw
-castle2		Castle 2		ps
-chemcham	Chemical Chambers	mike
-chess		Chess			pw
-devtest		Development Test	pw
-dome		Dome			dw
-famfeud		Family Feud		mike
-frogger		Frogger			dw
-garg		Garg!			ps
-hand		Hand			dw
-hell		Hell			dw
-house		House			dw
-icecaves	Ice-caves		pw
-mario		Mario Brothers		dw
-megablam	Mega-blam		ps
-mini		Mini			dw
-open		Open			dw
-peter		Peter Sundling's	ps
-pooyan		Pooyan			dw
-small		Small			dw
-sniper		Sniper			dw
-spiral		The Downward Spiral	dw & pw
-splatter	Splatter       		ps
-tower		Tower			bh
-tunnels		Tunnels			dw
-turret		Turret			dw
-warehous	Ware House		mike
----------------------------------------------------
+Map             Map Name                Author
+---------------------------------------------------------------
+arena           Arena                   David Wang
+around          Around                  Peter Sundling
+barrlamm        Barrel of Ammo          Mike
+barrlfun        Barrel Fun              Black Hand
+bigbang         Big Bang                Mike
+bigguns         Big Guns                David Wang
+cage            Cage                    Mike
+castle          Castle                  David Wang
+castle2         Castle 2                Peter Sundling
+castle3         Castle 3                Mike
+chemcham        Chemical Chambers       Mike
+chess           Chess                   Peter Wang
+construct       Construction Zone       Mike
+corridors       Corridors               Mike
+devtest         Development Test        Peter Wang
+dome            Dome                    David Wang
+famfeud         Family Feud             Mike
+garg            Garg!                   Peter Sundling
+hand            Hand                    David Wang
+hell            Hell                    David Wang
+hell2           Hell 2                  Mike
+icecaves        Ice-caves               Peter Wang
+innrspac        Inner Space             Mike
+lots            Lots                    Mike
+maze            Maze                    Mike
+megablam        Mega-blam               Peter Sundling
+mini            Mini                    David Wang
+nick            Nick                    Mike
+open            Open                    David Wang
+peter           Peter Sundling's        Peter Sundling
+small           Small                   David Wang
+sniper          Sniper                  David Wang
+splatter        Splatter                Peter Sundling
+tanxalot        Tanx-a-lot              Mike
+tower           Tower                   Black Hand
+tunnels         Tunnels                 David Wang
+tute            Tutorial                David Wang
+tute2           Tutorial 2              David Wang
+tute3           Tutorial 3              Mike
+tute4           Tutorial 4              Mike
+warehous        Ware-house              Mike
+
+
+Author                                  Maps
+---------------------------------------------------------------
+Black Hand <black.hand@t-online.de>     2
+David Wang                              13
+Mike <maulnmike@bolt.com>               17
+Peter Sundling <kaffepeter@telia.com>   6
+Peter Wang                              3
+Total                                   41
+
+
+---------------------------------------------------------------
 
 "Tute levels" - run in Solo mode and find your way around, going RIGHT
 first.  Hint: rocket jumps.  Hint 2: watch the demo :-)
-
----------------------------------------------------
-
-dw	David Wang
-bh	Black Hand (black.hand@t-online.de)
-ps	Peter Sundling (kaffepeter@telia.com)
-mike	Mike (maulnmike@bolt.com)
-pw	Peter Wang

@@ -1,6 +1,3 @@
-	shortcut to manual in windows installer
-	shortcut to map editor
-
 LATER:
 	beos port
 	qnx port

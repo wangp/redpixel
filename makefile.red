@@ -38,7 +38,7 @@ ifeq "$(PLATFORM)" "DJGPP"
 CFLAGS += -DTARGET_DJGPP
 GAME := reddos.exe
 ALLEGRO := -lalleg
-LIBS := $(ALLEGRO) $(LIBNET) $(LIBCDA) $(JGMOD) $(AGUP)
+LIBS := $(LIBNET) $(LIBCDA) $(JGMOD) $(AGUP) $(ALLEGRO)
 PLATFORM_MODULES := skdos
 OBJDIR := obj/djgpp
 endif
@@ -54,6 +54,7 @@ COMMON_MODULES := \
 	bullet		\
 	corpse		\
 	credits		\
+	cpu		\
 	demintro	\
 	demo		\
 	engine		\
@@ -185,7 +186,7 @@ bindir := $(prefix)/games
 docdir := $(prefix)/doc/redpixel-$(VERSION)
 sharedir := $(prefix)/share/redpixel
 
-INSTALL := install -C -p
+INSTALL := install -p
 
 install: $(GAME)
 	$(INSTALL) -m 755 -D $(GAME) $(bindir)/$(GAME)

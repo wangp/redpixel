@@ -19,9 +19,10 @@ DirText "Choose a directory to install in to:"
 Section "Red Pixel"
 	SetOutPath $INSTDIR
 	File "redwin.exe"
-	;File "reddos.exe"
+	File "reddos.exe" "cwsdpmi.exe"
 	File "blood.dat" "LICENCE.txt"
-	File /r demos docs maps music stats
+	File "docs\manual.html"
+	File /r demos maps music stats
 	;; Write the installation path into the registry
 	WriteRegStr HKLM SOFTWARE\Psyk_Redpixel "Install_Dir" "$INSTDIR"
 	;; Write the uninstall keys for Windows
@@ -32,15 +33,17 @@ SectionEnd
 ;; Optional section.
 Section "Start Menu Shortcuts"
 	CreateDirectory "$SMPROGRAMS\Red Pixel"
-	CreateShortCut "$SMPROGRAMS\Red Pixel\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 	CreateShortCut "$SMPROGRAMS\Red Pixel\Red Pixel.lnk" "$INSTDIR\redwin.exe" "" "$INSTDIR\redwin.exe" 0
-	;CreateShortCut "$SMPROGRAMS\Red Pixel\Red Pixel DOS.lnk" "$INSTDIR\reddos.exe" "" "$INSTDIR\reddos.exe" 0
+	CreateShortCut "$SMPROGRAMS\Red Pixel\Red Pixel Map Editor.lnk" "$INSTDIR\redwin.exe" "-e" "$INSTDIR\redwin.exe" 0
+	CreateShortCut "$SMPROGRAMS\Red Pixel\Red Pixel Manual.lnk" "$INSTDIR\manual.html" "" "$INSTDIR\manual.html" 0
+	CreateShortCut "$SMPROGRAMS\Red Pixel\Uninstall Red Pixel.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
+	CreateShortCut "$SMPROGRAMS\Red Pixel\Red Pixel DOS.lnk" "$INSTDIR\reddos.exe" "" "$INSTDIR\reddos.exe" 0
 SectionEnd
 
 
 ;;; Uninstall.
 
-UninstallText "This will uninstall Red Pixel.  Warning: if you have any demos or other files of your own, back them up now or they may be removed."
+UninstallText "This will uninstall Red Pixel.  Warning: if you have any demos, music, or other files of your own, back them up NOW or they will be removed."
 UninstallExeName "uninstall.exe"
 
 Section "Uninstall"
@@ -49,11 +52,13 @@ Section "Uninstall"
 	DeleteRegKey HKLM SOFTWARE\Psyk_Redpixel
 	;; Remove files.
 	Delete $INSTDIR\redwin.exe
-	; Delete $INSTDIR\reddos.exe
+	Delete $INSTDIR\reddos.exe
+	Delete $INSTDIR\cwsdpmi.exe
 	Delete $INSTDIR\blood.dat
 	Delete $INSTDIR\LICENCE.txt
+	Delete $INSTDIR\manual.html
+	Delete $INSTDIR\redpixel.cfg
 	RMDir /r $INSTDIR\demos
-	RMDir /r $INSTDIR\docs
 	RMDir /r $INSTDIR\maps
 	RMDir /r $INSTDIR\music
 	RMDir /r $INSTDIR\stats

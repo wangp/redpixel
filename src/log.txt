@@ -181,7 +181,7 @@ now back to school, so less done
 15 November	Renamed `shutdown' to `main_shutdown'
    		Quick fade out on exit.
 
-------------------------------- 2001 --------------------------------
+-------------------------- 1.0 (2001) -------------------------------
 
 17 April	#include <string.h> in some files
 		Fixed some things the cpp in use right now doesn't like
@@ -251,3 +251,24 @@ now back to school, so less done
 19 December	David Capello contributed music for the intro
 		Synchronised intro sequence to the music
 		Finally made volume sliders in options screen work
+
+20 December	Made my own markup tool for the manual, because
+			Linuxdoc is dead and the new SGML-Tools gives
+			me the shits
+		Re-marked up the manual
+
+21 December	Finished off markup tool (table of contents)
+		Worked on Windows port a bit
+		Some minor fixes
+
+22 December	Noticed that (item ...) was unnecessary in markup tool
+		Fixed mouse aiming in 320x240 and 640x480
+		Fixed intro on slow machines
+		_Finally_ merged Erno Kuusela's AI opponent.  He sent
+			it to me over a year ago, as a modified 0.9.
+			This initial merge is a little dirty.
+
+23 December	Got rid of overflow messages
+		Fixed some things I missed in the AI merge
+		Updated RPM spec
+		Released as version 1.0

@@ -29,7 +29,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root)
-%doc LICENCE.txt
+%doc LICENCE.txt docs/manual.html
 %{_prefix}/games/redpixel
 %{_datadir}/games/redpixel
 

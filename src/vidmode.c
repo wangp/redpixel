@@ -11,9 +11,6 @@
 #include "vidmode.h"
 
 
-void fblend_2x_stretch(BITMAP *src, BITMAP *dst, int s_x, int s_y, int d_x, int d_y, int w, int h);
-
-
 int desired_video_mode;
 int want_scanlines;
 static BITMAP *scanlined_screen;
@@ -21,7 +18,7 @@ static BITMAP *scanlined_screen;
 
 static void prepare_scanlines(void)
 {
-    int y;
+    int y, off;
     
     if ((!want_scanlines) || (SCREEN_H < 400))
 	return;
@@ -45,12 +42,14 @@ static void prepare_scanlines(void)
 	return;
 #endif
 
-    scanlined_screen = create_sub_bitmap(screen, 0, 0, SCREEN_W, SCREEN_H/2);
+    scanlined_screen = create_sub_bitmap(screen, 0, (SCREEN_H == 400) ? 0 : 20,
+					 SCREEN_W, 200);
     if (!scanlined_screen)
 	suicide("Out of memory");
-
+    
+    off = (SCREEN_H == 400) ? 0 : 20;
     for (y = 0; y < scanlined_screen->h; y++)
-	scanlined_screen->line[y] = screen->line[y*2];
+	scanlined_screen->line[y] = screen->line[off + (y*2)];
 }
 
 
@@ -118,6 +117,7 @@ int set_desired_video_mode_or_fallback(void)
 	}
     }
     
+    clear_bitmap(screen);
     clip_to_size();
     prepare_scanlines();
     
@@ -131,12 +131,7 @@ int set_desired_video_mode_or_fallback(void)
 inline void blit_to_screen_offset(BITMAP *buffer, int ox, int oy)
 {
     if (scanlined_screen) {
-	if ((scanlined_screen->w == 640) && (scanlined_screen->h == 200))
-	    stretch_blit(buffer, scanlined_screen, 0, 0, 320, 200, ox, oy, 640, 200);
-	else if ((scanlined_screen->w == 640) && (scanlined_screen->h == 240))
-	    stretch_blit(buffer, scanlined_screen, 0, 0, 320, 200, ox, 20+oy, 640, 200);
-	else
-	    suicide("internal error (interlacing)");
+	stretch_blit(buffer, scanlined_screen, 0, 0, 320, 200, ox, oy, 640, 200);
 	return;
     }
     

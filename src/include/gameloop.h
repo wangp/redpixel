@@ -5,7 +5,8 @@
 typedef enum {
     single,
     peerpeer,
-    demo
+    demo,
+    cpu
 } comm_t;
 
 

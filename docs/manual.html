@@ -1,66 +1,346 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-<HTML>
-<HEAD>
- <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
- <TITLE> Red Pixel: The Manual</TITLE>
- <LINK HREF="manual-1.html" REL=next>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html><head><title>Red Pixel</title></head>
+<body bgcolor="#FFFFFF" text="#000000" link="#5050E0" alink="#4040F0" vlink="#6060E0">
+<center><h1>Red Pixel</h1><p><em>A violent game.</em></center>
+<br><br><h1>Table of Contents</h1><blockquote>
+<b><a href="#sec_1">1. Preliminary stuff </a><br></b>
+<blockquote><a href="#sec_1_1">1.1. Disclaimer </a><br>
+<a href="#sec_1_2">1.2. System requirements </a><br>
+<a href="#sec_1_3">1.3. What's new? </a><br>
+<a href="#sec_1_4">1.4. Compiling from source </a><br>
+</blockquote><b><a href="#sec_2">2. The Game </a><br></b>
+<blockquote><a href="#sec_2_1">2.1. Starting the game </a><br>
+<a href="#sec_2_2">2.2. Connecting via a serial cable </a><br>
+<a href="#sec_2_3">2.3. Connecting via Berkeley sockets or Winsock </a><br>
+<a href="#sec_2_4">2.4. Playing the computer (CPU) </a><br>
+<a href="#sec_2_5">2.5. Controls </a><br>
+<a href="#sec_2_6">2.6. Items </a><br>
+<a href="#sec_2_7">2.7. Options </a><br>
+<a href="#sec_2_8">2.8. Stats </a><br>
+<a href="#sec_2_9">2.9. Demos </a><br>
+<a href="#sec_2_10">2.10. Performance </a><br>
+<a href="#sec_2_11">2.11. Tips </a><br>
+</blockquote><b><a href="#sec_3">3. The Map Editor </a><br></b>
+<blockquote><a href="#sec_3_1">3.1. Map editor keys </a><br>
+<a href="#sec_3_2">3.2. Custom maps </a><br>
+</blockquote><b><a href="#sec_4">4. Other stuff </a><br></b>
+<blockquote><a href="#sec_4_1">4.1. Game history </a><br>
+<a href="#sec_4_2">4.2. Known bugs </a><br>
+<a href="#sec_4_3">4.3. Copyright </a><br>
+<a href="#sec_4_4">4.4. Contacting Psyk Software </a><br>
+</blockquote></blockquote>
+<a name="sec_1"></a><br><hr width="90%"><br><h1>1. Preliminary stuff </h1>
+<a name="sec_1_1"></a><br><h2>1.1. Disclaimer </h2>
+<pre>     #include &lt;std_disclaimer.h&gt;
+
+      "I do not accept responsibility for any effects, adverse or otherwise,
+      that this code may have on you, your computer, your sanity, your dog,
+      and anything else that you can think of. Use it at your own risk." </pre>
+<a name="sec_1_2"></a><br><h2>1.2. System requirements </h2>
+<ul>
+<li>two Pentium class machines </li><li>Linux, DOS or Windows </li><li>serial cable or local area network </li><li>16 MB RAM </li><li>VGA-compliant card and monitor </li><li>mouse </li><li>tolerance for gore </li><li>headphones recommended </li></ul>
+<a name="sec_1_3"></a><br><h2>1.3. What's new? </h2>
+<br><h3>1.3.1. New in 1.0: </h3>
+<ul>
+<li>A computer controlled <a href="#cpu">punching bag </a>
+</li><li>An options screen (as a result, most command line options have been removed) </li><li>Different screen sizes for platforms that don't support 320x200 </li><li>CD and module music support </li><li>Current player's name is shown at bottom of screen in demo playback </li><li>Stats sanity checking when you connect two machines </li><li>More blood, and slowed down particles </li><li>Easier to install under Windows and Linux </li><li>Changed licence to zlib </li></ul>
+<br><h3>1.3.2. New in 0.11: </h3>
+<ul>
+<li>Linux port, and maps, by Peter Sundling (kaffepeter at telia dot com) </li><li><a href="#demo">demo </a>recording and playback 
+</li><li>experimental <a href="#sockets">sockets </a>support 
+</li><li>faster weapon stats </li><li>three maps by Mike </li><li>mouse wheel support (Linux only) </li><li>keyboard control in menu </li><li>experimental Windows port (unstable) </li><li>CD playing (not built by default) </li><li>filter command-line option (i.e. anti-aliasing) </li></ul>
+<br><h3>1.3.3. New in 0.9: </h3>
+<ul>
+<li>a lot more blood and sparks, and better particle generation </li><li>added <a href="#items">scanner </a>powerup 
+</li><li>added new death sequence (fountain) </li><li>added cool backdrop for frag count </li><li>added lcd cursor option </li><li>right mouse button now drops mine </li><li>Q/E and R/Y now select next/prev weapons </li><li>tweaked stats (see below) </li><li>configurable stats system </li><li>minor aesthetic and code-wise fixes </li><li>four new maps (castle, dome, sniper, mario) </li><li>changed licence to LGPL </li><li>this manual </li></ul>
+<a name="sec_1_4"></a><br><h2>1.4. Compiling from source </h2>
+<blockquote><p>This is only for the people wanting to compile the source
+	for themselves.  If you downloaded an installer or precompiled
+	binary, you can skip this part. </blockquote>
+<blockquote><p>The three platforms supported are djgpp under DOS, gcc
+	under Linux, and mingw32 under Windows.  You will also need to
+	install the Allegro game programming library, version 4.0.
+	Once those prerequisites are installed and working, simply
+	type `make' in the game's root directory. </blockquote>
+<blockquote><p>Under Linux console you will need to run the binary with
+	root permissions.  See `readme.lnx' in the Allegro
+	distribution for more information. </blockquote>
+<br><h3>1.4.1. Relevant links: </h3>
+<ul>
+<li>djgpp: <a href="http://www.delorie.com/djgpp/">http://www.delorie.com/djgpp/</a>
+</li><li>mingw32: <a href="http://www.mingw.org/">http://www.mingw.org/</a>
+</li><li>Allegro: <a href="http://alleg.sf.net/">http://alleg.sf.net/</a>
+</li></ul>
+<a name="sec_2"></a><br><hr width="90%"><br><h1>2. The Game </h1>
+<blockquote><p>Red Pixel is a platform deathmatch game.  You run around a
+tile-based map, picking up various items and shooting your opponent.
+The aim is to kill your opponent as many times as possible, until you
+both get bored.  Isn't simplicity wonderful? </blockquote>
+<a name="sec_2_1"></a><br><h2>2.1. Starting the game </h2>
+<blockquote><p>Simply run the executable to start.  If you used the
+	Windows installer, you can click on the item in the Start
+	menu. </blockquote>
+<blockquote><p>Optionally, you can pass the following command line
+	arguments.  Note that they are case sensitive. </blockquote>
+<blockquote><p><b>-e </b>-- Start the <a href="#mapeditor">map editor </a></blockquote>
+<blockquote><p><b>-q </b>-- Skip introduction. </blockquote>
+<blockquote><p><b>-v </b>-- Display version number. </blockquote>
+<a name="sec_2_2"></a><br><h2>2.2. Connecting via a serial cable </h2>
+<blockquote><p>[Note: serial connection is currently not implemented in
+	the Windows version.] </blockquote>
+<blockquote><p>Link two computers via a serial cable and start the game.
+	Select Start --> Serial, and then the correct COM port.  Enter
+	your name, then wait for the computers to connect. </blockquote>
+<blockquote><p>If an error occurs, check to make sure you used the right
+	command line option.  If you're are running a DOS executable
+	under Windows, try running under pure DOS.  (If you have a
+	Logitech mouse you could also also try what I did, and get
+	updated mouse drivers (MouseWare) for it from their web
+	site.) </blockquote>
+<blockquote><p>From here on, you will be shown a map selection screen.
+	Only the maps existing on both computers will be displayed.
+	Please make sure the maps are identical, otherwise your games
+	will be unsynchronised. Press the up and down arrow keys to
+	select a map. When you are ready to play, press `F10'. </blockquote>
+<blockquote><p>If your game become unsynchronised, quit the level and
+	restart.  If it ever says <tt>SYNC PROBLEM</tt>, then you'd
+	better restart from the serial connection procedure. </blockquote>
+<a name="sockets"></a>
+<a name="sec_2_3"></a><br><h2>2.3. Connecting via Berkeley sockets or Winsock </h2>
+<blockquote><p>One machine must first select `Listen' then wait.  The
+	other machine then selects `Connect'.  The connecting machine
+	will need to enter the name or the IP address of the listening
+	machine. </blockquote>
+<blockquote><p>After connection, the game acts as it would with a serial
+	connection. </blockquote>
+<blockquote><p>Note: as this driver simply emulates a perfect serial link
+	via a network, you can still only play two player games.
+	Also, you need a fast connection (e.g. LAN) between the
+	machines, since the game runs synchronously. </blockquote>
+<a name="cpu"></a>
+<a name="sec_2_4"></a><br><h2>2.4. Playing the computer (CPU) </h2>
+<blockquote><p>Thanks to Erno Kuusela, Red Pixel now has a CPU controlled
+	player to play against.  It's not too smart, but it's better
+	than nothing.  It can be used for target practice, or if you
+	take sick pleasure in killing stupid animals.  And as you
+	might expect, it's very accurate in its shooting :-) </blockquote>
+<blockquote><p>You can press F2 or F3 while playing to decrease and
+	increase the computer player's aggressiveness. </blockquote>
+<a name="sec_2_5"></a><br><h2>2.5. Controls </h2>
+<ul>
+<li>Use the following keys to move around.  They are all equivalent. <pre>
 
 
-</HEAD>
-<BODY BGCOLOR="#FFFFFF" TEXT="#000000">
-<A HREF="manual-1.html">Next</A>
-Previous
-Contents
-<HR>
-<H1> Red Pixel: The Manual</H1>
+          W               T                    Up
+      A - S - D       F - G - H         Left - Down - Right
+      
+ </pre>
 
-<BR><H2>Peter Wang, <CODE>tjaden@users.sf.net</CODE></H2> Third edition for Red Pixel 1.0, December 2001
-        
-        
-<P>
-<BR><H2><A NAME="toc1">1.</A> <A HREF="manual-1.html">Preliminary stuff</A></H2>
+</li><li>Aim the gun with the mouse, fire with the left mouse button. </li><li>Select the weapon with the number keys, and with Q, E, R, Y.
+	The weapons you have collected will be displayed on the left. </li><li>Press ENTER or press the right mouse button to lay a mine. </li><li>If you have one a wheel mouse and you are running Linux or
+	Windows, you can switch weapons using the wheel.  Please read
+	`readme.lnx' in the Allegro distribution to see how to set
+	this up under Linux.  Your mileage may vary, so don't be
+	disappointed if it doesn't work. </li><li>TAB to see your scores. </li><li>ESCAPE to quit. </li><li>F1 to see a short summary of the controls. </li><li>F12 to see the frame rate counter. </li></ul>
+<a name="items"></a>
+<a name="sec_2_6"></a><br><h2>2.6. Items </h2>
+<ul>
+<li>Weapons <ul>
+<li>Knife </li><li>Pistol </li><li>Shotgun </li><li>Uzi </li><li>M16 (just a big gun, nothing like an M16) </li><li>Minigun </li><li>Bow with explosive arrows </li><li>Bazooka </li><li>Mines </li></ul>
 
-<UL>
-<LI><A HREF="manual-1.html#ss1.1">1.1 Disclaimer</A>
-<LI><A HREF="manual-1.html#ss1.2">1.2 System Requirements</A>
-<LI><A HREF="manual-1.html#ss1.3">1.3 What's new?</A>
-<LI><A HREF="manual-1.html#ss1.4">1.4 Compiling from source</A>
-</UL>
-<P>
-<BR><H2><A NAME="toc2">2.</A> <A HREF="manual-2.html">The Game</A></H2>
+</li><li>Other items: <ul>
+<li>Chicken (+health) </li><li>Coke (+health) </li><li>Armour.  Takes half the damage from an attack (1 health = 2 armour) </li><li>Goggles.  Lights up your vision, for about a minute. </li><li>Backpack.  You drop half of all your ammo when you die, but your guns disappear. </li><li>Bloodlust.  Double damage for all weapons, except mines.  Be careful! </li><li>Scanner.  Points in the direction of your enemy. </li></ul>
 
-<UL>
-<LI><A HREF="manual-2.html#ss2.1">2.1 Concept</A>
-<LI><A HREF="manual-2.html#ss2.2">2.2 Starting the game </A>
-<LI><A HREF="manual-2.html#ss2.3">2.3 Connecting via a serial cable</A>
-<LI><A HREF="manual-2.html#ss2.4">2.4 Connecting via Berkeley sockets or Winsock </A>
-<LI><A HREF="manual-2.html#ss2.5">2.5 Controls</A>
-<LI><A HREF="manual-2.html#ss2.6">2.6 Items </A>
-<LI><A HREF="manual-2.html#ss2.7">2.7 Options </A>
-<LI><A HREF="manual-2.html#ss2.8">2.8 Stats </A>
-<LI><A HREF="manual-2.html#ss2.9">2.9 Demos </A>
-<LI><A HREF="manual-2.html#ss2.10">2.10 Performance</A>
-<LI><A HREF="manual-2.html#ss2.11">2.11 Tips</A>
-</UL>
-<P>
-<BR><H2><A NAME="toc3">3.</A> <A HREF="manual-3.html">The Map Editor </A></H2>
-
-<UL>
-<LI><A HREF="manual-3.html#ss3.1">3.1 Map editor keys</A>
-<LI><A HREF="manual-3.html#ss3.2">3.2 Custom maps</A>
-</UL>
-<P>
-<BR><H2><A NAME="toc4">4.</A> <A HREF="manual-4.html">Other stuff</A></H2>
-
-<UL>
-<LI><A HREF="manual-4.html#ss4.1">4.1 Game history</A>
-<LI><A HREF="manual-4.html#ss4.2">4.2 Known Bugs</A>
-<LI><A HREF="manual-4.html#ss4.3">4.3 Licensing details</A>
-<LI><A HREF="manual-4.html#ss4.4">4.4 Contacting Psyk Software</A>
-</UL>
-<HR>
-<A HREF="manual-1.html">Next</A>
-Previous
-Contents
-</BODY>
-</HTML>
+</li></ul>
+<a name="sec_2_7"></a><br><h2>2.7. Options </h2>
+<blockquote><p>There are a few things you can do in the options screen. </blockquote>
+<blockquote><p>Under DESIRED RESOLUTION, you can pick a screen mode you
+	want to use.  Be aware that not all of them may work on your
+	system.  Higher resolutions are only recommended when the
+	lower resolutions do not work.  You will NOT receive higher
+	quality graphics, but rather a 320x200 image will be stretched
+	up.  The video mode is changed when you push ACCEPT. </blockquote>
+<blockquote><p>If the SCANLINES option is enabled and you are in a high
+	resolution video mode (either 640x400 or 640x480), then the
+	game will try to create a ``scanline'' effect for you, where
+	every second line is black.  This does not always work (in
+	particular windowed modes often do not work). </blockquote>
+<blockquote><p>If the FILTERED option is enabled, you will get slightly
+	blurred image, which you may or may not like (nice for demos,
+	in my opinion).  This requires a fast machine. </blockquote>
+<blockquote><p>If the "FAMILY" MODE option is enabled, there will be
+	less blood on screen.  You may want to switch this on if the
+	game jerks when a player is shot. </blockquote>
+<blockquote><p>There are three options for music playback.  You can have
+	NO MUSIC, which is the classic way to play Red Pixel.  You can
+	also put some .mod, .s3m and .xm files into the `music'
+	directory, and select PLAY MODULES.  The game will select
+	songs to play at random.  Or, you can put a music CD into your
+	CD drive and select PLAY CD. </blockquote>
+<blockquote><p>The RECORD DEMOS option is explained in the <a href="#demo">demo section </a></blockquote>
+<blockquote><p>The MOUSE SPEED option adjusts the speed of the mouse's
+	movement.  Note that this does not work in all environments
+	(e.g. it might not work in windowed environments). </blockquote>
+<blockquote><p>In the bottom left corner there is a button (usually
+	labelled ``default.st'' or similar).  This is explained in
+	the <a href="#stats">next section </a>. </blockquote>
+<a name="stats"></a>
+<a name="sec_2_8"></a><br><h2>2.8. Stats </h2>
+<blockquote><p>``Stats'' are various little numbers that change how the
+	game works, e.g. how much damage each gun can bring about and
+	how fast it reloads, how much health you can have, etc. </blockquote>
+<blockquote><p>You can select different stats from the Options menu,
+	using the button in the bottom left corner.  Once you select a
+	stats file, the name of the stats file will be displayed in
+	the lower right corner of the main menu.  To play with a
+	network or serial game with another player, you must both
+	select the same stats file (or you will receive an error
+	message). </blockquote>
+<blockquote><p>Included with the game are four stats files.  `default.st'
+	is the more up to date version, providing more powerful
+	weapons with quicker reload and respawn rates than previous
+	versions.  `red07.st' and `red09.st' provide values from older
+	versions, kept only for historic reasons.  See inside
+	`quick.st' for details about that (it's quite fun). </blockquote>
+<blockquote><p>You can create your own stats by copying one of them, and
+	editing it with a text editor. </blockquote>
+<a name="demo"></a>
+<a name="sec_2_9"></a><br><h2>2.9. Demos </h2>
+<blockquote><p>You can record your deathmatches into demo files.  To do
+	this, switch on the RECORD DEMOS option in the Options
+	screen. </blockquote>
+<blockquote><p>When you start a new game, it will automatically save a
+	demo into the current directory, named `demoXXXX.rec'.  Under
+	Linux it will also try your home directory. </blockquote>
+<blockquote><p>To play a demo, simply choose the PLAY DEMO menu item
+	under START, then select a demo recording file. </blockquote>
+<blockquote><p>Special keys available only in demo playback mode: <ul>
+<li>ENTER - switch which player camera focuses on </li><li>S - hold this down for slow motion mode </li><li>F - hold this down for fast forward mode </li><li>P - take screen shot </li></ul>
+</blockquote>
+<blockquote><p>Please note that if you exit a demo before its completion,
+	it will display the frag count as of the time you quit.
+	(Sorry about that.) </blockquote>
+<blockquote><p>If you record a cool demo, whether a demostration of a
+	cool move in solo mode, or a nice, bloody deathmatch, please
+	send it to me! </blockquote>
+<blockquote><p>If a demo does not play back properly, sent it to me for
+	debugging.  I won't be able to save the demo, but it may help
+	me track down bugs to prevent this sort of thing in the
+	future.  If you really hate losing demos, try recording on
+	both machines.  Chances are, one of the recordings will be
+	correct. </blockquote>
+<a name="sec_2_10"></a><br><h2>2.10. Performance </h2>
+<blockquote><p>If the game is running too slowly, there are a few things
+	you can try. <ul>
+<li>Switch off module music as it takes a lot of CPU
+		processing.  Use CD audio or no music instead. </li><li>Enable "family" mode if the game jerks when players
+		generate blood. </li><li>Don't use high resolution video modes if you can
+		avoid it. </li><li>Under the X Window System, try starting the X server
+		in 8 bits per pixel mode, or running the game as root
+		(the usual security concerns apply, of course).  If
+		you are running Linux, the console may be a better
+		choice. </li></ul>
+</blockquote>
+<a name="sec_2_11"></a><br><h2>2.11. Tips </h2>
+<ul>
+<li>Use sound to find where your opponent is.  Also, eating
+	food does not make a noise, but picking up things does. </li><li>After you pick up an item, place a mine there.  Works
+	also for regenerating walls (will not flash). </li><li>The scanner is good for running away, as well as tracking
+	down. </li><li>If are being mowed down with a minigun, run and drop mines!
+	The blood will conceal it :) </li><li>Jump up ladders, never climb. </li></ul>
+<a name="mapeditor"></a>
+<a name="sec_3"></a><br><hr width="90%"><br><h1>3. The Map Editor </h1>
+<a name="sec_3_1"></a><br><h2>3.1. Map editor keys </h2>
+<blockquote><p>After starting the map editor (with the <b>-e </b>command line option) you will be presented with a blank
+	screen.  On the bottom there is a palette and on the top there
+	is a description of the current map, showing the top-left map
+	coordinates and size. <ul>
+<li>arrow keys to pan around </li><li>1, 2, 3 to change editing modes (tiles, items, starting locations) </li><li>I, J, K, L to change map size </li><li>Ctrl-N to clear </li><li>Ctrl-S to save </li><li>Ctrl-L to load </li><li>Ctrl-Q to quit (warning: does not prompt!) </li></ul>
+</blockquote>
+<blockquote><p>Select an item or tile with the left mouse button, place
+	it on the map with the left mouse button.  Right mouse button
+	clears. </blockquote>
+<blockquote><p>There is a set maximum of 24 starting locations on a
+	single map.  These appear as white flags (edit mode 3). </blockquote>
+<a name="sec_3_2"></a><br><h2>3.2. Custom maps </h2>
+<blockquote><p>If you wish to play your custom maps, make sure that you have
+	exactly the same file on both machines!  And make sure you send
+	them to me so I can put them up on my web page. </blockquote>
+<blockquote><p>For compatibility reasons, filenames MUST be all lowercase on
+    case-sensitive operating systems (i.e. Linux), and everyone should
+    stick to the DOS 8.3 filename limits. </blockquote>
+<a name="sec_4"></a><br><hr width="90%"><br><h1>4. Other stuff </h1>
+<a name="sec_4_1"></a><br><h2>4.1. Game history </h2>
+<blockquote><p>August 1999: <blockquote><p>I originally thought of the idea for this game
+		about half a year before I developed it (Jan 1999).
+		At the time I was trying to write a top-down shooter
+		called `Raid II' (dropped about 5 times!) so I delayed
+		it, while my brother worked on the tiny little
+		sprites. </blockquote>
+<blockquote><p>The development (starting June that year) took
+		three months.  The basic engine was working in a week,
+		the rest of the time was used getting the serial
+		connection to go, and to tweak things a little.  It
+		has been a year since. </blockquote>
+<blockquote><p>Yesterday I fixed some really annoying bugs (see
+		log.txt), and tweaked the stats to increase the frag
+		counts.  Now I am writing this SGML manual to learn
+		SGML.  It has been a successful project. </blockquote>
+<blockquote><p>But the code sucks. :-) </blockquote>
+</blockquote>
+<blockquote><p>June 2000 <blockquote><p>The code has been cleaned up a lot, so is better
+		now.  It's still not worth a 1.0 though.  :-) </blockquote>
+</blockquote>
+<blockquote><p>December 2001 <blockquote><p>I've had a change of heart and labelled it 1.0,
+		just to "finish" it. </blockquote>
+</blockquote>
+<a name="sec_4_2"></a><br><h2>4.2. Known bugs </h2>
+<ul>
+<li>the blood particles drip through the walls.  This is too cool to fix! </li><li>the guy sometimes gets stuck inside a wall (often after explosion) </li><li>a ladder directly below a tile will allow the guy to pop up into the tile </li><li>you can jump through tiles placed diagonally </li></ul>
+<a name="sec_4_3"></a><br><h2>4.3. Copyright </h2>
+<blockquote><p>The source code, art and other materials that make up Red
+	Pixel are subject to the following copyright, with some except
+	as noted afterwards. </blockquote>
+<br><h3>4.3.1. Red Pixel </h3>
+<blockquote><p>Copyright (C) 2001 Peter Wang and contributing
+		authors. </blockquote>
+<blockquote><p>This software is provided 'as-is', without any
+		express or implied warranty.  In no event will the
+		authors be held liable for any damages arising from
+		the use of this software. </blockquote>
+<blockquote><p>Permission is granted to anyone to use this
+		software for any purpose, including commercial
+		applications, and to alter it and redistribute it
+		freely, subject to the following restrictions: </blockquote>
+<blockquote><p>1. The origin of this software must not be
+		misrepresented; you must not claim that you wrote the
+		original software. If you use this software in a
+		product, an acknowledgment in the product
+		documentation would be appreciated but is not
+		required. </blockquote>
+<blockquote><p>2. Altered source versions must be plainly marked
+		as such, and must not be misrepresented as being the
+		original software. </blockquote>
+<blockquote><p>3. This notice may not be removed or altered from
+		any source distribution. </blockquote>
+<blockquote><p>[For informational purposes, this is the zlib
+		licence.] </blockquote>
+<br><h3>4.3.2. Exceptions </h3>
+<blockquote><p>Brennan Underwood's `fastsqrt' routines (in the
+		src/fastsqrt directory) do not fall under the licence
+		above.  (I don't know what licence it falls under, but
+		it's free software of some sort.) </blockquote>
+<blockquote><p>The slightly modified random number generator
+		`rg_rand.c' was taken from the Snippets collection,
+		and remains in the public domain. </blockquote>
+<blockquote><p>`getopt.c' was taken from some mailing archive
+		somewhere.  It retains its license and copyright. </blockquote>
+<blockquote><p>Other libraries used are libnet, JGMOD, libcda and
+		AGUP.  Although they are included in the Red Pixel's
+		source tree for convenience, they retain their own
+		copyrights (of course). </blockquote>
+<a name="sec_4_4"></a><br><h2>4.4. Contacting Psyk Software </h2>
+<blockquote><p>Email: <a href="mailto:tjaden@users.sf.net">tjaden@users.sf.net </a></blockquote>
+<blockquote><p>WWW: <a href="http://www.alphalink.com.au/~tjaden/">http://www.alphalink.com.au/~tjaden/</a></blockquote>
+<blockquote><p>Red Pixel: <a href="http://redpixel.sf.net/">http://redpixel.sf.net/</a></blockquote>
+<br><br></body></html>

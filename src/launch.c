@@ -15,6 +15,7 @@
 #include "credits.h"
 #include "blood.h"
 #include "colours.h"
+#include "cpu.h"
 #include "demo.h"
 #include "demintro.h"
 #include "engine.h"
@@ -22,6 +23,7 @@
 #include "globals.h"
 #include "main.h"
 #include "map.h"
+#include "message.h"
 #include "music.h"
 #include "options.h"
 #include "player.h"
@@ -727,6 +729,7 @@ static void do_session()
     int played = 0;
     int top = 0, selected = 0;
     
+    record_reminder[0] = '\0';
     if (record_demos) 
 	try_demo_write_open();
    
@@ -766,6 +769,9 @@ static void do_session()
 	if (!mute_sfx)
 	    play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
 
+	if ((comm == cpu) && (!played))	/* hack */
+	    add_msg("Use F2 and F3 to adjust CPU level", local);
+	
       returntogame:   
 	game_loop();
 
@@ -1030,6 +1036,43 @@ static void single_proc()
 
 /*----------------------------------------------------------------------
  *
+ * 	CPU
+ * 
+ *----------------------------------------------------------------------*/
+
+static void cpu_proc()
+{
+    if (!get_name())
+	return;
+
+    /* set up environment */
+    comm = cpu;
+    local = 0;
+    cpu_num = 1;
+    num_players = 2;
+
+    seed = rand();
+    srnd(seed);
+    sirnd(seed);
+    next_position = irnd() % (24*24);
+
+    strcpy(players[local].name, local_name);
+    strcpy(players[cpu_num].name, "CPU");
+    
+    get_map_filenames();
+    sort_map_filenames();
+    
+    do_session();
+
+    free_map_filenames();
+
+    enter_menu(root_menu); 
+}
+
+
+
+/*----------------------------------------------------------------------
+ *
  * 	Libnet
  * 
  *----------------------------------------------------------------------*/
@@ -1215,6 +1258,7 @@ static BLUBBER startgame_menu[] =
 #ifndef NO_LIBNET_CODE
     { join_menu, "Sockets",	libnet_menu },
 #endif
+    { menu_proc, "CPU", 	cpu_proc },
     { menu_proc, "Play Demo", 	demo_playback_proc },
     { prev_menu, "", 		root_menu }
 };

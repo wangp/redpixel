@@ -434,7 +434,16 @@ int num_ammo(int pl, int weapon)
 void get_local_input()
 {
     int mx = mouse_x * 320.0/SCREEN_W;
-    int my = mouse_y * 200.0/SCREEN_H;
+    int my;
+
+    if (SCREEN_H == 480)
+	my = (mouse_y - 40) / 2;
+    else if (SCREEN_H == 400)
+	my = mouse_y / 2;
+    else if (SCREEN_H == 240)
+	my = mouse_y - 20;
+    else
+	my = mouse_y;
 
     players[local].angle = find_angle(players[local].x - px + 3,
 				      players[local].y - py + 4,
