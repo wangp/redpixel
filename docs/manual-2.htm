@@ -17,7 +17,7 @@
 <H2><A NAME="ss2.1">2.1 Concept</A>
 </H2>
 
-<P>The concept is a platform deathmatch game.  You run around a tile-based map, 
+<P>The concept is a platform deathmatch game.  You run around a tile-based map,
 picking up various items and shooting your opponent.  Original.
 <P>
 <H2><A NAME="ss2.2">2.2 Story</A>
@@ -28,29 +28,29 @@ picking up various items and shooting your opponent.  Original.
 prisoners. Contained within the dungeon are various magical objects,
 mostly weapons, which respawn after a certain time period.
 <P>Surrounded by such weapons of destruction, you cannot resist the
-temptation...
+temptation to kill everyone around you.
 <P>
 <H2><A NAME="sec-starting"></A> <A NAME="ss2.3">2.3 Starting the game</A>
 </H2>
 
-<P>Simply run the executable <B>red.exe</B> (or <B>red</B> under Linux) to start.
+<P>Simply run the executable <B>red.exe</B> (<B>redpixel</B> under Linux) to start.
 Please note the following command-line options are <EM>case-sensitive</EM>:
 <P>
 <DL>
 <P>
-<A NAME="sec-cmdline"></A> <DT><B>--edit, -e</B><DD><P>Start semi-built-in 
+<A NAME="sec-cmdline"></A> <DT><B>-e</B><DD><P>Start semi-built-in 
 <A HREF="manual-3.htm#sec-mapeditor">map editor</A>.
-<DT><B>--lcd, -l</B><DD><P>Use bright (ugly) version of mouse cursor.  Designed 
+<DT><B>-l</B><DD><P>Use bright (ugly) version of mouse cursor.  Designed 
 to be used on hard to see laptop displays.
-<DT><B>--stats, -s</B><DD><P>Use alternative 
+<DT><B>-s</B><DD><P>Use alternative 
 <A HREF="#sec-stats">stats</A> for items.
-<DT><B>--com1, -1</B><DD><P>Use COM1 for serial connections.
-<DT><B>--com[234], -2, -3, -4</B><DD><P>Ditto.  Default is 2.
-<DT><B>--skip, -s</B><DD><P>Skip introduction.
-<DT><B>--version, -v</B><DD><P>Display version number.
+<DT><B>-1, -2, -3, -4</B><DD><P>Use COMx for serial communications.  Default is COM2.
+<DT><B>-q</B><DD><P>Skip introduction (quick!).
+<DT><B>-v</B><DD><P>Display version number.
+<DT><B>-d</B><DD><P>Enable 
+<A HREF="#sec-demo">demo</A> recording.
 </DL>
-<P>Note that you <B>cannot</B> collate the options.  i.e. <CODE>red
--1ql</CODE> is invalid.
+<P>You can collate the options together, e.g. <CODE>red -1ql</CODE>.
 <P>Linux users: COM1 = /dev/ttyS0; COM2 = /dev/ttyS1; etc.
 <P>
 <H2><A NAME="ss2.4">2.4 Serial connection details </A>
@@ -60,8 +60,8 @@ to be used on hard to see laptop displays.
 options in section 
 <A HREF="#sec-starting">Starting the game</A>).  
 Select `Start' --> `Serial'.  Enter your name, then wait for
-the computers to connect.  If it hangs, press `Ctrl-Alt-End' and try
-again.
+the computers to connect.  If it hangs for some reason, press
+`Ctrl-Alt-End' and try again.
 <P>If it says `Error opening COM port', check to make
 sure you used the right <CODE>--comX</CODE> option.  If you're are
 running Windows 9x, try running under pure DOS.  If you have a
@@ -98,6 +98,9 @@ from the serial connection procedure.
 <EM>Q, E, R, Y</EM>.  The weapons you have collected will be displayed on the
 left.  Press <EM>Enter</EM> or press the <EM>right mouse button</EM> to lay a
 mine.</LI>
+<LI>If you have one and you are running under Linux, you can switch weapons
+using a mouse wheel on an Intellimouse-compatible mouse.  Please read
+`readme.lnx' in the Allegro distribution to see how to set this up.</LI>
 <LI><EM>TAB</EM> to see your scores.  <EM>ESC</EM> to quit.</LI>
 <LI><EM>F12</EM> to see the frame rate counter.  This is a development
 feature, so it's not supposed to work properly.  Just push it quickly
@@ -129,8 +132,7 @@ and see.</LI>
 <LI>Armour.  Takes half the damage from an attack (1 health = 2 armour)</LI>
 <LI>Goggles.  Lights up your vision, for about a minute.</LI>
 <LI>Backpack.  You drop half of all your ammo when you die, but your guns disappear.</LI>
-<LI>Bloodlust.  Double damage for all weapons, except mines.  Be careful!
-Lasts 30 seconds.</LI>
+<LI>Bloodlust.  Double damage for all weapons, except mines.  Be careful!</LI>
 <LI>Scanner.  Points in the direction of your enemy.</LI>
 </UL>
 </LI>
@@ -158,7 +160,26 @@ them with a text editor, then use it with
 Note that both machines will need <B>exactly</B> the same file, and both
 must run with the <CODE>-s</CODE> command-line option.  You have been warned.
 <P>
-<H2><A NAME="ss2.8">2.8 Tips</A>
+<H2><A NAME="sec-demo"></A> <A NAME="ss2.8">2.8 Demos</A>
+</H2>
+
+<P>You can record your deathmatches into demo files.  To do this, first
+start Red Pixel using the <CODE>-d</CODE> command-line option.
+<P>When you start a new game, it will automatically save a demo into the
+current directory, named <CODE>demoXXXX.rec</CODE>, or if that is unwritable
+into your home directory (if you don't know what I'm talking about, don't
+worry).
+<P>To play a demo, simply choose the ``Play Demo'' menu item under ``Start''.
+<P>Special keys available only in demo playback mode:
+<P>
+<UL>
+<LI>Enter - switch which player camera focuses on</LI>
+<LI>S - hold this down for slow motion mode</LI>
+</UL>
+<P>Please note that if you exit a demo before its completion, it will display
+the frag count <EM>as of the time you quit.</EM>
+<P>
+<H2><A NAME="ss2.9">2.9 Tips</A>
 </H2>
 
 <P>
@@ -167,7 +188,7 @@ must run with the <CODE>-s</CODE> command-line option.  You have been warned.
 does not make a noise, but picking up things does.</LI>
 <LI>After you pick up an item, place a mine there.  Works also for
 regenerating walls (will not flash).</LI>
-<LI>The scanner is good for pursuit, as well as flight.</LI>
+<LI>The scanner is good for running away, as well as tracking down.</LI>
 <LI>If are being mowed down with a minigun, run and drop mines!  The
 blood will conceal it :)</LI>
 <LI>Jump over your enemy and lay mines.</LI>

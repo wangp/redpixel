@@ -1,6 +1,6 @@
   Red Pixel: The Manual
   Peter Wang, tjaden@psynet.net
-  Second edition for Red Pixel v0.10, May 2000
+  Second edition for Red Pixel v0.11, May 2000
 
   This document is a brief manual for the game RReedd PPiixxeell, adapted from
   the original redpixel.txt.
@@ -25,7 +25,8 @@
      2.5 Controls
      2.6 Items
      2.7 Stats
-     2.8 Tips
+     2.8 Demos
+     2.9 Tips
 
   3. The Map Editor
 
@@ -62,6 +63,7 @@
   11..22..  SSyysstteemm RReeqquuiirreemmeennttss
 
 
+
   +o  two Pentium class machines
 
   +o  DOS or Linux (Intel only, I think)
@@ -81,12 +83,20 @@
 
   11..33..  WWhhaatt''ss nneeww iinn tthhiiss vveerrssiioonn
 
-  New in 0.10:
+  New in 0.11:
 
 
   +o  Linux port and maps by Peter Sundling (kaffepeter@telia.com)
 
   +o  stats.fst file
+
+  +o  three maps by Mike (see maps/authors.txt)
+
+  +o  mouse wheel support (Linux only)
+
+  +o  keyboard control in menu
+
+  +o  ``demo'' recording and playback
 
 
   New in 0.9:
@@ -158,42 +168,35 @@
   weapons, which respawn after a certain time period.
 
   Surrounded by such weapons of destruction, you cannot resist the
-  temptation...
+  temptation to kill everyone around you.
 
 
   22..33..  SSttaarrttiinngg tthhee ggaammee
 
-  Simply run the executable rreedd..eexxee (or rreedd under Linux) to start.
+  Simply run the executable rreedd..eexxee (rreeddppiixxeell under Linux) to start.
   Please note the following command-line options are _c_a_s_e_-_s_e_n_s_i_t_i_v_e:
 
 
 
-     ----eeddiitt,, --ee
-        Start semi-built-in ``map editor''.
+     --ee Start semi-built-in ``map editor''.
 
-     ----llccdd,, --ll
-        Use bright (ugly) version of mouse cursor.  Designed to be used
+     --ll Use bright (ugly) version of mouse cursor.  Designed to be used
         on hard to see laptop displays.
 
-     ----ssttaattss,, --ss
-        Use alternative ``stats'' for items.
+     --ss Use alternative ``stats'' for items.
 
-     ----ccoomm11,, --11
-        Use COM1 for serial connections.
+     --11,, --22,, --33,, --44
+        Use COMx for serial communications.  Default is COM2.
 
-     ----ccoomm[[223344]],, --22,, --33,, --44
-        Ditto.  Default is 2.
+     --qq Skip introduction (quick!).
 
-     ----sskkiipp,, --ss
-        Skip introduction.
+     --vv Display version number.
 
-     ----vveerrssiioonn,, --vv
-        Display version number.
+     --dd Enable ``demo'' recording.
 
-  Note that you ccaannnnoott collate the options.  i.e. red -1ql is invalid.
+  You can collate the options together, e.g. red -1ql.
 
   Linux users: COM1 = /dev/ttyS0; COM2 = /dev/ttyS1; etc.
-
 
 
   22..44..  SSeerriiaall ccoonnnneeccttiioonn ddeettaaiillss
@@ -201,7 +204,7 @@
   Link two computers via a serial cable in COM 1-4 (see Command line
   options in section ``Starting the game'').  Select `Start' -->
   `Serial'.  Enter your name, then wait for the computers to connect.
-  If it hangs, press `Ctrl-Alt-End' and try again.
+  If it hangs for some reason, press `Ctrl-Alt-End' and try again.
 
   If it says `Error opening COM port', check to make sure you used the
   right --comX option.  If you're are running Windows 9x, try running
@@ -245,11 +248,18 @@
      weapons you have collected will be displayed on the left.  Press
      _E_n_t_e_r or press the _r_i_g_h_t _m_o_u_s_e _b_u_t_t_o_n to lay a mine.
 
+  +o  If you have one and you are running under Linux, you can switch
+     weapons using a mouse wheel on an Intellimouse-compatible mouse.
+     Please read `readme.lnx' in the Allegro distribution to see how to
+     set this up.
+
   +o  _T_A_B to see your scores.  _E_S_C to quit.
 
   +o  _F_1_2 to see the frame rate counter.  This is a development feature,
      so it's not supposed to work properly.  Just push it quickly and
      see.
+
+
 
 
   22..66..  IItteemmss
@@ -260,7 +270,6 @@
   +o  Knife
 
   +o  Pistol
-
 
   +o  Shotgun
 
@@ -290,7 +299,7 @@
      guns disappear.
 
   +o  Bloodlust.  Double damage for all weapons, except mines.  Be
-     careful!  Lasts 30 seconds.
+     careful!
 
   +o  Scanner.  Points in the direction of your enemy.
 
@@ -318,7 +327,32 @@
   run with the -s command-line option.  You have been warned.
 
 
-  22..88..  TTiippss
+
+  22..88..  DDeemmooss
+
+  You can record your deathmatches into demo files.  To do this, first
+  start Red Pixel using the -d command-line option.
+
+  When you start a new game, it will automatically save a demo into the
+  current directory, named demoXXXX.rec, or if that is unwritable into
+  your home directory (if you don't know what I'm talking about, don't
+  worry).
+
+  To play a demo, simply choose the ``Play Demo'' menu item under
+  ``Start''.
+
+  Special keys available only in demo playback mode:
+
+
+  +o  Enter - switch which player camera focuses on
+
+  +o  S - hold this down for slow motion mode
+
+  Please note that if you exit a demo before its completion, it will
+  display the frag count _a_s _o_f _t_h_e _t_i_m_e _y_o_u _q_u_i_t_.
+
+
+  22..99..  TTiippss
 
 
   +o  Use the 3D sound to find where your opponent is.  Also, eating food
@@ -327,8 +361,7 @@
   +o  After you pick up an item, place a mine there.  Works also for
      regenerating walls (will not flash).
 
-
-  +o  The scanner is good for pursuit, as well as flight.
+  +o  The scanner is good for running away, as well as tracking down.
 
   +o  If are being mowed down with a minigun, run and drop mines!  The
      blood will conceal it :)
@@ -359,6 +392,7 @@
   +o  Ctrl-N to clear
 
   +o  Ctrl-S to save
+
 
   +o  Ctrl-L to load
 
@@ -393,7 +427,6 @@
   getting the serial connection to go, and to tweak things a little.  It
   has been a year since.
 
-
   Yesterday I fixed some really annoying bugs (see log.txt), and tweaked
   the stats to increase the frag counts.  Now I am writing this SGML
   manual to learn SGML.  It has been a successful project.
@@ -425,6 +458,7 @@
 
 
   +o  clean up and modularise the code
+
 
   +o  proper networking (client-server, packet loss detection, etc.)
 
@@ -459,46 +493,12 @@
 
 
 
-
   66..  CCoonnttaaccttiinngg PPssyykk SSooffttwwaarree
 
 
 
        Email: tjaden@psynet.net
        WWW:   http://www.psynet.net/tjaden/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -13,5 +13,7 @@ typedef struct {
 } STAT_VAR;
 
 int read_stats(char *fn, STAT_VAR *block);
+void for_every_stat(STAT_VAR *block, int (*proc)(STAT_VAR *sv));
+
 
 #endif _included_stats_h_

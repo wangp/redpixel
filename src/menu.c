@@ -25,22 +25,24 @@
 
 #include <ctype.h>
 #include <string.h>
-//#include <dir.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <allegro.h>
 #include "common.h"
 #include "run.h"
-#ifdef MODEM_CODE
-#include "skmod.h"
-#else
 #include "sk.h"
-#endif
+#include "demo.h"
+#include "demintro.h"
+#include "stats.h"
+#include "statlist.h"
+#include "setweaps.h"
 #include "blood.h"
 
 
 
-void load_map_wrapper(char *fn)
+/* Needed, mostly for Unix, because of some of old case-insensitive
+ * filename assumptions. */
+int load_map_wrapper(char *fn)
 {
     char path[1024], tmp[1024];
     
@@ -52,11 +54,16 @@ void load_map_wrapper(char *fn)
     strlwr(tmp);
     strcat(path, tmp);
 
-    load_map(path);
+    return load_map(path);
 }
 
 
-//------------------------------------------------------ menu `system' -------
+
+/*----------------------------------------------------------------------
+ *
+ * 	Menu system globals
+ * 
+ *----------------------------------------------------------------------*/
 
 typedef struct BLUBBER
 {
@@ -73,16 +80,16 @@ int     end;
 int     count, top;
 
 
-//------------------------------------------------------ ditto ---------------
-
 BLUBBER root_menu[];
 BLUBBER startgame_menu[];
-#ifdef MODEM_CODE
-BLUBBER modem_menu[];
-#endif
 
 
-//------------------------------------------------------ procs ---------------
+
+/*----------------------------------------------------------------------
+ *
+ * 	Procs
+ * 
+ *----------------------------------------------------------------------*/
 
 void prev(BLUBBER *bp, int command, int ex) { /* i am a dummy */ } 
 
@@ -95,8 +102,7 @@ void enter_menu(BLUBBER *bp)
 
     // count items
     count = 0;
-    do 
-    {
+    do {
 	bp = &cur[i++];
 	count++;
     } while (bp->proc != prev);
@@ -138,13 +144,17 @@ void func(BLUBBER *bp, int command, int ex)
 }
 
 
-//------------------------------------------------------ funcs ---------------
+
+/*----------------------------------------------------------------------
+ *
+ * 	Credits and quit 
+ * 
+ *----------------------------------------------------------------------*/
 
 void credits(); //creds.c
 
 void credits_func()
 {
-    // super dooper zapper creds
     credits();
 }
 
@@ -154,7 +164,12 @@ void quit_func()
 }
 
 
-//------------------------------------------------------ whatta your name ----
+
+/*----------------------------------------------------------------------
+ *
+ * 	Name entry
+ * 
+ *----------------------------------------------------------------------*/
 
 #define MAX_NAME_LEN    16
 char local_name[MAX_NAME_LEN+1] = "NO NAME";
@@ -214,71 +229,12 @@ int get_name()
 }
 
 
-//------------------------------------------------------ phone no. -----------
 
-#ifdef MODEM_CODE
-
-#define MAX_PHONENO_LEN    16
-char phoneno[MAX_PHONENO_LEN+1] = "";
-
-int get_phoneno()
-{
-    int k, len, ch;
-    char temp[80];
-
-    show_mouse(NULL);
-    clear_keybuf();
-
-    for (;;)
-    {
-	// screen output
-	strcpy(temp, phoneno);
-	strcat(temp, "_");
-	clear(dbuf);
-	textout_centre(dbuf, small, "NUMBER TO DIAL:", 160, 70, makecol(255,255,255));
-	textout_centre(dbuf, small, temp, 160, 90, makecol(255,255,255));
-	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
-
-	// wait for keypress
-	k = readkey();
-
-	// enter.. continue
-	if ((k>>8) == KEY_ENTER) {
-	    while (key[KEY_ENTER]);
-	    return 1;
-	}
-
-	// esc.. get out
-	if ((k>>8) == KEY_ESC) {
-	    while (key[KEY_ESC]);
-	    return 0;
-	}
-
-	// otherwise entering name
-	len = strlen(phoneno);
-
-	// backspace
-	if ((k>>8) == KEY_BACKSPACE && len > 0)
-	{
-	    phoneno[len-1] = 0;
-	    play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
-	}
-	else if (len < MAX_NAME_LEN)    // ascii key
-	{
-	    ch = toupper(k & 0xff);
-	    if (ch >= '#' && ch <= 'F') {
-		phoneno[len] = ch;
-		phoneno[len+1] = 0;
-	    }
-	    play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
-	}
-    }
-}
-
-#endif
-
-
-//------------------------------------------------------ wak names -----------
+/*----------------------------------------------------------------------
+ *
+ * 	Map filenames
+ * 
+ *----------------------------------------------------------------------*/
 
 typedef struct MAPFILE
 {
@@ -409,7 +365,12 @@ void free_map_filenames()
 }
 
 
-//------------------------------------------------------ trade waks ----------
+
+/*----------------------------------------------------------------------
+ *
+ * 	Map filename trading
+ * 
+ *----------------------------------------------------------------------*/
 
 #define MAPLIST_START   'M'
 #define MAPLIST_END     'm'
@@ -423,7 +384,7 @@ MAPFILE *match(char *fn)
 	// disregard case
 	if (stricmp(get_filename(t->fn), fn)==0)
 	    return t; 
-	t =t->next; 
+	t = t->next; 
     }
 
     return NULL;
@@ -503,10 +464,12 @@ void trade_map_filenames()
 }
 
 
-//------------------------------------------------------ select wak ----------
 
-// allow map selection
-// w/ chat box 
+/*----------------------------------------------------------------------
+ *
+ * 	Map selection
+ * 
+ *----------------------------------------------------------------------*/
 
 #define CHAT_INCOMING   1
 #define CHAT_KEYDOWN    2
@@ -516,6 +479,8 @@ void trade_map_filenames()
 #define CHAT_RETURN     6 
 
 char return_str[] = "return me to my game NOW!";
+
+char record_reminder[128];
 
 char *select_map()
 {
@@ -528,6 +493,9 @@ char *select_map()
     for (;;)
     {
 	clear(dbuf);
+	
+	// recording demos reminder
+	textout_right(dbuf, small, record_reminder, SCREEN_W-10, 2, 8);
 
 	// map select
 
@@ -590,7 +558,7 @@ char *select_map()
 		break;
 	    }
 
-	    if ((comm==serial || comm==modem) && skReady())
+	    if ((comm==serial) && skReady())
 	    {
 		k = 0;
 		remote = skRecv();
@@ -606,7 +574,7 @@ char *select_map()
 	    else if (selected>=top+9)
 		top++;
 
-	    if ((k>>8)==KEY_DOWN && (comm==serial || comm==modem))
+	    if ((k>>8)==KEY_DOWN && (comm==serial))
 		skSend(CHAT_KEYDOWN);
 	}
 
@@ -618,7 +586,7 @@ char *select_map()
 	    else if (selected<top)
 		top--;
 
-	    if ((k>>8)==KEY_UP && (comm==serial || comm==modem))
+	    if ((k>>8)==KEY_UP && (comm==serial))
 		skSend(CHAT_KEYUP);
 	}
 
@@ -626,7 +594,7 @@ char *select_map()
 	if ((k>>8) == KEY_ESC || remote == CHAT_RETURN)
 	{
 	    while (key[KEY_ESC]);
-	    if ((k>>8) == KEY_ESC && (comm==serial || comm==modem))
+	    if ((k>>8) == KEY_ESC && (comm==serial))
 		skSend(CHAT_RETURN);
 	    return return_str;
 	}
@@ -634,7 +602,7 @@ char *select_map()
 	// f4... get out
 	if ((k>>8) == KEY_F4 || remote == CHAT_LEAVE)
 	{
-	    if ((k>>8) == KEY_F4 && (comm==serial || comm==modem))
+	    if ((k>>8) == KEY_F4 && (comm==serial))
 		skSend(CHAT_LEAVE);
 	    return NULL;
 	}
@@ -642,7 +610,7 @@ char *select_map()
 	// f10.. start game
 	if ((k>>8) == KEY_F10 || remote == CHAT_NEWMAP)
 	{
-	    if ((k>>8) == KEY_F10 && (comm==serial || comm==modem))
+	    if ((k>>8) == KEY_F10 && (comm==serial))
 		skSend(CHAT_NEWMAP);
 
 	    curmap = maphead.next;
@@ -675,7 +643,7 @@ char *select_map()
 
 		play_sample(dat[WAV_INCOMING].dat, 255, 128, 1000, 0);
 
-		if ((comm==serial || comm==modem))
+		if ((comm==serial))
 		{
 		    skSend(CHAT_INCOMING);
 		    skSendString(temp);
@@ -736,7 +704,12 @@ char *select_map()
 }
 
 
-//------------------------------------------------------ i beat you! ---------
+
+/*----------------------------------------------------------------------
+ *
+ * 	Frags table
+ * 
+ *----------------------------------------------------------------------*/
 
 void score_sheet()
 {
@@ -748,13 +721,10 @@ void score_sheet()
 
     y = 70;
 
-    for (i=0; i<MAX_PLAYERS; i++)
+    for (i = 0; i < num_players; i++)
     {
-	if (players[i].exist)
-	{
-	    textprintf(screen, dat[MINI].dat, 100, y, WHITE, "%s: %d FRAGS", players[i].name, players[i].frags);
-	    y+=16;
-	}
+	textprintf(screen, dat[MINI].dat, 100, y, WHITE, "%s: %d FRAGS", players[i].name, players[i].frags);
+	y += 16;
     }
 
     speed_counter = GAME_SPEED / 2;
@@ -767,7 +737,44 @@ void score_sheet()
 }
 
 
-//------------------------------------------------------ connect via serial --
+
+/*----------------------------------------------------------------------
+ *
+ * 	Record demos
+ * 
+ *----------------------------------------------------------------------*/
+
+static void try_demo_write_open()
+{
+    char *names[2] = { players[0].name, players[1].name };
+    char *fn;
+    int i;
+    
+    for (i = 0; i < 2; i++) {
+	if (i == 0) 
+	    fn = new_demo_filename(".");
+	else {
+	    char *home = getenv("HOME");
+	    fn = (home) ? new_demo_filename(home) : 0;
+	}
+	
+	if (fn && demo_write_open(fn, num_players, names) == 0) {
+	    strupr((sprintf(record_reminder, "RECORDING DEMO AS %s",
+			    get_filename(fn)), record_reminder));
+	    return;
+	}
+    }
+
+    record_reminder[0] = 0;
+}
+
+
+
+/*----------------------------------------------------------------------
+ *
+ * 	Serial connection
+ * 
+ *----------------------------------------------------------------------*/
 
 #define SER_CONNECTPLS  '?'
 #define SER_CONNECTOK   '!'
@@ -811,10 +818,11 @@ int linkup()
     return 1;
 }
 
+time_t seed;
+
 int connect_serial(int comport)
 {
     int l = 0, r = 0;
-    time_t seed;
 
     seed = time(NULL);
     srandom(seed);
@@ -956,6 +964,11 @@ void serial_func()
     no_germs();
     strcpy(players[local].name, local_name);
     trade_names();
+    
+    if (record_demos) 
+	try_demo_write_open();
+    
+    demo_write_set_rng_seed(seed);
 
     // get list of maps (from local and remote)
     get_map_filenames();
@@ -981,6 +994,7 @@ void serial_func()
 
 	// load level
 	load_map_wrapper(fn);
+	demo_write_change_map(fn);
 
 	// init players 
 	retain_players();
@@ -1006,6 +1020,8 @@ void serial_func()
 	// disconnected, show who won
 	score_sheet();
     }
+    
+    demo_write_close();
 
     free_map_filenames();
 
@@ -1014,339 +1030,12 @@ void serial_func()
 }
 
 
-//------------------------------------------------------ connect via modem ---
 
-int gy = 10;
-
-void gprintf_reset()
-{
-    gy = 10;
-    clear(screen);
-    show_mouse(NULL);
-}
-
-void gprintf(char *fmt, ...)
-{
-    char buf[200];
-    va_list va;
-
-    va_start(va, fmt); 
-    vsprintf(buf, fmt, va);
-    strupr(buf);
-
-    if (gy>=SCREEN_H-10)
-    {
-	blit(screen, screen, 10, 20, 10, 10, SCREEN_W-20, SCREEN_H-10);
-	gy = SCREEN_H-10-10;
-    }
-
-    textout(screen, dat[MINI].dat, buf, 10, gy, WHITE);
-    gy+=10;
-}
-
-void _rest50() { rest(50); }
-
-int _cancel() { if (key[KEY_ESC]) return 1; return 0; }
-
-int connect_modem()
-{
-    int l = 0, r = 0;
-    time_t seed;
-    
-    seed = time(NULL);
-    srandom(seed);
-
-    rest(1000);
-
-    gprintf("throwing dice");
-
-    skSend(SER_THROWDICE);
-    while (skRecv() != SER_THROWDICE);
-
-    gprintf("throwing 2");
-
-    do
-    {
-	l = (random()%255) + 1;     // 1-255
-	skSend(l);
-
-	while (!skReady())
-	{
-	    if (key[KEY_ESC]) 
-	    {
-		while (key[KEY_ESC]);
-		skClose();
-		return 0; 
-	    }
-	}
-
-	r = skRecv();
-    } while (l==r);
-
-    if (l>r)    // l>r we win
-    {
-	local = 0;
-	send_long(seed);
-    }
-    else        // l<r we lose
-    {
-	local = 1;
-	seed = recv_long();
-    }
-
-    srnd(seed);
-    sirnd(seed);
-    next_position = irnd() % (24*24);
-    
-    num_players = 2;
-    comm = modem;
-    return 1;
-}
-
-#ifdef MODEM_CODE
-					     
-int modem_init(comport)
-{
-    int ch;
-
-    gprintf_reset();
-
-    if (!skOpen(comport, BAUD_19200, BITS_8 | PARITY_NONE | STOP_1))
-    {
-	textout_centre(screen, dat[MINI].dat, "ERROR OPENING COM PORT", 160, 90, WHITE);
-	while (!keypressed() && !mouse_b);
-	clear_keybuf();
-	return 0;
-    }
-
-    switch (comport)
-    {
-	case COM1: gprintf("COM1 OPENED"); break;
-	case COM2: gprintf("COM2 OPENED"); break;
-	case COM3: gprintf("COM3 OPENED"); break;
-	case COM4: gprintf("COM4 OPENED"); break;
-    }
-
-    if (skEnableFIFO())
-	gprintf("16550A UART FIFO ENABLED");
-    else
-	gprintf("FIFO NOT ENABLED");
-
-    skm_delay = _rest50;
-
-    for (;;)
-    {
-	if (!skmModemPresent())
-	{
-	    gprintf("MODEM NOT FOUND");
-	    gprintf("PRESS R to retry or esc to cancel");
-
-	    do { 
-		ch = readkey() & 0xff;
-		if (ch=='r') ch = 'R';
-	    } while (ch != 27 && ch != 'R');
-
-	    if (ch==27) return 0;
-	} 
-	else
-	{
-	    gprintf("MODEM PRESENT");
-	    break;
-	}
-    }
-
-    skmInit();
-    gprintf("modem Initialised");
-    skmDisableAutoAnswer();
-    gprintf("disable autoanswer"); 
-    return 1;
-}
-
-int dial()
-{
-    int err, ch;
-
-    for (;;)
-    {
-	gprintf("Dialing %s...", phoneno);
-	err = skmDial(phoneno, _cancel);
-
-	switch (err)
-	{
-	    case 0:
-		gprintf("Connected!");
-		return 1;
-	    case ERR_NOCARRIER:
-		gprintf("No carrier");
-		break;
-	    case ERR_ERROR:
-		gprintf("Invalid phone number");
-		break;
-	    case ERR_NODIALTONE:
-		gprintf("No dialtone");
-		break;
-	    case ERR_BUSY:
-		gprintf("Busy");
-		break;
-	    case ERR_NOANSWER:
-		gprintf("No answer");
-		break;
-	    case ERR_USERABORT:
-		gprintf("User aborted");
-		while (key[KEY_ESC]);
-		clear_keybuf();
-		break;
-	}
-
-	gprintf("press r to retry or esc to cancel");
-
-	do { 
-	    ch = readkey() & 0xff;
-	    if (ch=='r') ch = 'R';
-	} while (ch != 27 && ch != 'R');
-
-	if (ch==27) return 0;
-    }
-}
-
-int modem_dial(int comport)
-{
-    if (modem_init(comport)==0) return 0;
-
-    if (!dial())
-    {
-	skClose();
-	return 0;
-    }
-
-    connect_modem();
-    return 1;
-}
-
-int answer()
-{
-    skmEnableAutoAnswer();
-    gprintf("Awaiting incoming call...");
-
-    if (skmAwaitConnect(_cancel)==ERR_USERABORT)
-    {
-	gprintf("User aborted");
-	rest(100);
-	skmDisableAutoAnswer();
-	return 0;
-    }
-
-    gprintf("Connected!");
-    return 1;
-}
-
-int modem_answer(int comport)
-{
-    if (modem_init(comport)==0) return 0;
-
-    if (!answer())
-    {
-	skClose();
-	return 0;
-    }
-
-    connect_modem();
-    return 1;
-}
-
-void modem_part_two()
-{
-    char *fn;
-    int first_play = 1;
-
-    no_germs();
-    strcpy(players[local].name, local_name);
-    trade_names();
-
-    // get list of maps (from local and remote)
-    get_map_filenames();
-    trade_map_filenames();
-
-    for (;;)
-    {
-	if (!num_maps) break;
-
-	show_mouse(NULL);
-
-	// select level
-	loop:
-	fn = select_map();
-	if (!fn) break;
-	if (fn==return_str) 
-	{
-	    if (!first_play)
-		goto returntogame;
-	    else
-		goto loop;
-	}
-
-	// load level
-	load_map_wrapper(fn);
-
-	// init players 
-	retain_players();
-	no_germs(); 
-	restore_players();
-	spawn_players();
-
-	// final synching
-	skSend(SER_CONNECTOK);
-	while (skRecv()!=SER_CONNECTOK);
-
-	// go!
-	play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
-
-	returntogame:   // dodgy gotos
-	game_loop();
-
-	first_play = 0;
-    }
-
-    if (!first_play)
-    {
-	// disconnected, show who won
-	score_sheet();
-    }
-
-    skmHangup();
-
-    free_map_filenames();
-
-    // back to root menu
-    enter_menu(root_menu); 
-}
-
-void dial_func()
-{
-    // name
-    if (!get_name()) return;
-
-    // phone no.
-    if (!get_phoneno()) return;
-
-    if (!modem_dial(com_port)) return;
-
-    modem_part_two();
-}
-
-void answer_func()
-{
-    // name
-    if (!get_name()) return;
-
-    if (!modem_answer(com_port)) return;
-
-    modem_part_two();
-}
-
-#endif /* MODEM_CODE */
-
-//------------------------------------------------------ lonely --------------
+/*----------------------------------------------------------------------
+ *
+ * 	Solo
+ * 
+ *----------------------------------------------------------------------*/
 
 void single_func()
 {
@@ -1364,10 +1053,16 @@ void single_func()
     num_players = 1;
     players[1].exist = 0;	   /* just to be sure */
 
+    if (record_demos) {
+	strcpy(players[local].name, local_name);
+	try_demo_write_open();
+    }
+
     seed = time(NULL);
     srnd(seed);
     sirnd(seed);
     next_position = irnd() % (24*24);
+    demo_write_set_rng_seed(seed);    
     
     no_germs();
     strcpy(players[local].name, local_name);
@@ -1392,8 +1087,10 @@ void single_func()
 	}
 
 	// load level
-	load_map_wrapper(fn);
-
+	if (load_map_wrapper(fn) < 0)
+	    break;
+	demo_write_change_map(fn);
+	
 	// init players 
 	retain_players();
 	no_germs();
@@ -1414,6 +1111,8 @@ void single_func()
 	// disconnected, show who won
 	score_sheet();
     }
+    
+    demo_write_close();
 
     free_map_filenames();
 
@@ -1422,7 +1121,69 @@ void single_func()
 }
 
 
-//------------------------------------------------------ not yet, okay? ------
+
+/*----------------------------------------------------------------------
+ *
+ * 	Demo playback
+ * 
+ *----------------------------------------------------------------------*/
+
+void demo_playback_func()
+{
+    char filename[1024] = "./";
+    
+    gui_bg_color = 0;		/* black */
+    gui_fg_color = RED - 8;	/* dark red */
+    
+    if (!file_select("Load demo", filename, "rec"))
+	return;
+    
+    if (demo_read_open(filename) < 0) {
+	alert("Error opening", filename, "", "Ow", NULL, 13, 27);
+	return;
+    }
+    
+    push_stat_block();
+    
+    // set up few things
+    comm = demo;
+    local = 0;
+
+    no_germs();
+
+    demo_read_header();
+
+    seed = demo_read_seed();
+    srnd(seed);
+    sirnd(seed);
+    next_position = irnd() % (24*24);
+    
+    introduce_demo();
+    game_loop();
+    
+    /* fade out, for end of movie feel */
+    fade_out(4);
+    clear(screen);
+    set_palette(dat[GAMEPAL].dat);
+        
+    score_sheet();
+
+    demo_read_close();
+    
+    pop_stat_block();
+    set_weapon_stats();
+    
+    // back to root menu
+    enter_menu(root_menu); 
+}
+
+
+
+/*----------------------------------------------------------------------
+ *
+ * 	Not yet
+ * 
+ *----------------------------------------------------------------------*/
 
 void not_yet_func()
 {
@@ -1438,28 +1199,18 @@ void not_yet_func()
 }
 
 
-//------------------------------------------------------ menus ---------------
 
-#ifdef MODEM_CODE					     
-BLUBBER modem_menu[] = 
-{
-    { func, "Dial", dial_func },
-    { func, "Answer", answer_func },
-    { prev, "", startgame_menu }
-};
-#endif
+/*----------------------------------------------------------------------
+ *
+ * 	Game menus
+ * 
+ *----------------------------------------------------------------------*/
 
 BLUBBER startgame_menu[] = 
 {
     { func, "Solo", single_func },
     { func, "Serial", serial_func },
-#ifdef MODEM_CODE    
-    { join, "Modem-Modem", modem_menu },
-#endif
-#if 0    
-    { func, "IPX Network", not_yet_func },
-    { func, "Internet", not_yet_func },
-#endif
+    { func, "Play Demo", demo_playback_func },
     { prev, "", root_menu }
 };
 
@@ -1472,7 +1223,32 @@ BLUBBER root_menu[] =
 };
 
 
-//------------------------------------------------------ manager -------------
+
+/*----------------------------------------------------------------------
+ *
+ * 	Menu message
+ * 
+ *----------------------------------------------------------------------*/
+
+static char menu_message[64];
+
+void set_menu_message(char *msg)
+{
+    if (!msg)
+	menu_message[0] = 0;
+    else {
+	strncpy(menu_message, msg, sizeof menu_message - 1);
+	strupr(menu_message);
+    }
+}
+    
+
+
+/*----------------------------------------------------------------------
+ *
+ * 	Menu manager
+ * 
+ *----------------------------------------------------------------------*/
 
 int inline touch(int item)
 {
@@ -1481,77 +1257,134 @@ int inline touch(int item)
     return 0;
 }
 
+
 void blubber(BLUBBER *start)
 {
     BLUBBER *bp;
-    int i, y, spoty = 0;
+    int i;
+    int selected = 0;
+    int do_action = 0, do_prev = 0;
+    int old_mouse_pos = 0;
+    int dirty = 1;
 
     end = 0;
     enter_menu(start);
+    show_mouse(screen);
 
-    while (!end)
-    {
-	// show menu
-	color_map = &light_map;
-	blit(dat[TITLE].dat, dbuf, 0, 0, 0, 0, 320, 200);
-	i = 0;
-	y = top;
-	do 
-	{
-	    bp = &cur[i];
-	    if (touch(i) && bp->proc != prev)
-		spoty = y + text_height(big)/2 - 192/2;
-	    i++;
-	    bp->proc(bp, MSG_DRAW, y);
-	    y += 32;
-	} while (bp->proc != prev);
+    while (!end) {
 
-	// stack on spotlight
-	clear(light);
-	blit(dbuf, light, 160 - 192/2, spoty, 160 - 192/2, spoty, 192, 192);
-	draw_trans_sprite(light, dat[L_SPOT].dat, 160 - 192/2, spoty);
-
-	// blit to screen
-	vsync();
-	show_mouse(NULL);
-	blit(light, screen, 0, 0, 0, 0, 320, 200);
-	show_mouse(screen);
-
-	// prev menu
-	if (key[KEY_ESC] || mouse_b & 2)
-	{
-	    while (key[KEY_ESC] || mouse_b & 2);
-
-	    i = 0;
-	    do {
-		bp = &cur[i++];
-	    } while (bp->proc != prev);
-
-	    if (bp->thing)
-		enter_menu(bp->thing);
-	}
-
-	// click
-	if (mouse_b & 1)
-	{
-	    for (i=0; i<count; i++)
-	    {
-		// if touch menu item
-		if (touch(i))
-		{
-		    // do action
-		    while (mouse_b);
-		    cur[i].proc(&cur[i], MSG_CLICK, 0);
-		    while (key[KEY_ESC] || mouse_b);
+	/* Handle mouse.  */
+	if (old_mouse_pos != mouse_pos) {
+	    int saved = selected;
+	    
+	    for (i = 0; cur[i].proc != prev; i++) 
+		if (touch(i)) {
+		    selected = i;
 		    break;
 		}
+	    
+	    old_mouse_pos = mouse_pos;
+	    if (selected != saved)
+		dirty = 1;
+	}
+
+	if (mouse_b & 1)
+	    do_action = 1;
+	else if (mouse_b & 2)
+	    do_prev = 1;
+
+	/* Handle keypresses.  */
+	if (keypressed()) {
+	    int k = readkey() >> 8;
+	    
+	    if (k == KEY_UP) {
+		if (selected > 0) {
+		    selected--;
+		    dirty = 1;
+		}
 	    }
+	    else if (k == KEY_DOWN) {
+		if (cur[selected+1].proc != prev) {
+		    selected++;
+		    dirty = 1;
+		}
+	    }
+	    else if (k == KEY_ENTER)
+		do_action = 1;
+	    else if (k == KEY_ESC)
+		do_prev = 1;
+	}
+		
+	/* Redraw dirty menu.  */
+	if (dirty) {
+	    int y;
+	    
+	    color_map = &light_map;
+	    blit(dat[TITLE].dat, dbuf, 0, 0, 0, 0, 320, 200);
+	    
+	    /* Draw menu items.  */
+	    for (i = 0, y = top; cur[i].proc != prev; i++, y += 32) 
+		cur[i].proc(cur + i, MSG_DRAW, y);
+	    
+	    /* Add spotlight. */
+	    y = (top + selected * 32) + (text_height(big) / 2 - 192 / 2);
+		
+	    clear(light);
+	    blit(dbuf, light, 160 - 192/2, y, 160 - 192/2, y, 192, 192);
+	    draw_trans_sprite(light, dat[L_SPOT].dat, 160 - 192/2, y);
+	    
+	    /* Little message space.  */
+	    if (menu_message[0]) 
+		textout_right(light, dat[MINI].dat, menu_message,
+			      SCREEN_W-2, SCREEN_H - text_height(dat[MINI].dat), 8);
+	    
+	    /* Blit to screen.  */
+	    scare_mouse();
+	    blit(light, screen, 0, 0, 0, 0, 320, 200);
+	    unscare_mouse();
+	 
+	    dirty = 0;
+	}
+
+	/* Perform action.  */
+	if (do_action) {
+	    int s = selected;
+	    
+	    while (mouse_b); clear_keybuf();
+	    cur[s].proc(&cur[s], MSG_CLICK, 0);
+	    while (mouse_b); clear_keybuf();
+	    show_mouse(screen);
+		
+	    dirty = 1;
+	    do_action = 0;
+	}
+	
+	/* Previous menu.  */
+	if (do_prev) {
+	    i = 0;
+	    do {
+		bp = &cur[i++]; 
+	    } while (bp->proc != prev);
+
+	    if (bp->thing) {
+		enter_menu(bp->thing);
+		show_mouse(screen);
+		selected = old_mouse_pos = 0;
+	    }
+
+	    do_prev = 0;
+	    dirty = 1;
 	}
     }
 }
 
 
-//------------------------------------------------------ start me up----------
+
+/*----------------------------------------------------------------------
+ *
+ * 	Menu entry point
+ * 
+ *----------------------------------------------------------------------*/
 
 void menu()
 {

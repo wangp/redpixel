@@ -46,7 +46,7 @@ now back to school, so less done
 
 ---------------------------- 0.9 (1999) ----------------------------
 
-13 August	cleaned up directory structure and makefile
+13 August    	cleaned up directory structure and makefile
 		removed modem code
 		removed redundant menu entries (IPX, etc.)
 		changed licence to GNU LGPL
@@ -92,4 +92,26 @@ now back to school, so less done
 		Put in libc-independant random number generator
 		Switched to C version of fast_sqrt 
 			(asm version did not work under Linux)
-		Released as 0.10 
+
+26 May		Added mouse wheel support
+		Removed modem code (not just #ifdef'd out)		
+		Renamed executable to `redpixel' under Linux.
+		Added keyboard control to menu system (up, down, enter)
+		Fixed path problems in map editor
+		Made screen only update when necessary in map editor
+			(for X11's sake, and less flicker)
+		Made alternative stats not read from exe directory
+		Replaced `printf's with `allegro_message'
+		Doubled max explosions, to 100
+		Added menu message (used for alternate stats files)
+
+27 May		Fixed `previous menu' bug that was put in yesterday
+		Set window title
+		Demo recording and playback -- ultra hack
+		Statlist changes to accommodate demos
+		Switched to `getopt' for command line arguments	
+		Demo recording command line option `-d'
+		Demo playback selection using `file_select'
+		Demo playback intermission screens
+		Demo playback slow motion key (s) and switch follow (enter)
+		Error checking for load and save map

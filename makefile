@@ -3,33 +3,32 @@ CFLAGS = -Wall -O3 -m486 -Isrc -Isrc/sk
 
 ifdef DJDIR
 	# djgpp.
-	EXE = .exe
+	GAME = red.exe
 	LIBS = -lalleg
 	CFLAGS += -DTARGET_DJGPP
 else
 	# Assume Linux.
-	EXE =
+	GAME = redpixel
 	LIBS = `allegro-config --libs`
 	CFLAGS += -DTARGET_LINUX
 endif
 
-NAME = red
-
-GAME = $(NAME)$(EXE)
-
 MODULES = \
 	common		\
 	creds		\
+	demintro	\
+	demo		\
 	fastsqrt	\
 	intro		\
 	mapper		\
 	menu		\
 	rg_rand		\
 	run		\
+	setweaps	\
 	skdos		\
 	sklinux		\
 	stats		\
-	statlist	
+	statlist
 
 OBJS = $(addprefix obj/,$(addsuffix .o,$(MODULES)))
 
@@ -49,7 +48,7 @@ compress: $(GAME)
 	
 suidroot:
 	chown root.allegro $(GAME)
-	chmod 4755 $(GAME)
+	chmod 4750 $(GAME)
 
 clean: 
 	rm -f $(GAME) $(OBJS)

@@ -132,3 +132,16 @@ int read_stats(char *fn, STAT_VAR *block)
     fclose(fp);
     return 1;
 }
+
+
+
+void for_every_stat(STAT_VAR *block, int (*proc)(STAT_VAR *sv))
+{
+    STAT_VAR *sv = block;
+
+    while (sv->id) {
+	if (proc(sv))
+	    break;
+	sv++;
+    }
+}

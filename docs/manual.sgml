@@ -10,7 +10,7 @@
 
 <title>Red Pixel: The Manual
 <author>Peter Wang, <tt/tjaden@psynet.net/
-<date>Second edition for Red Pixel v0.10, May 2000
+<date>Second edition for Red Pixel v0.11, May 2000
 <!-- First edition for Red Pixel v0.9, August 1999 -->
 <abstract>
 This document is a brief manual for the game <bf/Red Pixel/, adapted from
@@ -49,11 +49,15 @@ the original <tt/redpixel.txt/.
 
 <sect1>What's new in this version
 
-<p>New in 0.10:
+<p>New in 0.11:
 
 <itemize>
 <item>Linux port and maps by Peter Sundling (kaffepeter@telia.com)
 <item>stats.fst file
+<item>three maps by Mike (see maps/authors.txt)
+<item>mouse wheel support (Linux only)
+<item>keyboard control in menu
+<item><ref id="sec-demo" name="demo"> recording and playback 
 </itemize>
 
 <p>New in 0.9:
@@ -99,7 +103,7 @@ See `readme.lnx' in the Allegro distribution for more information.
 
 <sect1>Concept
 
-<p>The concept is a platform deathmatch game.  You run around a tile-based map, 
+<p>The concept is a platform deathmatch game.  You run around a tile-based map,
 picking up various items and shooting your opponent.  Original.
 
 <sect1>Story
@@ -111,26 +115,25 @@ prisoners. Contained within the dungeon are various magical objects,
 mostly weapons, which respawn after a certain time period.
 
 Surrounded by such weapons of destruction, you cannot resist the
-temptation...
+temptation to kill everyone around you.
 
 <sect1>Starting the game<label id="sec-starting">
 
-<p>Simply run the executable <bf/red.exe/ (or <bf/red/ under Linux) to start.
+<p>Simply run the executable <bf/red.exe/ (<bf/redpixel/ under Linux) to start.
 Please note the following command-line options are <em/case-sensitive/:
 
 <descrip><label id="sec-cmdline">
-<tag/--edit, -e/ Start semi-built-in <ref id="sec-mapeditor" name="map editor">.
-<tag/--lcd, -l/ Use bright (ugly) version of mouse cursor.  Designed 
+<tag/-e/ Start semi-built-in <ref id="sec-mapeditor" name="map editor">.
+<tag/-l/ Use bright (ugly) version of mouse cursor.  Designed 
 to be used on hard to see laptop displays.
-<tag/--stats, -s/ Use alternative <ref id="sec-stats" name="stats"> for items.
-<tag/--com1, -1/ Use COM1 for serial connections.
-<tag/--com[234], -2, -3, -4/ Ditto.  Default is 2.
-<tag/--skip, -s/ Skip introduction.
-<tag/--version, -v/ Display version number.
+<tag/-s/ Use alternative <ref id="sec-stats" name="stats"> for items.
+<tag/-1, -2, -3, -4/ Use COMx for serial communications.  Default is COM2.
+<tag/-q/ Skip introduction (quick!).
+<tag/-v/ Display version number.
+<tag/-d/ Enable <ref id="sec-demo" name="demo"> recording.
 </descrip>
 
-Note that you <bf/cannot/ collate the options.  i.e. <tt/red
--1ql/ is invalid.
+You can collate the options together, e.g. <tt>red -1ql</tt>.
 
 Linux users: COM1 = /dev/ttyS0; COM2 = /dev/ttyS1; etc.
 
@@ -140,8 +143,8 @@ Linux users: COM1 = /dev/ttyS0; COM2 = /dev/ttyS1; etc.
 Link two computers via a serial cable in COM 1-4 (see Command line
 options in section <ref id="sec-starting" name="Starting the game">).  
 Select `Start' --> `Serial'.  Enter your name, then wait for
-the computers to connect.  If it hangs, press `Ctrl-Alt-End' and try
-again.
+the computers to connect.  If it hangs for some reason, press
+`Ctrl-Alt-End' and try again.
 
 If it says `Error opening COM port', check to make
 sure you used the right <tt/--comX/ option.  If you're are
@@ -179,6 +182,9 @@ from the serial connection procedure.
 <em/Q, E, R, Y/.  The weapons you have collected will be displayed on the
 left.  Press <em/Enter/ or press the <em/right mouse button/ to lay a
 mine.
+<item>If you have one and you are running under Linux, you can switch weapons
+using a mouse wheel on an Intellimouse-compatible mouse.  Please read
+`readme.lnx' in the Allegro distribution to see how to set this up.
 <item><em/TAB/ to see your scores.  <em/ESC/ to quit.
 <item><em/F12/ to see the frame rate counter.  This is a development
 feature, so it's not supposed to work properly.  Just push it quickly
@@ -209,7 +215,6 @@ and see.
 <item>Goggles.  Lights up your vision, for about a minute.
 <item>Backpack.  You drop half of all your ammo when you die, but your guns disappear.
 <item>Bloodlust.  Double damage for all weapons, except mines.  Be careful!
-Lasts 30 seconds.
 <item>Scanner.  Points in the direction of your enemy.
 </itemize>
 </itemize>
@@ -232,6 +237,28 @@ them with a text editor, then use it with
 Note that both machines will need <bf/exactly/ the same file, and both
 must run with the <tt/-s/ command-line option.  You have been warned.
 
+<sect1>Demos<label id="sec-demo">
+
+<p>You can record your deathmatches into demo files.  To do this, first
+start Red Pixel using the <tt>-d</tt> command-line option.
+
+When you start a new game, it will automatically save a demo into the
+current directory, named <tt>demoXXXX.rec</tt>, or if that is unwritable
+into your home directory (if you don't know what I'm talking about, don't
+worry).
+
+To play a demo, simply choose the ``Play Demo'' menu item under ``Start''.
+
+Special keys available only in demo playback mode:
+
+<itemize>
+<item>Enter - switch which player camera focuses on
+<item>S - hold this down for slow motion mode
+</itemize>
+
+Please note that if you exit a demo before its completion, it will display
+the frag count <em>as of the time you quit.</em>
+
 <sect1>Tips
 
 <p><itemize>
@@ -239,7 +266,7 @@ must run with the <tt/-s/ command-line option.  You have been warned.
 does not make a noise, but picking up things does.
 <item>After you pick up an item, place a mine there.  Works also for
 regenerating walls (will not flash).
-<item>The scanner is good for pursuit, as well as flight.
+<item>The scanner is good for running away, as well as tracking down.
 <item>If are being mowed down with a minigun, run and drop mines!  The
 blood will conceal it :)
 <item>Jump over your enemy and lay mines.

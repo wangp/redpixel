@@ -121,6 +121,10 @@ void intro()
 {
     int x, y, x2, y2;
 
+    /* Give monitor a chance to set the mode.  I'm serious.  
+     * Only important because we want to see the year scroll in.  */
+    rest(300);
+    
     clear_keybuf();
 
     if (raster_words("1998")

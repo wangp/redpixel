@@ -1,3 +1,5 @@
+/* Please keep this exact order, for demo file backwards-compatibility.  */
+
 XXX(knife_anim)
 XXX(knife_reload)
 XXX(knife_damage)

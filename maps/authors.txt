@@ -1,32 +1,42 @@
-  Map			  Author
---------------------------------------
-Around			ps
-Barrlfun		bh
-Castle			dw
-Castle2			ps
-Chess			pw
-Devtest			pw
-Dome			dw
-Frogger			dw
-Garg			ps
-Hand			dw
-Hell			dw
-Icecaves		pw
-Mario			dw
-Megablam		ps
-Mini			dw
-Open			dw
-Peter			ps
-Pooyan			dw
-Small			dw
-Sniper			dw
-Splatter		ps
-Tower			bh
-Tunnels			dw
-Turret			dw
---------------------------------------
+  Map		  Name			  Author
+---------------------------------------------------
+around		Around			ps
+barrlfun	Barrel Fun		bh
+castle		Castle			dw
+castle2		Castle 2		ps
+chemcham	Chemical Chambers	mike
+chess		Chess			pw
+devtest		Development Test	pw
+dome		Dome			dw
+famfeud		Family Feud		mike
+frogger		Frogger			dw
+garg		Garg!			ps
+hand		Hand			dw
+hell		Hell			dw
+icecaves	Ice-caves		pw
+mario		Mario Brothers		dw
+megablam	Mega-blam		ps
+mini		Mini			dw
+open		Open			dw
+peter		Peter Sundling's	ps
+pooyan		Pooyan			dw
+small		Small			dw
+sniper		Sniper			dw
+spiral		The Downward Spiral	dw & pw
+splatter	Splatter       		ps
+tower		Tower			bh
+tunnels		Tunnels			dw
+turret		Turret			dw
+warehous	Ware House		mike
+---------------------------------------------------
 
-dw - David Wang
-ps - Peter Sundling (kaffepeter@telia.com)
-bh - Black Hand (black.hand@t-online.de)
-pw - Peter Wang
+"Tute levels" - run in Solo mode, using `-s stats.fst' and find 
+your way around, going RIGHT first.  Hint: rocket jumps.
+
+---------------------------------------------------
+
+dw	David Wang
+bh	Black Hand (black.hand@t-online.de)
+ps	Peter Sundling (kaffepeter@telia.com)
+mike	Mike (maulnmike@bolt.com)
+pw	Peter Wang

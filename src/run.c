@@ -28,6 +28,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdarg.h>
+#include <unistd.h>
 #include "fastsqrt/fastsqrt.h"
 #include "sk.h"
 #include "common.h"
@@ -35,6 +36,9 @@
 #include "run.h"
 #include "stats.h"
 #include "statlist.h"
+#include "setweaps.h"
+#include "demo.h"
+#include "demintro.h"
 
 
 //---------------------------------------------------------------- maxs ------
@@ -51,7 +55,7 @@
 int max_bullets =       200;
 int max_mines =         50;
 int max_backpacks =     50;
-#define MAX_EXPLOSIONS  50
+#define MAX_EXPLOSIONS  100
 
 #define MAX_PARTICLES   5000
 #define MAX_BLODS       1000
@@ -72,6 +76,8 @@ comm_t comm;
 
 
 //---------------------------------------------------------------- storage ---
+
+WEAPON weaps[num_weaps];
 
 PARTICLE    *bullets;
 MINE        *mines;
@@ -100,14 +106,7 @@ int shake_factor;   // screen shakes
 int heart_frame = 0, heart_anim = 0;
 int blood_frame = 0, blood_anim = 0;
 
-
-//------------------------------------------------------------ weapon stats --
-
-struct {
-    int anim;
-    int reload;
-    int dmg;
-} weaps[num_weaps];
+int record_demos = 0;
 
 
 //------------------------------------------------------------ timer ---------
@@ -152,7 +151,7 @@ void suicide(char *s)
 {
     killall();
     skClose();
-    printf("%s\n\n", s);
+    allegro_message("%s\n", s);
     exit(1);
 }
 
@@ -752,7 +751,7 @@ void hurt_player(int pl, int dmg, int protect, int tag, int deathseq);
 void blast(int x, int y, int dmg, int tag)
 {
     int u, v, d;
-    register int i, j;
+    int i, j;
     fixed angle;
 
     u = x/16;
@@ -894,7 +893,7 @@ void respawn_tiles()
 
 void draw_tiles_an_stuff()
 {
-    register int u, v;
+    int u, v;
 
     /* draw tiles & pickups */
     for (v=0; v<14; v++)
@@ -1534,7 +1533,7 @@ void draw_status()
     }
 
     /* dead, don't continue */
-    if (players[local].health==0)
+    if ((comm != demo) && (players[local].health == 0))
     {
 	textout(dbuf, dat[UNREAL].dat, "PRESS SPACE TO RESPAWN", 20, SCREEN_H-30, -1);
 	return;
@@ -1689,18 +1688,19 @@ int prev_have_weapon_order(PLAYER *guy, int wo)
 void select_weapon()
 {
     static int next, prev;
+    static int old_mouse_z = 0;
     PLAYER *guy = &players[local];
     int i = 0, select;
-
+    
     /* hack */
-    if (key[KEY_Q] || key[KEY_R]) {
+    if (key[KEY_Q] || key[KEY_R] || (mouse_z < old_mouse_z)) {
 	if (prev < 2)
 	  prev++;
     }
     else 
       prev = 0;
 
-    if (key[KEY_E] || key[KEY_Y]) {
+    if (key[KEY_E] || key[KEY_Y] || (mouse_z > old_mouse_z)) {
 	if (next < 2)
 	  next++;
     }
@@ -1708,7 +1708,9 @@ void select_weapon()
       next = 0;
 
     if (prev && next)
-      next = prev = 0;
+	next = prev = 0;
+    
+    old_mouse_z = mouse_z;
 
     do {
 	// got the weapon?
@@ -1878,7 +1880,6 @@ void update_player(int pl)
 		guy->num_shells += st_shell_give;
 		map.ammo[ky][kx] = 0;
 		auto_weapon(pl, 0);
-		//add_msg("POCKET FULL A SHELLS", pl);
 		snd_3d(WAV_PICKUP, 255, guy->x, guy->y);
 		break;
 
@@ -2263,7 +2264,7 @@ void clean_player(int pl)
 
 //---------------------------------------------------------- serial ----------
 
-// this stuf is peer-peer
+// this stuff is peer-peer
 
 #define SER_PLAYERSTAT  's'
 #define SER_QUITGAME    'x'
@@ -2298,7 +2299,7 @@ long inline recv_long()
 
 void send_local_input()
 {
-    if (num_players>1)
+    if (num_players > 1 || demo_is_recording())
     {
 	// build the packet
 	packet[0] = SER_PLAYERSTAT;
@@ -2317,9 +2318,10 @@ void send_local_input()
 	packet[3] = players[local].select;
 	packet[4] = (players[local].angle>>16) & 0xff;
 
-	// now send it off
-	skWrite(packet, 5);
-	//skFlush();
+	if (comm == serial)
+	    skWrite(packet, 5);
+	
+	demo_write_frame_data(packet + 1, 4);
     }
 };
 
@@ -2353,6 +2355,8 @@ void recv_remote_inputs()
 
 		    players[pl].select = packet[2];
 		    players[pl].angle = packet[3] << 16;
+
+		    demo_write_frame_data(packet, 4);
 		    return;
 
 		case SER_QUITGAME:
@@ -2369,7 +2373,66 @@ void recv_remote_inputs()
 }
 
 
-//---------------------------------------------------------- modem -----------
+//---------------------------------------------------------- demo ------------
+
+int load_map_wrapper(char *fn);
+
+void recv_demo_inputs()
+{
+    int pl, ch, x;
+    int num = num_players;
+    
+    while (num) {
+	x = demo_read_next_packet_type();
+
+	if (x == DEMO_FRAME_DATA) {
+	    demo_read_packet(packet, 4);
+	    
+	    pl = packet[0];
+
+	    ch = packet[1];
+	    players[pl].up          = ch & SER_UP;
+	    players[pl].down        = ch & SER_DOWN;
+	    players[pl].left        = ch & SER_LEFT;
+	    players[pl].right       = ch & SER_RIGHT;
+	    players[pl].fire        = ch & SER_FIRE;
+	    players[pl].drop_mine   = ch & SER_DROPMINE;
+	    players[pl].respawn     = ch & SER_RESPAWN;
+	    if (ch & SER_FACINGLEFT) players[pl].facing = left;
+	    else players[pl].facing = right;
+	
+	    players[pl].select = packet[2];
+	    players[pl].angle = packet[3] << 16;
+	    
+	    num--;
+	}
+	else if (x == DEMO_MAP_CHANGE) {
+	    char filename[1024], *f;
+	    
+	    demo_read_string(filename, sizeof filename);
+	    if (load_map_wrapper(filename) < 0) {
+		alert("Error loading map", filename, "", "Damn", NULL, 13, 27);
+		end_game = 1;
+		break;
+	    }
+	    
+	    retain_players();
+	    no_germs(); 
+	    restore_players();
+	    spawn_players();
+	    
+	    f = strstr(filename, ".WAK");
+	    if (f) *f = 0;
+	    introduce_map(filename);
+	    
+	    speed_counter = 0;
+	}
+	else if (x == DEMO_END) {
+	    end_game = 1;
+	    break;
+	}
+    }
+}
 
 
 //---------------------------------------------------------- mother loop -----
@@ -2457,7 +2520,7 @@ void render()
 
     show_mouse(NULL);
     blit(dbuf, screen, 0, 0, 0 + shakex, 0 + shakey, SCREEN_W, SCREEN_H);
-    if (players[local].health)
+    if (players[local].health && (comm != demo))
 	show_mouse(screen);
 
     frame_counter++;
@@ -2496,17 +2559,16 @@ void game_loop()
 	    update = 1;
 
 	    calc();
-	    get_local_input();
+	    if (comm != demo) {
+		get_local_input();
+		send_local_input();
+	    }
+	    
 	    if (key[KEY_ESC]) goto quit_pls;
 
-	    if (comm==serial || comm==modem) 
-	    {
-		send_local_input();
-
-		while (!skReady())
-		{
-		    if (frames_dropped>1)
-		    {
+	    if (comm == serial) {
+		while (!skReady()) {
+		    if (frames_dropped>1) {
 			frames_dropped--;
 			render();
 		    }
@@ -2515,10 +2577,28 @@ void game_loop()
 		}
 
 		recv_remote_inputs();
-
-		if (end_game)
-		    break;
 	    }
+	    else if (comm == demo) {
+		recv_demo_inputs();
+		
+		if (key[KEY_S]) {
+		    rest(10);
+		    speed_counter = 0;
+		}
+		
+		if (key[KEY_ENTER] && num_players == 2) {
+		    char tmp[128];
+		    
+		    local = 1 - local;
+		    sprintf(tmp, "< NOW WATCHING %s >", players[local].name);
+		    add_msg(tmp, -1);
+
+		    key[KEY_ENTER] = 0;   /* bleh */
+		}
+	    }
+
+	    if (end_game) 
+		goto quit_pls;
 
 	    respawn_tiles();
 	    respawn_ammo();
@@ -2581,7 +2661,7 @@ void game_loop()
 	    quit_pls:
 	//-------------//
 	    end_game = 1;
-	    if (comm==serial || comm==modem)
+	    if (comm==serial)
 	    {
 		skSend(SER_QUITGAME);
 		while (skRecv() != SER_QUITOK) rest(10);
@@ -2644,6 +2724,7 @@ void restore_players()
 int mapper();   // mapper.c
 void intro();   // intro.c
 void menu();    // menu.c
+void set_menu_message(char *msg);
 void credits(); // creds.c
 
 int com_port = COM2;
@@ -2651,25 +2732,22 @@ int com_port = COM2;
 char game_path[1024], *game_path_p;
 
 
-void usage()
+void usage(char *options)
 {
-    printf("See manual for options.\n");   /* :) */
+    /* :) */
+    allegro_message("See manual for help on these options: %s\n", options);
 }
 
 
-void show_version()
+void show_version(int legal)
 {
-    printf("Red Pixel " VERSION_STR " by Psyk Software " VERSION_YEAR ".\n");
-    printf("http://www.psynet.net/tjaden/\n");
-    printf("Licensed under the GNU Lesser General Public Licence.\n");
-    printf("See COPYING for details.\n");
+    allegro_message("Red Pixel " VERSION_STR " by Psyk Software " VERSION_YEAR ".\n"
+		    "http://www.psynet.net/tjaden/\n%s",
+		    (legal 
+		     ? ("Licensed under the GNU Lesser General Public Licence.\n"
+			"See COPYING for details.\n")
+		     : ""));
 }
-
-
-#define set_weaps(x) \
-    weaps[w_##x].anim = st_##x##_anim; \
-    weaps[w_##x].reload = st_##x##_reload; \
-    weaps[w_##x].dmg = st_##x##_damage;
 
 
 int main(int argc, char *argv[])
@@ -2686,12 +2764,12 @@ int main(int argc, char *argv[])
     
     if (install_mouse() <= 0) {
 #ifdef TARGET_DJGPP
-	printf("\nRed Pixel requires a mouse to play.\n"
-	       "Please install a mouse driver (e.g. mouse.com).\n\n");
+	allegro_message("\nRed Pixel requires a mouse to play.\n"
+			"Please install a mouse driver (e.g. mouse.com).\n\n");
 #else
-	printf("\nRed Pixel requires a mouse to play.\n"
-	       "Please check your Allegro mouse port settings\n"
-	       "and make sure you have permissions to the device.\n\n");
+	allegro_message("\nRed Pixel requires a mouse to play.\n"
+			"Please check your Allegro mouse port settings\n"
+			"and make sure you have permissions to the device.\n\n");
 #endif
 	return 1;
     }
@@ -2717,92 +2795,62 @@ int main(int argc, char *argv[])
     dat = load_datafile(game_path);
     if (!dat)
     {
-	printf("Error loading blood.dat\n");
+	allegro_message("Error loading blood.dat\n");
 	return 1;
     }
-
-    /* command line args */
-    for (x=1; x<argc; x++)
+    
+    /* Command line args.  */
     {
-#ifdef TARGET_DJGPP
-	strlwr(argv[x]);             /* heh, dos people */
-#endif
-
-	if (strcmp(argv[x], "--help") == 0 ||
-	    strcmp(argv[x], "-h") == 0) {
-	    usage();
-	    return 0;
-	}
-
-	if (strcmp(argv[x], "--version") == 0 ||
-	    strcmp(argv[x], "-v") == 0) {
-	    show_version();
-	    return 0;
-	}
-
-	if (strcmp(argv[x], "--edit") == 0 || 
-	    strcmp(argv[x], "-e") == 0)
-	  return mapper();
-
-	if (strcmp(argv[x], "--skip") == 0 ||
-	    strcmp(argv[x], "-q") == 0)
-	  skip_intro = 1;
-
-	if (strcmp(argv[x], "--lcd") == 0 || 
-	    strcmp(argv[x], "-l") == 0)
-	  lcd_cur = 1;
-
-	if (strcmp(argv[x], "--stats") == 0 || 
-	    strcmp(argv[x], "-s") == 0) {
-
-	    if (!argv[++x]) {
-		printf("No stats file specified!\n");
-		return 1;
+	int c;
+	
+	while (1) {
+	    char *options = "hveqld1234s:";
+	    
+	    c = getopt(argc, argv, options);
+	    if (c < 0) break;
+	    
+	    switch (c) {
+		case 'h': usage(options); return 0;
+		case 'v': show_version(1); return 0;
+		case 'e': return mapper();
+		case 'q': skip_intro = 1; break;
+		case 'l': lcd_cur = 1; break;
+		case 'd': record_demos = 1; break;
+		case '1': com_port = COM1; break;
+		case '2': com_port = COM2; break;
+		case '3': com_port = COM3; break;
+		case '4': com_port = COM4; break;
+		case 's': 
+		    if (!optarg) {
+			allegro_message("No stats file specified!\n");
+			return 1;
+		    }
+		    else if (!read_stats(optarg, stat_block)) {
+			allegro_message("Error reading %s.\n", optarg);
+			return 1;
+		    }
+		    
+		    set_menu_message(get_filename(optarg));
+		    alt_stats = 1;
+	 	    break;
+		
+		case '?':
+		default:
+		    return 1;
 	    }
-
-	    strcpy(game_path_p, argv[x]);
-	    if (!read_stats(game_path, stat_block)) {
-		printf("Error reading %s.\n", game_path);
-		return 1;
-	    }
-
-	    alt_stats = 1;
 	}
-
-	// FIXME: COM port selection should be in menu
-
-	if (!strcmp(argv[x], "--com1")
-	    || !strcmp(argv[x], "-1")) 
-	    com_port = COM1;
-	else if (!strcmp(argv[x], "--com2")
-		 || !strcmp(argv[x], "-2"))
-	    com_port = COM2;
-	else if (!strcmp(argv[x], "--com3") 
-		 || !strcmp(argv[x], "-3"))
-	    com_port = COM3;
-	else if (!strcmp(argv[x], "--com4") 
-		 || !strcmp(argv[x], "-4"))
-	    com_port = COM4;
     }
 
     /* stats, if none read yet */
     if (!alt_stats) {
 	strcpy(game_path_p, "stats");
 	if (!read_stats(game_path, stat_block)) {
-	    printf("Error reading %s.\n", game_path);
+	    allegro_message("Error reading %s.\n", game_path);
 	    return 1;
 	}
     }
 
-    set_weaps(knife);
-    set_weaps(pistol);
-    set_weaps(bow);
-    set_weaps(shotgun);
-    set_weaps(uzi);
-    set_weaps(m16);
-    set_weaps(minigun);
-    set_weaps(bazooka);
-    set_weaps(mine);
+    set_weapon_stats();
 
     /* alloc */
     bullets = malloc(max_bullets * sizeof(PARTICLE));
@@ -2824,6 +2872,7 @@ int main(int argc, char *argv[])
     /* init screen etc */
     if (set_gfx_mode(GFX_AUTODETECT, 320, 200, 0, 0) < 0)
 	suicide("Error setting 320x200 video mode.");
+    set_window_title("Red Pixel");
     set_palette(dat[GAMEPAL].dat);
     dbuf = create_bitmap(SCREEN_W, SCREEN_H);
     light = create_bitmap(SCREEN_W, SCREEN_H);
@@ -2831,18 +2880,18 @@ int main(int argc, char *argv[])
 	set_mouse_sprite(dat[XHAIRLCD].dat);
     else
 	set_mouse_sprite(dat[XHAIR].dat);
-    set_mouse_sprite_focus(2,2);
-    set_mouse_speed(1,1);
+    set_mouse_sprite_focus(2, 2);
+    set_mouse_speed(1, 1);
 
     if (!skip_intro)
-      intro();
+	intro();
 
     menu();
 
     /* bye bye */
     killall();
 
-    show_version();
+    show_version(0);
 
     return 0;
 }

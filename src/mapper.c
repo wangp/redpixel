@@ -192,11 +192,13 @@ void selector_players(int command)
 void map_edit()
 {
     int u, v;
-    int keepy, keepx;
+    int dirty = 1;
 
     mode = m_tile;
     selector = selector_tiles;
     reset_map();
+
+    show_mouse(screen);
 
     while (!(key[KEY_Q] && (key_shifts & KB_CTRL_FLAG)))
     {
@@ -205,96 +207,102 @@ void map_edit()
 	if (key[KEY_PGDN]) 
 	    first[mode]++;
 
-	if (key[KEY_I] && map.h>32) { map.h--; rest(50); }
-	if (key[KEY_K] && map.h<127) { map.h++; rest(50); }
-	if (key[KEY_J] && map.w>64) { map.w--; rest(50); }
-	if (key[KEY_L] && map.w<127) { map.w++; rest(50); }
+	if (key[KEY_I] && map.h>32)  { map.h--; rest(50); dirty = 1; }
+	if (key[KEY_K] && map.h<127) { map.h++; rest(50); dirty = 1; }
+	if (key[KEY_J] && map.w>64)  { map.w--; rest(50); dirty = 1; }
+	if (key[KEY_L] && map.w<127) { map.w++; rest(50); dirty = 1; }
 
-	if (key[KEY_UP] && my) my--;
-	if (key[KEY_LEFT] && mx) mx--;
-	if (key[KEY_RIGHT] && mx < map.w - SCREEN_W/16) mx++;
-	if (key[KEY_DOWN] && my < map.h - (SCREEN_H-16)/16) my++;
+	if (key[KEY_UP] && my) my--, dirty = 1;
+	if (key[KEY_LEFT] && mx) mx--, dirty = 1;
+	if (key[KEY_RIGHT] && mx < map.w - SCREEN_W/16) mx++, dirty = 1;
+	if (key[KEY_DOWN] && my < map.h - (SCREEN_H-16)/16) my++, dirty = 1;
 
 	if (key[KEY_1]) {
 	    mode = m_tile;
 	    selector = selector_tiles;
+	    dirty = 1;
 	}
 	else if (key[KEY_2]) {
 	    mode = m_ammo;
 	    selector = selector_ammo;
+	    dirty = 1;
 	}
 	else if (key[KEY_3]) {
 	    mode = m_player;
 	    selector = selector_players;
+	    dirty = 1;
 	}
 
 	if (key_shifts & KB_CTRL_FLAG) {
 	    if (key[KEY_S])
 	    {
-		strcpy(game_path_p, "maps/");
-		if (file_select("Save As...", game_path, "wak"))
-		  save_map(game_path);
+		char tmp[1024];
+		replace_filename(tmp, game_path, "maps/", 1024);
+		
+		if (file_select("Save As...", tmp, "wak"))
+		    if (save_map(tmp) < 0)
+			alert("Error saving", tmp, "", "Ok", NULL, 13, 27);
 		text_mode(-1);
+		dirty = 1;
 	    }
 	    else if (key[KEY_L])
 	    {
-		strcpy(game_path_p, "maps/");
-		if (file_select("Load...", game_path, "wak"))
-		  load_map(game_path);
+		char tmp[1024];
+		replace_filename(tmp, game_path, "maps/", 1024);
+
+		if (file_select("Load...", tmp, "wak"))
+		    if (load_map(tmp) < 0)
+			alert("Error loading", tmp, "", "Ok", NULL, 13, 27);
 		text_mode(-1);
 		mx = my = 0;
+		dirty = 1;
 	    }
 	    else if (key[KEY_N])
 	    {
 		reset_map();
 		mx = my = 0;
+		dirty = 1;
 	    }
 	}
 
-	if (mouse_b)
-	{
+	if (mouse_b) {
 	    if (mouse_y > SCREEN_H-16)
 		selector(SEL_CHOOSE);
 	    else 
 		selector(SEL_EDIT);
+	    dirty = 1;
 	} 
 
 	/* drawing */
-	clear(dbuf);
+	if (dirty) {
+	    clear(dbuf);
 
-	for (v=0; v<(SCREEN_H-16)/16; v++)
-	    for (u=0; u<SCREEN_W/16; u++)
-	    {
-		if (my+v < map.h && mx+u < map.w)
-		{ 
-		    if (map.ammo[v+my][u+mx])
-			draw_sprite(dbuf, dat[map.ammo[v+my][u+mx]].dat, u*16, v*16);
-		    if (map.tile[v+my][u+mx])
-			draw_sprite(dbuf, dat[map.tile[v+my][u+mx]].dat, u*16, v*16);
+	    for (v=0; v<(SCREEN_H-16)/16; v++)
+		for (u=0; u<SCREEN_W/16; u++) {
+		    if (my+v < map.h && mx+u < map.w) { 
+			if (map.ammo[v+my][u+mx])
+			    draw_sprite(dbuf, dat[map.ammo[v+my][u+mx]].dat, u*16, v*16);
+			if (map.tile[v+my][u+mx])
+			    draw_sprite(dbuf, dat[map.tile[v+my][u+mx]].dat, u*16, v*16);
+		    }
 		}
-	    }
+	    
+	    for (u=0; u<24; u++)
+		if (map.start[u].x != 255 &&
+		    map.start[u].x >= mx && map.start[u].x < mx+SCREEN_W/16 &&
+		    map.start[u].y >= my && map.start[u].y < my+(SCREEN_H-16)/16)
+		    draw_sprite(dbuf, dat[PLACE1].dat, (map.start[u].x-mx) * 16, (map.start[u].y-my) * 16);
 
-	for (u=0; u<24; u++)
-	    if (map.start[u].x != 255 &&
-		map.start[u].x >= mx && map.start[u].x < mx+SCREEN_W/16 &&
-		map.start[u].y >= my && map.start[u].y < my+(SCREEN_H-16)/16)
-		draw_sprite(dbuf, dat[PLACE1].dat, (map.start[u].x-mx) * 16, (map.start[u].y-my) * 16);
+	    selector(SEL_DRAW);
 
-	selector(SEL_DRAW);
+	    textprintf(dbuf, font, 0, 0, WHITE, "x: %2d  y: %2d  w: %2d  h: %2d", mouse_x/16+mx, mouse_y/16+my, map.w, map.h); 
 
-	textprintf(dbuf, font, 0, 0, WHITE, "x: %2d  y: %2d  w: %2d  h: %2d", mouse_x/16+mx, mouse_y/16+my, map.w, map.h); 
-
-	/* flicker free update */
-	freeze_mouse_flag = 1;
-	keepx = mouse_x; 
-	keepy = mouse_y;
-	blit(dbuf, screen, 0, 0, 0, 0, SCREEN_W, keepy);
-	blit(dbuf, screen, 0, keepy+16, 0, keepy+16, SCREEN_W, SCREEN_H-keepy-16);
-	vsync();
-	show_mouse(NULL);
-	blit(dbuf, screen, 0, keepy, 0, keepy, SCREEN_W, 16);
-	show_mouse(screen);
-	freeze_mouse_flag = 0;
+	    scare_mouse();
+	    blit(dbuf, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
+	    unscare_mouse();	
+	    
+	    dirty = 0;
+	}
     }
 }
 
@@ -302,10 +310,13 @@ void map_edit()
 
 int mapper()
 {
-    int i;
-
-    /* init screen etc */
-    set_gfx_mode(GFX_AUTODETECT, 640, 480, 0, 0);
+    if (set_gfx_mode(GFX_AUTODETECT, 640, 480, 0, 0) < 0) {
+	allegro_message("Error setting 640x480 video mode.\n");
+	return 1;
+    }
+    
+    set_window_title("Red Pixel map editor");
+    
     dbuf = create_bitmap(SCREEN_W, SCREEN_H);
     clear(dbuf);
 
@@ -313,26 +324,24 @@ int mapper()
     set_mouse_sprite_focus(0,0);
 
     set_palette(dat[GAMEPAL].dat);
+    set_mouse_sprite(dat[XHAIRLCD].dat);
 
     gui_fg_color = 0;
     gui_bg_color = WHITE;
     gui_mg_color = GREY;
 
     /* count some */
-    i = 0;
-    tile_count = 1;
-    while (tiles[i++].pic != -1)
-	tile_count++;
-
-    i = 0;
-    ammo_count = 1;
-    while (ammos[i++].pic != -1)
-	ammo_count++; 
+    for (tile_count = 0; tiles[tile_count].pic >= 0; tile_count++)
+	;
+    
+    for (ammo_count = 0; ammos[ammo_count].pic >= 0; ammo_count++)
+	;
 
     /* go */
     map_edit();
 
     /* bye bye */ 
     destroy_bitmap(dbuf);
-    return 0;
-}
+    	       
+    return 0;  
+}	       

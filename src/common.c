@@ -154,13 +154,13 @@ void reset_map()
     map.h = 32;
 }
 
-void save_map(char *fn)
+int save_map(char *fn)
 {
     PACKFILE *fp;
     int u, v; 
 
     fp = pack_fopen(fn, F_WRITE_PACKED);
-    if (!fp) return;
+    if (!fp) return -1;
 
     pack_fputs(file_hdr, fp);
 
@@ -181,31 +181,25 @@ void save_map(char *fn)
 	}
 
     pack_fclose(fp);
+    return 0;
 }
 
-void load_map(char *fn)
+int load_map(char *fn)
 { 
     PACKFILE *fp;
     int u, v;
     char test[9];
     
     fp = pack_fopen(fn, F_READ_PACKED);
-    if (!fp) {
-	/* not good, but unlikely on a DOS system (ok, so I'm lazy!) */
-	allegro_exit();
-	fprintf(stderr, "Error loading %s!\n", fn);
-	exit(1);
-    }
+    if (!fp) 
+	return -1;
     
     reset_map();
 
     pack_fread(test, 8, fp);
-    if (memcmp(test, file_hdr, 8))
-    {
+    if (memcmp(test, file_hdr, 8)) {
 	pack_fclose(fp);
-	allegro_exit();
-	fprintf(stderr, "%s is not a Red Pixel map!\n", fn);
-	exit(1);
+	return -1;
     }
 
     map.w = pack_getc(fp);
@@ -236,4 +230,5 @@ void load_map(char *fn)
 	}
 
     pack_fclose(fp);
+    return 0;
 }

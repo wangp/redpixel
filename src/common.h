@@ -69,7 +69,7 @@ int pic2num(LIST *l, int pic);
 int ammo_respawn_rate(int pic);
 
 void reset_map();
-void save_map(char *fn);
-void load_map(char *fn);
+int save_map(char *fn);
+int load_map(char *fn);
 
 #endif

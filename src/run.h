@@ -18,6 +18,13 @@
 
 //---------------------------------------------------------------- structs ---
 
+typedef struct 
+{
+    int anim;
+    int reload;
+    int dmg;
+} WEAPON;
+
 typedef struct
 {
     int life;
@@ -127,9 +134,13 @@ extern int next_position;
 extern int rnd_index;
 extern int irnd_index;
 
+extern WEAPON weaps[];
+
 extern PLAYER players[];
 
 extern volatile int speed_counter;
+
+extern int record_demos;
 
 
 //-------------------------------------------------------- RNG ---------------
@@ -144,11 +155,9 @@ void sirnd(unsigned long seed);
 //-------------------------------------------------------- connection type ---
 
 typedef enum {
-    single,     // boring...
-    serial,     // done
-    modem,      // should be easy
-    ipx,        // not yet..
-    udp         // keep dreaming!
+    single,
+    serial,
+    demo
 } comm_t;
 
 extern comm_t comm;
