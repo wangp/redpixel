@@ -152,7 +152,7 @@ extern int com_port;
 
 typedef enum {
     single,
-    serial,
+    peerpeer,
     demo
 } comm_t;
 

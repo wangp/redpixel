@@ -1,3 +1,5 @@
+	Red Pixel Change Log
+
 6 june      map editor
 7-9 june    initial game engine
 10 june     serial code
@@ -82,7 +84,7 @@ now back to school, so less done
 21 August 	preparing for upload, reenabled print-scr screen shot dumping
 		--> released as 0.9 <--
 		
----------------------------- 0.10 (2000) ----------------------------
+---------------------------- 0.11 (2000) ----------------------------
 
 20 May		Merged in Peter Sundling's Linux port
 			(including intro fix I sent to him)
@@ -117,7 +119,11 @@ now back to school, so less done
 		Error checking for load and save map
 
 28 May		Made stats.fst default :-)
-		Separated menu system and game launch code
+		Separated menu system and game launch code (launch.c)
 		Modularised and cleaned up some things
 		run.c renamed to engine.c!
-		
+		Big clean up of launch.c
+		Experiment SK <-> Libnet interface!
+			   (hardwired: sockets only for now)
+		Fixed some quit game bugs
+		Updated manual and cleaned it 

@@ -12,9 +12,8 @@
 #include <fcntl.h>
 #include <termios.h>
 #include "sk.h"
+#include "skintern.h"
 
-
-char sk_desc[] = "SK module (linux)";
 
 static int fd = -1;
 static struct termios oldtio;
@@ -45,7 +44,7 @@ static void poll_read()
 /*  This functions returns the number of characters waiting 
  *  in the receive buffer.
  */
-int skReady()
+static int linux_ready()
 {
     poll_read();
     
@@ -59,7 +58,7 @@ int skReady()
 /*  This function reads a character from the receive buffer 
  *  and returns it to the caller.
  */
-int skRecv()
+static int linux_recv()
 {
     poll_read();
 
@@ -76,7 +75,7 @@ int skRecv()
 /*  This function reads num chars and sticks them in buf.
  *  Make sure you have enough characters ready before calling this.
  */
-void skRead(unsigned char *dest, int num)
+static void linux_read(unsigned char *dest, int num)
 {
     int i = 0;
     
@@ -93,7 +92,7 @@ void skRead(unsigned char *dest, int num)
 
 /*  This function puts the last retrieved character back into the buffer.
  */
-void skPutback()
+static void linux_putback()
 {
     if (--recv_tail < 0)
 	recv_tail = BUFFER_SIZE - 1;
@@ -102,7 +101,7 @@ void skPutback()
 
 /*  This function simplys clears the receive buffer.
  */
-void skClear()
+static void linux_clear()
 {
     tcflush(fd, TCIFLUSH);
     recv_head = recv_tail = 0;
@@ -110,19 +109,9 @@ void skClear()
 
 
 
-/*  This functions returns the number of characters waiting 
- *  in the send buffer.
- */
-int skWaiting()
-{
-    /* This function is unused by the game.  */
-    exit(1);
-}
-
-
 /*  This function puts a character into the send buffer. 
  */
-void skSend(unsigned char ch)
+static void linux_send(unsigned char ch)
 {
     write(fd, &ch, 1);
 }
@@ -130,7 +119,7 @@ void skSend(unsigned char ch)
 
 /*  Send a NULL terminated string.
  */
-void skSendString(unsigned char *str)
+static void linux_send_string(unsigned char *str)
 {
     int len = strlen(str);
     write(fd, str, len);
@@ -139,7 +128,7 @@ void skSendString(unsigned char *str)
 
 /*  Sends len bytes.
  */
-void skWrite(unsigned char *str, int len)
+static void linux_write(unsigned char *str, int len)
 {
     write(fd, str, len);
 }
@@ -148,7 +137,7 @@ void skWrite(unsigned char *str, int len)
 /*  This function writes all characters waiting to be sent into the
  *  transmit buffer.
  */
-void skFlush()
+static void linux_flush()
 {
     tcdrain(fd);
 }
@@ -158,20 +147,11 @@ void skFlush()
  *  on all the little flags and bits to make interrupts happen and load the
  *  ISR.
  */
-int skOpen(int port_base, int baud, int config)
+static int linux_open(int num, char *dummy)
 {
     char device[20];
     struct termios tio;
-    int num; 
     
-    switch (port_base) {
-	case COM1: num = 0; break; 
-	case COM2: num = 1; break;
-	case COM3: num = 2; break;
-	case COM4: num = 3; break;
-	default: return 0;
-    }
-
     sprintf(device, "/dev/ttyS%d", num);
     fd = open(device, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (fd < 0) 
@@ -206,17 +186,9 @@ int skOpen(int port_base, int baud, int config)
 }
 
 
-/*  Enables FIFO if possible.
- */
-int skEnableFIFO()
-{
-    return 1;
-}
-
-
 /*  This function closes the port.
  */
-void skClose()
+static void linux_close()
 {
     if (fd < 0) 
 	return;
@@ -226,6 +198,25 @@ void skClose()
     close(fd);
     fd = -1;
 }
+
+
+SK_DRIVER __sk__serial = {
+    	"Linux serial driver",
+	
+	linux_ready,
+	linux_recv,
+	linux_read,
+	linux_putback,
+	linux_clear,
+	
+	linux_send,
+	linux_send_string,
+	linux_write,
+	linux_flush,
+	
+	linux_open,
+	linux_close
+};
 
 
 #endif /* TARGET_LINUX */

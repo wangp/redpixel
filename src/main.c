@@ -39,7 +39,7 @@
 #include "blood.h"
 
 
-int com_port = COM2;
+int com_port = 1;		/* COM2 */
 
 int record_demos = 0;
 
@@ -107,43 +107,43 @@ int main(int argc, char *argv[])
 	allegro_message("Error loading blood.dat\n");
 	return 1;
     }
-    
+
     /* command line args  */
     while (1) {
-	    char *options = "hveqld1234s:";
+	char *options = "hveqld1234s:";
 	    
-	    c = getopt(argc, argv, options);
-	    if (c < 0) break;
+	c = getopt(argc, argv, options);
+	if (c < 0) break;
 	    
-	    switch (c) {
-		case 'h': usage(options); return 0;
-		case 'v': show_version(1); return 0;
-		case 'e': return mapper();
-		case 'q': skip_intro = 1; break;
-		case 'l': lcd_cur = 1; break;
-		case 'd': record_demos = 1; break;
-		case '1': com_port = COM1; break;
-		case '2': com_port = COM2; break;
-		case '3': com_port = COM3; break;
-		case '4': com_port = COM4; break;
-		case 's': 
-		    if (!optarg) {
-			allegro_message("No stats file specified!\n");
-			return 1;
-		    }
-		    else if (!read_stats(optarg, stat_block)) {
-			allegro_message("Error reading %s.\n", optarg);
-			return 1;
-		    }
-		    
-		    set_menu_message(get_filename(optarg));
-		    alt_stats = 1;
-	 	    break;
-		
-		case '?':
-		default:
+	switch (c) {
+	    case 'h': usage(options); return 0;
+	    case 'v': show_version(1); return 0;
+	    case 'e': return mapper();
+	    case 'q': skip_intro = 1; break;
+	    case 'l': lcd_cur = 1; break;
+	    case 'd': record_demos = 1; break;
+	    case '1': com_port = 0; break;
+	    case '2': com_port = 1; break;
+	    case '3': com_port = 2; break;
+	    case '4': com_port = 3; break;
+	    case 's': 
+		if (!optarg) {
+		    allegro_message("No stats file specified!\n");
 		    return 1;
-	    }
+		}
+		else if (!read_stats(optarg, stat_block)) {
+		    allegro_message("Error reading %s.\n", optarg);
+		    return 1;
+		}
+		    
+		set_menu_message(get_filename(optarg));
+		alt_stats = 1;
+		break;
+		
+	    case '?':
+	    default:
+		return 1;
+	}
     }
 
     /* stats, if none read yet */
@@ -178,10 +178,7 @@ int main(int argc, char *argv[])
     set_palette(dat[GAMEPAL].dat);
     dbuf = create_bitmap(SCREEN_W, SCREEN_H);
     light = create_bitmap(SCREEN_W, SCREEN_H);
-    if (lcd_cur)
-	set_mouse_sprite(dat[XHAIRLCD].dat);
-    else
-	set_mouse_sprite(dat[XHAIR].dat);
+    set_mouse_sprite(dat[lcd_cur ? XHAIRLCD : XHAIR].dat);
     set_mouse_sprite_focus(2, 2);
     set_mouse_speed(1, 1);
 

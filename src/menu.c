@@ -39,6 +39,7 @@
  *----------------------------------------------------------------------*/
 
 static BLUBBER *cur;
+static int selected;
 static int count, top;
 
 int menu_end;
@@ -53,6 +54,7 @@ int menu_end;
 
 /* Dummy function.  */
 void prev_menu(BLUBBER *bp, int command, int ex) { }
+
 
 /* Switch to another node of menu.  */
 void enter_menu(BLUBBER *bp)
@@ -70,7 +72,10 @@ void enter_menu(BLUBBER *bp)
 
     /* offset top accordingly */
     top = 110 - count/2 * 32;
+
+    selected = 0;
 }
+
 
 /* Connect between menus.  */
 void join_menu(BLUBBER *bp, int command, int ex)
@@ -87,7 +92,8 @@ void join_menu(BLUBBER *bp, int command, int ex)
     }
 }
 
-// run a func if this item selected
+
+/* Run a function if this item selected.  */
 void menu_proc(BLUBBER *bp, int command, int ex)
 {
     switch (command) {
@@ -132,20 +138,18 @@ void set_menu_message(char *msg)
 
 static int inline touch(int item)
 {
-    if (mouse_y >= top + item*32 + text_height(big)/2 - 16 && mouse_y <= top + item*32 + text_height(big)/2 + 16)
-	return 1;
-    return 0;
+    return ((mouse_y >= (top + (item * 32) + (text_height(big) / 2) - 16))
+	 && (mouse_y <= (top + (item * 32) + (text_height(big) / 2) + 16)));
 }
 
 
 void blubber(BLUBBER *start)
 {
     BLUBBER *bp;
-    int i;
-    int selected = 0;
     int do_action = 0, do_prev = 0;
     int old_mouse_pos = 0;
     int dirty = 1;
+    int i;
 
     menu_end = 0;
     enter_menu(start);
@@ -170,8 +174,10 @@ void blubber(BLUBBER *start)
 
 	if (mouse_b & 1)
 	    do_action = 1;
-	else if (mouse_b & 2)
+	else if (mouse_b & 2) {
 	    do_prev = 1;
+	    while (mouse_b) ;
+	}
 
 	/* Handle keypresses.  */
 	if (keypressed()) {
@@ -239,7 +245,7 @@ void blubber(BLUBBER *start)
 	    do_action = 0;
 	}
 	
-	/* prev_menuious menu.  */
+	/* Previous menu.  */
 	if (do_prev) {
 	    i = 0;
 	    do {

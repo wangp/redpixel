@@ -13,6 +13,7 @@ frogger		Frogger			dw
 garg		Garg!			ps
 hand		Hand			dw
 hell		Hell			dw
+house		House			dw
 icecaves	Ice-caves		pw
 mario		Mario Brothers		dw
 megablam	Mega-blam		ps

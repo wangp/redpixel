@@ -2,7 +2,7 @@
  *  Just some common globals that don't belong.
  */
 
-#include <time.h>
+#include <sys/time.h>
 #include <allegro.h>
 #include "resource.h"
 #include "globals.h"
@@ -17,7 +17,8 @@ RGB_MAP rgb_table;
 COLOR_MAP alpha_map;
 COLOR_MAP light_map;
 
-time_t seed;
+long seed;
+
 
 
 int load_dat()
@@ -30,6 +31,7 @@ void unload_dat()
 {
     unload_datafile(dat);
 }
+
 
 
 /* colour / lighting / translucency tables */
@@ -45,4 +47,14 @@ void setup_lighting()
     for (x = 0; x < 256; x++)
 	for (y = 0; y < 256; y++)
 	    alpha_map.data[x][y] = MIN(x+y, 255);
+}
+
+
+
+long generate_seed()
+{
+    struct timeval tv;
+
+    gettimeofday(&tv, 0);
+    return tv.tv_sec + tv.tv_usec;
 }

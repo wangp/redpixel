@@ -28,6 +28,9 @@
  *  Modified:   18 June 1998    0.7á    fixed the fix in detect_UART()
  *  Modified:   14 July 1998    0.7c    added skHand()
  *  Modified:   25 July 1998    0.7d    added skRead()
+ * ----------------------------------------------------------------------
+ *  Modified:   20 May 2000		Red Pixel-specificised.
+ * 					from here, check `log.txt'
  */
 
 
@@ -40,10 +43,8 @@
 #include <pc.h>
 #include <sys/segments.h>
 #include "sk.h"
-
-
-
-char sk_desc[] = "SK 0.7d by Peter Wang, July 1998.";
+#include "skintern.h"
+#include "skdos.h"
 
 
 
@@ -94,7 +95,7 @@ static inline void enable_interrupt(unsigned char i)
     if (!(ch & i)) outportb(open_port + IER, ch | i);
 }
 
-END_OF_FUNCTION(enable_interrupt)
+static END_OF_FUNCTION(enable_interrupt)
 
 static inline void disable_interrupt(unsigned char i)
 {
@@ -102,7 +103,7 @@ static inline void disable_interrupt(unsigned char i)
     if (ch & i) outportb(open_port + IER, ch & ~i);
 }
 
-END_OF_FUNCTION(disable_interrupt);
+static END_OF_FUNCTION(disable_interrupt);
 
 
 
@@ -110,7 +111,7 @@ END_OF_FUNCTION(disable_interrupt);
  *  called, it gets the next character out of the recieve buffer register 0 
  *  and places it into the software buffer.
  */
-void skISR()
+static void dos_isr()
 {
     int cause, chars;
 
@@ -171,14 +172,14 @@ void skISR()
     }
 }
 
-END_OF_FUNCTION(skISR)
+static END_OF_FUNCTION(dos_isr)
 
 
 
 /*  This functions returns the number of characters waiting 
  *  in the receive buffer.
  */
-int skReady()
+static int dos_ready()
 {
     if (recv_head >= recv_tail)
 	return recv_head - recv_tail;
@@ -190,7 +191,7 @@ int skReady()
 /*  This function reads a character from the receive buffer 
  *  and returns it to the caller.
  */
-int skRecv()
+static int dos_recv()
 { 
     int ch;
 
@@ -216,7 +217,7 @@ int skRecv()
 /*  This function reads num chars and sticks them in buf.
  *  Make sure you have enough characters ready before calling this.
  */
-void skRead(unsigned char *dest, int num)
+static void dos_read(unsigned char *dest, int num)
 {
     int i = 0;
 
@@ -238,7 +239,7 @@ void skRead(unsigned char *dest, int num)
 
 /*  This function puts the last retrieved character back into the buffer.
  */
-void skPutback()
+static void dos_putback()
 {
     DISABLE();
 
@@ -251,7 +252,7 @@ void skPutback()
 
 /*  This function simplys clears the receive buffer.
  */
-void skClear()
+static void dos_clear()
 {
     DISABLE();
 
@@ -262,21 +263,9 @@ void skClear()
 
 
 
-/*  This functions returns the number of characters waiting 
- *  in the send buffer.
- */
-int skWaiting()
-{
-    if (send_head >= send_tail)
-	return send_head - send_tail;
-    else
-	return send_head - send_tail + BUFFER_SIZE;
-}
-
-
 /*  This function puts a character into the send buffer. 
  */
-void skSend(unsigned char ch)
+static void dos_send(unsigned char ch)
 {
     DISABLE();
 
@@ -294,7 +283,7 @@ void skSend(unsigned char ch)
 
 /*  Send a NULL terminated string.
  */
-void skSendString(unsigned char *str)
+static void dos_send_string(unsigned char *str)
 {
     DISABLE();
 
@@ -315,7 +304,7 @@ void skSendString(unsigned char *str)
 
 /*  Sends len bytes.
  */
-void skWrite(unsigned char *str, int len)
+static void dos_write(unsigned char *str, int len)
 {
     DISABLE();
 
@@ -337,7 +326,7 @@ void skWrite(unsigned char *str, int len)
 /*  This function writes all characters waiting to be sent into the
  *  transmit buffer.
  */
-void skFlush()
+static void dos_flush()
 {
     DISABLE();
 
@@ -358,18 +347,9 @@ void skFlush()
 }
 
 
-/*  Sets various handshaking lines.
- *  Ripped from SVAsync
- */
-void skHand(unsigned int hand)
-{
-    outportb(open_port + MCR, hand | 0x08); /* Keep interrupt enable ON */
-}
-
-
 /*  Ripped from ser_port.txt by Chris Blum.
  */
-int detect_UART(unsigned baseaddr)
+static int detect_UART(unsigned baseaddr)
 {
     // this function returns 0 if no UART is installed.
     // 1: 8250, 2: 16450 or 8250 with scratch reg., 3: 16550, 4: 16550A
@@ -410,12 +390,40 @@ int detect_UART(unsigned baseaddr)
 }
 
 
+/*  Enables FIFO if possible.
+ */
+static int enable_fifo()
+{
+    if (!open_port)
+	return 0;
+
+    // 16550 has a FIFO, but doesn't work!  Go figure...
+    // 16550A is ok tho...
+    if (detect_UART(open_port) == UART_16550A)
+    {
+	outportb(open_port + FCR, 0x87); // 8 byte trigger level should be good
+					 // use C7h for 14 byte trigger level
+	fifo_enabled = 1;
+	return 1;
+    } 
+
+    // otherwise disable
+    outportb(open_port + FCR, 0);
+    fifo_enabled = 0;
+    return 0;
+}
+
+
 /*  This function will open up the serial port, set it's configuration, turn
  *  on all the little flags and bits to make interrupts happen and load the
  *  ISR.
  */
-int skOpen(int port_base, int baud, int config)
+static int dos_open(int num, char *dummy)
 {
+    int port_base;
+    int baud = BAUD_19200;
+    int config = STOP_1 | BITS_8 | PARITY_NONE;
+    
     // lock down ISR and variables?
     if (virgin)
     {
@@ -427,10 +435,18 @@ int skOpen(int port_base, int baud, int config)
 	LOCK_VARIABLE(send_tail);
 	LOCK_VARIABLE(open_port);
 	LOCK_VARIABLE(fifo_enabled);
-	LOCK_FUNCTION(skISR);
+	LOCK_FUNCTION(dos_isr);
 	LOCK_FUNCTION(enable_interrupt);
 	LOCK_FUNCTION(disable_interrupt);
 	virgin = 0; 
+    }
+    
+    switch (num) {
+	case 0: port_base = COM1; break;
+	case 1: port_base = COM2; break;
+	case 2: port_base = COM3; break;
+	case 3: port_base = COM4; break;
+	default: return 0;
     }
 
     if (!detect_UART(port_base))
@@ -464,7 +480,7 @@ int skOpen(int port_base, int baud, int config)
 
     // install ISR
     new_vector.pm_selector = _go32_my_cs();
-    new_vector.pm_offset = (int)skISR;
+    new_vector.pm_offset = (int)dos_isr;
     _go32_dpmi_allocate_iret_wrapper(&new_vector);
 
     if (port_base == COM1 || port_base == COM3)
@@ -482,37 +498,15 @@ int skOpen(int port_base, int baud, int config)
     old_int_mask = inportb(PIC_IMR);
     outportb(PIC_IMR, (port_base==COM1 || port_base==COM3) ? (old_int_mask & 0xEF) : (old_int_mask & 0xF7));
 
+    enable_fifo();
+	
     return 1;
-}
-
-
-/*  Enables FIFO if possible.
- */
-int skEnableFIFO()
-{
-    if (!open_port)
-	return 0;
-
-    // 16550 has a FIFO, but doesn't work!  Go figure...
-    // 16550A is ok tho...
-    if (detect_UART(open_port) == UART_16550A)
-    {
-	outportb(open_port + FCR, 0x87); // 8 byte trigger level should be good
-					 // use C7h for 14 byte trigger level
-	fifo_enabled = 1;
-	return 1;
-    } 
-
-    // otherwise disable
-    outportb(open_port + FCR, 0);
-    fifo_enabled = 0;
-    return 0;
 }
 
 
 /*  This function closes the port.
  */
-void skClose()
+static void dos_close()
 {
     if (open_port)
     {
@@ -539,5 +533,25 @@ void skClose()
     }
 }
 
- 
+
+SK_DRIVER __sk__serial = {
+    	"DOS serial driver",
+	/* char sk_desc[] = "SK 0.7d by Peter Wang, July 1998."; */
+
+	dos_ready,
+	dos_recv,
+	dos_read,
+	dos_putback,
+	dos_clear,
+	
+	dos_send,
+	dos_send_string,
+	dos_write,
+	dos_flush,
+	
+	dos_open,
+	dos_close
+};
+
+
 #endif /* TARGET_DJGPP */

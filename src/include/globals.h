@@ -10,13 +10,15 @@ extern RGB_MAP rgb_table;
 extern COLOR_MAP alpha_map;
 extern COLOR_MAP light_map;
 
-extern time_t seed;
+extern long seed;
 
 
 int load_dat();
 void unload_dat();
 
 void setup_lighting();
+
+long generate_seed();
 
 
 #endif

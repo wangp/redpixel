@@ -25,7 +25,6 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 #include <allegro.h>
 #include "menu.h"
 #include "launch.h"
@@ -45,12 +44,17 @@
 #include "blood.h"
 
 
+#define big	dat[UNREAL].dat
+#define small	dat[MINI].dat
+
+
 static BLUBBER root_menu[];
 static BLUBBER startgame_menu[];
 
 
-#define big	dat[UNREAL].dat
-#define small	dat[MINI].dat
+static char local_name[16 + 1] = "NO NAME";
+
+static char target_addr[32 + 1] = "";
 
 
 
@@ -74,64 +78,80 @@ static void quit_proc()
 
 /*----------------------------------------------------------------------
  *
- * 	Name entry
+ * 	Error message
  * 
  *----------------------------------------------------------------------*/
 
-#define MAX_NAME_LEN    16
-static char local_name[MAX_NAME_LEN+1] = "NO NAME";
-
-static int get_name()
+static void error_screen(char *err) 
 {
-    int k, len, ch;
-    char temp[80];
+    clear(screen);
+    textout_centre(screen, dat[MINI].dat, err, 160, 90, WHITE);
 
+    while (!keypressed() && !mouse_b)
+	;
+    clear_keybuf();
+}
+
+
+
+/*----------------------------------------------------------------------
+ *
+ * 	Prompting
+ * 
+ *----------------------------------------------------------------------*/
+
+static int prompt(char *string, char *dest, int maxlen)
+{
+    char temp[maxlen+1];
+    int k, len, c;
+    
     show_mouse(NULL);
     clear_keybuf();
-
+    
     while (1) {
-	// screen output
-	strcpy(temp, local_name);
+	/* screen output */
+	strcpy(temp, dest);
 	strcat(temp, "_");
 	clear(dbuf);
-	textout_centre(dbuf, small, "ENTER YOUR HANDLE:", 160, 70, makecol(255,255,255));
-	textout_centre(dbuf, small, temp, 160, 90, makecol(255,255,255));
+	textout_centre(dbuf, small, string, 160, 70, WHITE);
+	textout_centre(dbuf, small, temp,   160, 90, WHITE);
 	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
 
-	// wait for keypress
+	/* handle keypress */	
 	k = readkey();
 
-	// enter.. continue
-	if ((k>>8) == KEY_ENTER) {
+	if ((k >> 8) == KEY_ENTER) {
 	    while (key[KEY_ENTER]);
 	    return 1;
 	}
 
-	// esc.. get out
-	if ((k>>8) == KEY_ESC) {
+	if ((k >> 8) == KEY_ESC) {
 	    while (key[KEY_ESC]);
 	    return 0;
 	}
 
-	// otherwise entering name
-	len = strlen(local_name);
+	/* entering name */
+	len = strlen(dest);
 
-	// backspace
-	if ((k>>8) == KEY_BACKSPACE && len > 0)
-	{
-	    local_name[len-1] = 0;
+	if ((k >> 8) == KEY_BACKSPACE && (len > 0)) {
+	    dest[len - 1] = 0;
 	    play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
 	}
-	else if (len < MAX_NAME_LEN)    // ascii key
-	{
-	    ch = toupper(k & 0xff);
-	    if (ch >= ' ' && ch <= '~') {
-		local_name[len] = ch;
-		local_name[len+1] = 0;
-	    }
-	    play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
+	else if (len < maxlen-1) {
+	    c = toupper(k & 0xff);
+	    if (c >= ' ' && c <= '~') {
+		dest[len] = c;
+		dest[len+1] = 0;
+		play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
+	    }	    
 	}
     }
+}
+
+
+static int get_name()
+{
+    return prompt("ENTER YOUR HANDLE:", local_name, sizeof local_name - 1);
 }
 
 
@@ -148,21 +168,19 @@ typedef struct MAPFILE {
     struct MAPFILE *next;
 } MAPFILE;
 
-MAPFILE maphead, *curmap, *tmpmap;
+static MAPFILE maphead, *curmap, *tmpmap;
 
-int num_maps = 0;
+static int num_maps = 0;
 
-void get_map_filenames()
+
+static void get_map_filenames()
 {
-    // retrieve map filenames from ./maps/ *.wak
-    
     struct ffblk f;
     int i;
     char path[MAX_PATH_LENGTH];
 
     curmap = maphead.next;
-    while (curmap)
-    {
+    while (curmap) {
 	tmpmap = curmap->next;
 	free(curmap);
 	curmap = tmpmap;
@@ -175,23 +193,20 @@ void get_map_filenames()
     strcpy(path, get_resource(R_SHARE, "maps/*.wak"));
     
     curmap = &maphead;
-    for (;;)
-    {
-	if (i==0)
-	{
+    while (1) {
+	if (i == 0) {
 	    i = 1;
 	    if (findfirst(path, &f, FA_RDONLY))
 		return;
 	}
-	else
-	{
+	else {
 	    if (findnext(&f))
 		return;
 	}
 
 	tmpmap = malloc(sizeof(MAPFILE));
 	strcpy(tmpmap->fn, f.ff_name);
-	strupr(tmpmap->fn); // font only has uppercase
+	strupr(tmpmap->fn);	/* font only has uppercase */
 	curmap->next = tmpmap;
 	tmpmap->next = NULL;
 	curmap = tmpmap;
@@ -199,7 +214,7 @@ void get_map_filenames()
     }
 }
 
-void sort_map_filenames()
+static void sort_map_filenames()
 {
     int finish = 0, order;
     MAPFILE *a, *b, *c, *d;
@@ -214,15 +229,6 @@ void sort_map_filenames()
 
 	    if (order > 0) {
 		finish = 0;
-
-		// tmpmap---->curmap---->curmap.next----->curmap.next.next
-		//    1         2             3                 4
-
-		// needs to go:
-		//      1       3             2                 4
-
-		// then end with curmap at ^^^^^^ here
-		// and tmpmap ^^^^^^ here (one before
 
 		a = tmpmap;
 		b = curmap;
@@ -256,8 +262,7 @@ void free_map_filenames()
 	curmap = tmpmap;
     }
     
-    maphead.next = NULL;	/* dunno why this wasn't picked up before... */
-
+    maphead.next = NULL;
     num_maps = 0;
 }
 
@@ -272,51 +277,46 @@ void free_map_filenames()
 #define MAPLIST_START   'M'
 #define MAPLIST_END     'm'
 
-MAPFILE *match(char *fn)
+static MAPFILE *match(char *fn)
 {
-    MAPFILE *t;
-    t = maphead.next;
-    while (t)
-    { 
-	// disregard case
+    MAPFILE *t = maphead.next;
+    
+    while (t) {
 	if (stricmp(get_filename(t->fn), fn) == 0)
-	    return t; 
+	    return t;
+	
 	t = t->next; 
     }
 
     return NULL;
 }
 
-/* send
- * recv and compare map filenames
- * then sort
- */
-void trade_map_filenames()
+static void trade_map_filenames()
 {
     char buf[1024];
     int pos, ch;
     int x = 16;
 
-    // send first (no paths)
+    /* Send first (no paths).  */
     curmap = maphead.next;
-    while (curmap)
-    {
+    while (curmap) {
 	skSend(MAPLIST_START);
 	skSendString(get_filename(curmap->fn));
 	skSend(0);
+	
 	curmap->marked = 0;
 	curmap = curmap->next;
 	putpixel(screen, x++, 180, RED);
     }
+    
     skSend(MAPLIST_END);
 
-    // now recv 
-    for (;;)
-    {
+    printf("Sent stuff\n");
+    
+    /* Now receive.  */
+    while (1) {
 	ch = skRecv();
-	if (ch==MAPLIST_START)
-	{
-	    // get filename
+	if (ch == MAPLIST_START) {
 	    pos = 0;
 	    do {
 		while (!skReady());
@@ -330,23 +330,22 @@ void trade_map_filenames()
 	    if (tmpmap)
 	      tmpmap->marked = 1;
 	}
-	else if (ch==MAPLIST_END)
+	else if (ch == MAPLIST_END)
 	    break;
-    } 
+    }
 
-    // delete locals that aren't marked
-    // fix up marked 
+    printf("Received stuff\n");
+
+    /* Delete locals that aren't marked.  */
     curmap = maphead.next;
     tmpmap = &maphead;
-    while (curmap)
-    {
-	if (curmap->marked)
-	{
-	    curmap=curmap->next;
-	    tmpmap=tmpmap->next;
+    while (curmap) {
+	if (curmap->marked) {
+	    curmap = curmap->next;
+	    tmpmap = tmpmap->next;
 	}
-	else    // not marked, kill
-	{
+	else {
+	    /* Not marked, kill.  */
 	    tmpmap->next = curmap->next;
 	    free(curmap);
 	    curmap = tmpmap->next;
@@ -386,26 +385,24 @@ static char *select_map()
     char cur[80] = "", temp[80], ch;
     int remote;
 
-    for (;;)
-    {
+    while (1) {
 	clear(dbuf);
 	
-	// recording demos reminder
+	/* recording demos reminder */
 	textout_right(dbuf, small, record_reminder, SCREEN_W-10, 2, DARKGREY);
-
-	// map select
-
+	
+	/* map select */
 	textout(dbuf, small, "GRAVEYARD", 20, 10, RED);
-	textout_centre(dbuf, small, "UP/DOWN: SELECT  F10: START  F4: DISCONNECT", 160, 120, RED);
+	textout_centre(dbuf, small,
+		       "UP/DOWN: SELECT  F10: START  F4: DISCONNECT",
+		       160, 120, RED);
 
 	curmap = maphead.next;
-	for (i=0; i<top; i++)
+	for (i = 0; i < top; i++)
 	    curmap = curmap->next;
 
-	for (i=0; i<9; i++) 
-	{
-	    if (i+top<num_maps)
-	    {
+	for (i = 0; i < 9; i++) {
+	    if (i + top < num_maps) {
 		int c = WHITE;
 		if (top+i==selected)
 		    c = YELLOW;
@@ -413,100 +410,86 @@ static char *select_map()
 		curmap = curmap->next;
 	    }
 	}
-	textout(dbuf, small, "*", 10, 25 + (selected-top)*10, RED);
+	
+	textout(dbuf, small, "*", 10, 25 + (selected-top) * 10, RED);
 
-	// player list
-
+	/* player list */
 	textout(dbuf, small, "THE DAMNED", 180, 10, RED);
-	y = 20;
-	for (i=0; i<num_players; i++)
-	{
+	for (i = 0, y = 20; i < num_players; i++, y += 20) 
 	    textout(dbuf, small, players[i].name, 190, y + 5, WHITE);
-	    y += 20;
-	}
 
-	// chat box
-
+	/* chat box */
 	hline(dbuf, 0, 130, 319, RED);
 	hline(dbuf, 0, 140, 319, RED);
 	hline(dbuf, 0, 190, 319, RED);
 	textout(dbuf, small, "CHAT BOX", 10, 133, WHITE);
 
-	for (i=0; i<6; i++)
+	for (i = 0; i < 6; i++)
 	    textout(dbuf, small, chatbox[i], 0, 143 + i * 8, WHITE);
 
-	if (chatting)
-	{
+	if (chatting) {
 	    textout(dbuf, small, cur, 0, 192, WHITE);
 	    textout(dbuf, small, "_", text_length(small, cur), 192, WHITE);
 	}
 
-	// splat onto screen
+	/* blit onto screen  */
 	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
 
-	// wait for keypress
-	for(;;)
-	{
-	    if (keypressed())
-	    {
+	/* Wait for keypress.  */
+	while (1) {
+	    if (keypressed()) {
 		remote = 0;
 		k = readkey();
 		break;
 	    }
 
-	    if ((comm==serial) && skReady())
-	    {
+	    if ((comm == peerpeer) && skReady()) {
 		k = 0;
 		remote = skRecv();
 		break;
 	    }
 	}
 
-	// down arrow
-	if ((k>>8) == KEY_DOWN || remote == CHAT_KEYDOWN)
-	{
-	    if (++selected>=num_maps)
+	/* down key */
+	if ((k >> 8) == KEY_DOWN || (remote == CHAT_KEYDOWN)) {
+	    if (++selected >= num_maps)
 		selected--;
-	    else if (selected>=top+9)
+	    else if (selected >= top+9)
 		top++;
 
-	    if ((k>>8)==KEY_DOWN && (comm==serial))
+	    if ((k >> 8) == KEY_DOWN && (comm == peerpeer))
 		skSend(CHAT_KEYDOWN);
 	}
 
-	// up arrow
-	if ((k>>8) == KEY_UP || remote == CHAT_KEYUP)
-	{
+	/* up key */
+	if ((k >> 8) == KEY_UP || (remote == CHAT_KEYUP)) {
 	    if (--selected < 0)
 		selected = 0;
 	    else if (selected<top)
 		top--;
 
-	    if ((k>>8)==KEY_UP && (comm==serial))
+	    if ((k >> 8) == KEY_UP && (comm == peerpeer)) 
 		skSend(CHAT_KEYUP);
 	}
 
-	// esc... return to game
-	if ((k>>8) == KEY_ESC || remote == CHAT_RETURN)
-	{
+	/* escape key */
+	if ((k >> 8) == KEY_ESC || (remote == CHAT_RETURN)) {
 	    while (key[KEY_ESC]);
-	    if ((k>>8) == KEY_ESC && (comm==serial))
+	    if ((k >> 8) == KEY_ESC && (comm == peerpeer))
 		skSend(CHAT_RETURN);
 	    return return_str;
 	}
 
-	// f4... get out
-	if ((k>>8) == KEY_F4 || remote == CHAT_LEAVE)
-	{
-	    if ((k>>8) == KEY_F4 && (comm==serial))
+	/* F4 key */
+	if ((k >> 8) == KEY_F4 || (remote == CHAT_LEAVE)) {
+	    if ((k >> 8) == KEY_F4 && (comm == peerpeer))
 		skSend(CHAT_LEAVE);
 	    return NULL;
 	}
 
-	// f10.. start game
-	if ((k>>8) == KEY_F10 || remote == CHAT_NEWMAP)
-	{
-	    if ((k>>8) == KEY_F10 && (comm==serial))
+	/* F10 key */
+	if ((k >> 8) == KEY_F10 || (remote == CHAT_NEWMAP)) {
+	    if ((k >> 8) == KEY_F10 && (comm == peerpeer))
 		skSend(CHAT_NEWMAP);
 
 	    curmap = maphead.next;
@@ -516,15 +499,13 @@ static char *select_map()
 	    return curmap->fn;
 	}
 
-	// enter.. send chat
-	if ((k>>8) == KEY_ENTER)
-	{
-	    if (chatting && cur[0])
-	    {
-		// scroll?
-		if (++line>5) 
-		{
-		    for (i=0; i<5; i++)
+	/* Enter: send chat */
+	if ((k >> 8) == KEY_ENTER) {
+	    if (chatting && cur[0]) {
+
+		/* scroll */
+		if (++line > 5) {
+		    for (i = 0; i < 5; i++)
 			strcpy(chatbox[i], chatbox[i+1]);
 		    line--;
 		}
@@ -539,8 +520,7 @@ static char *select_map()
 
 		play_sample(dat[WAV_INCOMING].dat, 255, 128, 1000, 0);
 
-		if ((comm==serial))
-		{
+		if (comm == peerpeer) {
 		    skSend(CHAT_INCOMING);
 		    skSendString(temp);
 		    skSend(0);
@@ -548,24 +528,22 @@ static char *select_map()
 	    }
 	}
 
-	// recv chat
-	if (remote==CHAT_INCOMING)
-	{ 
-	    int pos=0;
+	/* recv chat */
+	if (remote == CHAT_INCOMING) {
+	    int pos = 0;
 
-	    // scroll?
-	    if (++line>5) 
-	    {
-		for (i=0; i<5; i++)
+	    /* scroll */
+	    if (++line > 5) {
+		for (i = 0; i < 5; i++)
 		    strcpy(chatbox[i], chatbox[i+1]);
 		line--;
 	    }
 
-	    do
-	    {
-		while (!skReady());
+	    do {
+		while (!skReady())
+		    ;
 		remote = skRecv();
-		temp[pos++]=remote;
+		temp[pos++] = remote;
 	    } while (remote);
 
 	    strcpy(chatbox[line], temp);
@@ -573,9 +551,8 @@ static char *select_map()
 	    play_sample(dat[WAV_INCOMING].dat, 255, 128, 1000, 0);
 	}
 
-	// if backspace
-	if ((k>>8) == KEY_BACKSPACE && chatting)
-	{
+	/* backspace  */
+	if ((k >> 8) == KEY_BACKSPACE && chatting) {
 	    i = strlen(cur);
 	    if (i) {
 		cur[i-1] = 0;
@@ -583,20 +560,18 @@ static char *select_map()
 	    }
 	}
 
-	// else, into chat box
+	/* else, into chat box */
 	ch = toupper(k & 0xff);
-	if (ch >= ' ' && ch <= '~')
-	{
+	if (ch >= ' ' && ch <= '~') {
 	    i = strlen(cur);
-	    if (i<47)
-	    {
+	    if (i < 47) {
 		cur[i] = ch;
 		cur[i+1] = 0;
 		chatting = 1;
 		play_sample(dat[WAV_TYPE].dat, 100, 128, 1000, 0);
 	    }
 	}
-    } 
+    }
 }
 
 
@@ -617,14 +592,15 @@ static void score_sheet()
 
     y = 70;
 
-    for (i = 0; i < num_players; i++)
-    {
-	textprintf(screen, dat[MINI].dat, 100, y, WHITE, "%s: %d FRAGS", players[i].name, players[i].frags);
+    for (i = 0; i < num_players; i++) {
+	textprintf(screen, dat[MINI].dat, 100, y, WHITE,
+		   "%s: %d FRAGS", players[i].name, players[i].frags);
 	y += 16;
     }
 
     speed_counter = GAME_SPEED / 2;
-    while (speed_counter < GAME_SPEED);
+    while (speed_counter < GAME_SPEED)
+	;
 
     clear_keybuf();
     while (!keypressed() && !mouse_b);
@@ -654,7 +630,7 @@ static void try_demo_write_open()
 	    fn = (home) ? new_demo_filename(home) : 0;
 	}
 	
-	if (fn && demo_write_open(fn, num_players, names) == 0) {
+	if (fn && (demo_write_open(fn, num_players, names) == 0)) {
 	    strupr((sprintf(record_reminder, "RECORDING DEMO AS %s",
 			    get_filename(fn)), record_reminder));
 	    return;
@@ -668,117 +644,35 @@ static void try_demo_write_open()
 
 /*----------------------------------------------------------------------
  *
- * 	Serial connection
+ * 	Peer-Peer stuff
  * 
  *----------------------------------------------------------------------*/
 
-#define SER_CONNECTPLS  '?'
-#define SER_CONNECTOK   '!'
-#define SER_THROWDICE   '@'
-#define SER_MYNAMEIS    1	/* happy face */
-
-static int linkup()
+static int peerpeer_negotiate_environment()
 {
-    int x, y;
+    int l, r;
 
-    #define LINKUP_MSG  "LINKING UP (PRESS ESC TO ABORT)"
+    seed = generate_seed();
+    srand(seed);
 
-    rest(500);
-    skClear();
-
-    textout(screen, dat[MINI].dat, LINKUP_MSG, 16, 32, WHITE);
-    x = text_length(dat[MINI].dat, LINKUP_MSG) + 16;
-    y = 32;
-
-    for (;;)
-    {
-	skSend(SER_CONNECTPLS);
-	textout(screen, dat[MINI].dat, ".", x, y, WHITE);
-	if ((x+=4)>SCREEN_W-16) { y += 8; x = 16; }
-
-	if (skRecv() == SER_CONNECTPLS)
-	    break;
-
-	speed_counter = 0;
-	while (speed_counter < GAME_SPEED)
-	{
-	    if (key[KEY_ESC]) 
-	    {
-		while (key[KEY_ESC]);
-		return 0; 
-	    }
-	}
-    }
-
-    textout(screen, dat[MINI].dat, "TOUCHED..", 16, y+8, WHITE);
-    return 1;
-}
-
-static int connect_serial(int comport)
-{
-    int l = 0, r = 0;
-
-    seed = time(NULL);
-    srandom(seed);
-
-    if (!skOpen(comport, BAUD_19200, BITS_8 | PARITY_NONE | STOP_1))
-    {
-	clear(screen);
-	textout_centre(screen, dat[MINI].dat, "ERROR OPENING COM PORT", 160, 90, WHITE);
-	while (!keypressed() && !mouse_b);
-	clear_keybuf();
-	return 0;
-    }
-
-    clear(screen);
-
-    switch (comport)
-    {
-	case COM1:
-	    textout(screen, dat[MINI].dat, "COM1 OPENED", 16, 16, WHITE);
-	    break;
-	case COM2:
-	    textout(screen, dat[MINI].dat, "COM2 OPENED", 16, 16, WHITE);
-	    break;
-	case COM3:
-	    textout(screen, dat[MINI].dat, "COM3 OPENED", 16, 16, WHITE);
-	    break;
-	case COM4:
-	    textout(screen, dat[MINI].dat, "COM4 OPENED", 16, 16, WHITE);
-	    break;
-    }
-
-    if (skEnableFIFO())
-	textout(screen, dat[MINI].dat, "16550A UART FIFO ENABLED", 16, 24, WHITE);
-    else
-	textout(screen, dat[MINI].dat, "FIFO NOT ENABLED", 16, 24, WHITE);
-
-    if (!linkup(SER_CONNECTPLS))
-    {
-	skClose();
-	return 0;
-    }
-
+    printf("Throwing dice.\n");
+    
+    /* Throw dice.  */
     skSend(SER_THROWDICE);
-    while (skRecv() != SER_THROWDICE) 
-    {
-	if (key[KEY_ESC])
-	{
+    while (skRecv() != SER_THROWDICE) {
+	if (key[KEY_ESC]) {
 	    while (key[KEY_ESC]);
 	    skClose();
 	    return 0;
 	}
     }
 
-    do
-    {
-	l = (random()%255) + 1;     // 1-255
+    do {
+	l = (rand() % 255) + 1; 
 	skSend(l);
 
-	while (!skReady())
-	{
-	    if (key[KEY_ESC]) 
-	    {
+	while (!skReady()) {
+	    if (key[KEY_ESC]) {
 		while (key[KEY_ESC]);
 		skClose();
 		return 0; 
@@ -786,15 +680,14 @@ static int connect_serial(int comport)
 	}
 
 	r = skRecv();
-    } while (l==r);
 
-    if (l>r)    // l>r we win
-    {
+    } while (l == r);
+
+    if (l > r) {	/* l > r: we win */
 	local = 0;
 	send_long(seed);
     }
-    else        // l<r we lose
-    {
+    else {		/* l < r: we lose */
 	local = 1;
 	seed = recv_long();
     }
@@ -804,33 +697,28 @@ static int connect_serial(int comport)
     next_position = irnd() % (24*24);
 
     num_players = 2;
-    comm = serial;
+    comm = peerpeer;
     return 1;
 }
 
-static void trade_names()
+static void peerpeer_trade_names()
 {
     int pos, player, ch, left;
 
-    // send name
     skSend(SER_MYNAMEIS);
     skSend(local);
     skSendString(players[local].name);
     skSend(0);
 
-    left = num_players-1;
+    left = num_players - 1;
 
-    // get remote name
-
-    do 
-    {
+    do {
 	while (skRecv() != SER_MYNAMEIS);
 	while (!skReady());
 	player = skRecv();
 
 	pos = 0;
-	do
-	{
+	do {
 	    while (!skReady());
 	    ch = skRecv();
 	    players[player].name[pos++] = ch; 
@@ -840,85 +728,144 @@ static void trade_names()
     } while (left);
 }
 
-static void serial_proc()
+static void peerpeer_session()
 {
     char *fn;
     int first_play = 1;
-
-    // name
-    if (!get_name())
-	return;
-
-    // connect
-    if (!connect_serial(com_port))
-	return;
-
-    no_germs();
-    strcpy(players[local].name, local_name);
-    trade_names();
     
+    no_germs();
+    strcpy(players[local].name, local_name);   
+    peerpeer_trade_names();
+
     if (record_demos) 
 	try_demo_write_open();
     
     demo_write_set_rng_seed(seed);
 
-    // get list of maps (from local and remote)
+    /* Get list of maps from local and remote.  */
     get_map_filenames();
     trade_map_filenames();
 
-    for (;;)
-    {
+    printf("Begin LOOP\n");
+    
+    while (1) {
 	if (!num_maps) break;
 
 	show_mouse(NULL);
 
-	// select level
-	loop:
+	/* Pick a level.  */
+      loop:
 	fn = select_map();
 	if (!fn) break;
-	if (fn==return_str) 
-	{
+	if (fn == return_str) {
 	    if (!first_play)
 		goto returntogame;
 	    else
 		goto loop;
 	}
 
-	// load level
+	/* Load level.  */
 	load_map_wrapper(fn);
 	demo_write_change_map(fn);
 
-	// init players 
+	/* Init players.  */
 	retain_players();
 	no_germs(); 
 	restore_players();
 	spawn_players();
 
-	// final synching
+	/* Final synchronisation.  */
 	skSend(SER_CONNECTOK);
-	while (skRecv()!=SER_CONNECTOK);
+	while (skRecv() != SER_CONNECTOK)
+	    ;
 
-	// go!
+	/* Go!  */
 	play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
 
-	returntogame:   // dodgy gotos
+      returntogame:   
 	game_loop();
 
 	first_play = 0;
     }
 
-    if (!first_play)
-    {
-	// disconnected, show who won
+    if (!first_play) 
 	score_sheet();
-    }
     
     demo_write_close();
 
     free_map_filenames();
+}
 
-    // back to root menu
-    enter_menu(root_menu); 
+
+
+/*----------------------------------------------------------------------
+ *
+ * 	Serial connection
+ * 
+ *----------------------------------------------------------------------*/
+
+static int serial_linkup()
+{
+    int x, y;
+    char *msg = "LINKING UP (PRESS ESC TO ABORT)";
+
+    skSetDriver(SK_SERIAL);
+
+    if (!skOpen(com_port, 0)) {
+	error_screen("ERROR OPENING COM PORT");
+	return 0;
+    }
+
+    clear(screen);
+    textprintf(screen, dat[MINI].dat, 16, 16, WHITE,
+	       "COM%d OPENED", com_port+1);
+
+    y = 24;
+    textout(screen, dat[MINI].dat, msg, 16, y, WHITE);
+    x = text_length(dat[MINI].dat, msg) + 16;
+
+    /* Do NOT remove this.  */
+    rest(500);
+    skClear();
+    
+    while (1) {
+	skSend(SER_CONNECTPLS);
+
+	textout(screen, dat[MINI].dat, ".", x, y, WHITE);
+	if ((x += 4) > SCREEN_W-16)
+	    y += 8, x = 16;
+
+	if (skRecv() == SER_CONNECTPLS)
+	    break;
+
+	speed_counter = 0;
+	while (speed_counter < GAME_SPEED) {
+	    if (key[KEY_ESC]) {
+		while (key[KEY_ESC]);
+		skClose();
+		return 0; 
+	    }
+	}
+    }
+
+    textout(screen, dat[MINI].dat, "TOUCHED", 16, y+8, WHITE);
+    return 1;
+}
+
+static void serial_proc()
+{
+    if (!get_name())
+	return;
+
+    if (!serial_linkup()) 
+	return;
+
+    if (!peerpeer_negotiate_environment())
+	return;
+	
+    peerpeer_session();
+        
+    enter_menu(root_menu);
 }
 
 
@@ -933,7 +880,6 @@ static void single_proc()
 {
     char *fn;
     int first_play = 1;
-    time_t seed;
     
     // name
     if (!get_name())
@@ -950,7 +896,7 @@ static void single_proc()
 	try_demo_write_open();
     }
 
-    seed = time(NULL);
+    seed = generate_seed();
     srnd(seed);
     sirnd(seed);
     next_position = irnd() % (24*24);
@@ -967,7 +913,7 @@ static void single_proc()
 	show_mouse(NULL);
 
 	// select level
-	loop:
+      loop:
 	fn = select_map();
 	if (!fn) break;
 	if (fn==return_str) 
@@ -992,14 +938,13 @@ static void single_proc()
 	// go!
 	play_sample(dat[WAV_LETSPARTY].dat, 255, 128, 1000, 0);
 
-	returntogame:
+      returntogame:
 	game_loop();
 
 	first_play = 0;
     }
 
-    if (!first_play)
-    {
+    if (!first_play) {
 	// disconnected, show who won
 	score_sheet();
     }
@@ -1011,6 +956,80 @@ static void single_proc()
     // back to root menu
     enter_menu(root_menu); 
 }
+
+
+
+/*----------------------------------------------------------------------
+ *
+ * 	Libnet
+ * 
+ *----------------------------------------------------------------------*/
+	
+#ifdef LIBNET_CODE
+
+static char *connect_msg;
+static int no_error;
+
+static int libnet_connect_callback()
+{
+    if (connect_msg) {
+	clear(screen);
+	textout_centre(screen, dat[MINI].dat, connect_msg, 160, 90, WHITE);
+
+	/* only need to do this once */
+	connect_msg = 0;
+    }
+
+    if (keypressed() && (readkey() >> 8) == KEY_ESC) {
+	no_error = 1;
+	return -1;
+    }
+
+    return 0;
+}
+
+static void libnet_proc(int x, char *addr)
+{
+    skSetDriver(SK_LIBNET);
+
+    no_error = 0;
+    _sk_libnet_open_callback = libnet_connect_callback;
+    
+    if (!skOpen(x, addr)) {
+	if (!no_error)
+	    error_screen("ERROR OPENING CONNECTION");
+	return;
+    }
+    
+    if (!peerpeer_negotiate_environment())
+	return;
+    
+    peerpeer_session();
+    
+    enter_menu(root_menu);
+} 
+
+static void libnet_listen_proc()
+{
+    if (!get_name()) 
+	return;
+
+    connect_msg = "AWAITING CONNECTION";
+    libnet_proc(1, 0);
+}
+
+static void libnet_connect_proc()
+{
+    if (!get_name()) 
+	return;
+
+    if (prompt("ENTER TARGET ADDRESS:", target_addr, sizeof target_addr - 1)) {
+	connect_msg = "INITIATING CONNECTION";
+	libnet_proc(0, target_addr);
+    }
+}
+
+#endif
 
 
 
@@ -1033,24 +1052,25 @@ static void demo_playback_proc()
     if (!x) return;
     
     if (demo_read_open(filename) < 0) {
-	alert("Error opening", filename, "", "Ow", NULL, 13, 27);
+	char buf[1024];
+	sprintf(buf, "Error opening %s", filename);
+	error_screen(buf);
 	return;
     }
     
     push_stat_block();
     
-    // set up few things
     comm = demo;
     local = 0;
 
     no_germs();
 
-    demo_read_header();
+    demo_read_header();		/* sets num_players and names */
 
     seed = demo_read_seed();
     srnd(seed);
     sirnd(seed);
-    next_position = irnd() % (24*24);
+    next_position = irnd() % (24 * 24);
     
     introduce_demo();
     game_loop();
@@ -1067,32 +1087,8 @@ static void demo_playback_proc()
     pop_stat_block();
     set_weapon_stats();
     
-    // back to root menu
     enter_menu(root_menu); 
 }
-
-
-
-/*----------------------------------------------------------------------
- *
- * 	Not yet
- * 
- *----------------------------------------------------------------------*/
-
-#if 0
-static void not_yet_proc()
-{
-    show_mouse(NULL);
-    clear(screen);
-    textout_centre(screen, small, "SORRY,", 160, 50, makecol(255,255,255));
-    textout_centre(screen, small, "THIS FEATURE HAS NOT BEEN IMPLEMENTED YET.", 160, 70, makecol(255,255,255));
-    textout_centre(screen, small, "WAIT UNTIL I GET THE TIME", 160, 90, makecol(255,255,255));
-    textout_centre(screen, small, "OR HELP ME OUT.", 160, 110, makecol(255,255,255));
-    textout_centre(screen, small, "ALL MAJOR CREDIT CARDS ACCEPTED. :)", 160, 130, makecol(255,255,255));
-    while (!mouse_b && !key[KEY_ESC]);
-    while (mouse_b || key[KEY_ESC]);
-}
-#endif
 
 
 
@@ -1102,10 +1098,24 @@ static void not_yet_proc()
  * 
  *----------------------------------------------------------------------*/
 
+#ifdef LIBNET_CODE
+
+static BLUBBER libnet_menu[] =
+{
+    { menu_proc, "Connect", 	libnet_connect_proc },
+    { menu_proc, "Listen",	libnet_listen_proc },
+    { prev_menu, "", 		startgame_menu }
+};
+
+#endif
+
 static BLUBBER startgame_menu[] = 
 {
     { menu_proc, "Solo", 	single_proc },
     { menu_proc, "Serial", 	serial_proc },
+#ifdef LIBNET_CODE
+    { join_menu, "Sockets",	libnet_menu },
+#endif
     { menu_proc, "Play Demo", 	demo_playback_proc },
     { prev_menu, "", 		root_menu }
 };

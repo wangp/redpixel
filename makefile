@@ -13,6 +13,11 @@ else
 	CFLAGS += -DTARGET_LINUX
 endif
 
+ifndef WITHOUT_LIBNET
+	CFLAGS += -DLIBNET_CODE
+	LIBS += -lnet
+endif
+
 MODULES = \
 	credits		\
 	demintro	\
@@ -30,7 +35,9 @@ MODULES = \
 	rg_rand		\
 	rnd		\
 	setweaps	\
+	sk		\
 	skdos		\
+	sklibnet	\
 	sklinux		\
 	stats		\
 	statlist
@@ -46,15 +53,15 @@ $(GAME): $(OBJS)
 	$(CC) -o $@ $(OBJS) $(LIBS)
 
 
-.PHONY = compress clean
+.PHONY = compress suidroot clean
 
 compress: $(GAME)
 	upx $<
-	
+
 suidroot:
 	chown root.allegro $(GAME)
 	chmod 4750 $(GAME)
 
 clean: 
-	rm -f $(GAME) $(OBJS)
+	rm -f $(GAME) $(OBJS) core
 
