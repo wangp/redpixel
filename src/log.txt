@@ -82,3 +82,14 @@ now back to school, so less done
 21 August 	preparing for upload, reenabled print-scr screen shot dumping
 		--> released as 0.9 <--
 		
+---------------------------- 0.10 (2000) ----------------------------
+
+20 May		Merged in Peter Sundling's Linux port
+			(including intro fix I sent to him)
+		Added Linux serial code
+		Merged some maps by PS and BH into dist
+		Updated manual a little
+		Put in libc-independant random number generator
+		Switched to C version of fast_sqrt 
+			(asm version did not work under Linux)
+		Released as 0.10 

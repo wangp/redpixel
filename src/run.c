@@ -29,12 +29,9 @@
 #include <string.h>
 #include <stdarg.h>
 #include "fastsqrt/fastsqrt.h"
-#ifdef MODEM_CODE
-#include "skmod.h"
-#else
 #include "sk.h"
-#endif
 #include "common.h"
+#include "rg_rand.h"
 #include "run.h"
 #include "stats.h"
 #include "statlist.h"
@@ -71,8 +68,6 @@ RGB_MAP     rgb_table;
 COLOR_MAP   alpha_map;
 COLOR_MAP   light_map;
 
-time_t seed;
-
 comm_t comm;
 
 
@@ -108,16 +103,11 @@ int blood_frame = 0, blood_anim = 0;
 
 //------------------------------------------------------------ weapon stats --
 
-struct
-{
+struct {
     int anim;
     int reload;
     int dmg;
-} weaps[num_weaps] =
-{
-    // needs to be same order as w_*
-    {           },  // dummy
-};
+} weaps[num_weaps];
 
 
 //------------------------------------------------------------ timer ---------
@@ -162,33 +152,39 @@ void suicide(char *s)
 {
     killall();
     skClose();
-    printf("suicide(): %s\n", s);
-    exit(6);
+    printf("%s\n\n", s);
+    exit(1);
 }
 
 
-//----------------------------------------------- pseudo-rnd no. generator ---
+//----------------------------------------------- random number generator ----
 
-extern int rnd_table[600];
+static long _rnd;
 
-int rnd_index = 0;
-
-int inline rnd()
+int rnd()
 {
-    if (++rnd_index == 600)
-	rnd_index = 0;
-    return rnd_table[rnd_index];
+    return (_rnd = longrand(_rnd));
 }
+
+void srnd(unsigned long seed)
+{
+    _rnd = slongrand(seed);
+}
+
 
 // this one is used for the more important stuff
 // the stuff that has to be synchronised
-int irnd_index = 0;
 
-int inline irnd()
+static long _irnd;
+
+int irnd()
 {
-    if (++irnd_index == 600)
-	irnd_index = 0;
-    return rnd_table[irnd_index];
+    return (_irnd = longrand(_irnd));
+}
+
+void sirnd(unsigned long seed)
+{
+    _irnd = slongrand(seed);
 }
 
 
@@ -220,12 +216,15 @@ inline int find_distance(int x1, int y1, int x2, int y2)
     b = y1-y2;
     a *= a;
     b *= b;
-    // yeah, returning an ints real accurate
-#if 1                                  /* fastsqrt.c */
-    return (int)fast_fsqrt_asm((float)a + (float)b);
-#else                                  /* libc */
-    return (int)sqrt((float)a + (float)b);
-#endif
+
+    /* fast sqrt, asm version -- fastest; does not work under Linux */
+    // return (int)fast_fsqrt_asm((float)a + (float)b);
+
+    /* fast sqrt, C version -- medium; works under DOS and Linux */
+    return (int)fast_fsqrt((float)a + (float)b);
+    
+    /* libc version -- slowest; libc dependant */
+    // return (int)sqrt((float)a + (float)b);
 }
 
 inline void draw_light(int bmp, int cx, int cy)
@@ -2662,9 +2661,6 @@ void show_version()
 {
     printf("Red Pixel " VERSION_STR " by Psyk Software " VERSION_YEAR ".\n");
     printf("http://www.psynet.net/tjaden/\n");
-#if 0 
-    printf("Freeware: Distribute me!\n");
-#endif 
     printf("Licensed under the GNU Lesser General Public Licence.\n");
     printf("See COPYING for details.\n");
 }
@@ -2676,7 +2672,7 @@ void show_version()
     weaps[w_##x].dmg = st_##x##_damage;
 
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
     int skip_intro = 0;
     int lcd_cur = 0;
@@ -2687,11 +2683,19 @@ int main(int argc, char **argv)
 
     /* init allegro */
     allegro_init();
-    if (install_mouse() <= 0)
-    {
-	printf("\nRed Pixel requires a mouse to play.\nPlease install a mouse driver.\n\n");
+    
+    if (install_mouse() <= 0) {
+#ifdef TARGET_DJGPP
+	printf("\nRed Pixel requires a mouse to play.\n"
+	       "Please install a mouse driver (e.g. mouse.com).\n\n");
+#else
+	printf("\nRed Pixel requires a mouse to play.\n"
+	       "Please check your Allegro mouse port settings\n"
+	       "and make sure you have permissions to the device.\n\n");
+#endif
 	return 1;
     }
+    
     install_timer();
     install_keyboard();
     install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);
@@ -2720,7 +2724,9 @@ int main(int argc, char **argv)
     /* command line args */
     for (x=1; x<argc; x++)
     {
-	//strlwr(argv[x]);             /* heh, dos people */
+#ifdef TARGET_DJGPP
+	strlwr(argv[x]);             /* heh, dos people */
+#endif
 
 	if (strcmp(argv[x], "--help") == 0 ||
 	    strcmp(argv[x], "-h") == 0) {
@@ -2765,18 +2771,18 @@ int main(int argc, char **argv)
 
 	// FIXME: COM port selection should be in menu
 
-	if (strcmp(argv[x], "--com1") == 0 ||
-	    strcmp(argv[x], "-1") == 0)
-	  com_port = COM1;
-	if (strcmp(argv[x], "--com2") == 0 ||
-	    strcmp(argv[x], "-2") == 0)
-	  com_port = COM2;
-	if (strcmp(argv[x], "--com3") == 0 ||
-	    strcmp(argv[x], "-3") == 0)
-	  com_port = COM3;
-	if (strcmp(argv[x], "--com4") == 0 ||
-	    strcmp(argv[x], "-4") == 0)
-	  com_port = COM4;
+	if (!strcmp(argv[x], "--com1")
+	    || !strcmp(argv[x], "-1")) 
+	    com_port = COM1;
+	else if (!strcmp(argv[x], "--com2")
+		 || !strcmp(argv[x], "-2"))
+	    com_port = COM2;
+	else if (!strcmp(argv[x], "--com3") 
+		 || !strcmp(argv[x], "-3"))
+	    com_port = COM3;
+	else if (!strcmp(argv[x], "--com4") 
+		 || !strcmp(argv[x], "-4"))
+	    com_port = COM4;
     }
 
     /* stats, if none read yet */
@@ -2811,26 +2817,26 @@ int main(int argc, char **argv)
 
     create_light_table(&light_map, dat[GAMEPAL].dat, 0, 0, 0, NULL);
 
-    for (x=0; x<256; x++)
-	for (y=0; y<256; y++)
+    for (x = 0; x < 256; x++)
+	for (y = 0; y < 256; y++)
 	    alpha_map.data[x][y] = MIN(x+y, 255);
 
     /* init screen etc */
     if (set_gfx_mode(GFX_AUTODETECT, 320, 200, 0, 0) < 0)
-	suicide("Could not set 320x200x256 video mode... WTF?!");
+	suicide("Error setting 320x200 video mode.");
     set_palette(dat[GAMEPAL].dat);
     dbuf = create_bitmap(SCREEN_W, SCREEN_H);
     light = create_bitmap(SCREEN_W, SCREEN_H);
     if (lcd_cur)
-      set_mouse_sprite(dat[XHAIRLCD].dat);
+	set_mouse_sprite(dat[XHAIRLCD].dat);
     else
-      set_mouse_sprite(dat[XHAIR].dat);
+	set_mouse_sprite(dat[XHAIR].dat);
     set_mouse_sprite_focus(2,2);
     set_mouse_speed(1,1);
 
-    /* go! */
     if (!skip_intro)
       intro();
+
     menu();
 
     /* bye bye */
@@ -2841,3 +2847,4 @@ int main(int argc, char **argv)
     return 0;
 }
 
+END_OF_MAIN()

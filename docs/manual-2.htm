@@ -8,34 +8,33 @@
  <LINK HREF="manual.htm#toc2" REL=contents>
 </HEAD>
 <BODY>
-<A HREF="manual-3.htm"><IMG SRC="next.gif" ALT="Next"></A>
-<A HREF="manual-1.htm"><IMG SRC="prev.gif" ALT="Previous"></A>
-<A HREF="manual.htm#toc2"><IMG SRC="toc.gif" ALT="Contents"></A>
+<A HREF="manual-3.htm">Next</A>
+<A HREF="manual-1.htm">Previous</A>
+<A HREF="manual.htm#toc2">Contents</A>
 <HR>
 <H2><A NAME="s2">2. The Game</A></H2>
 
 <H2><A NAME="ss2.1">2.1 Concept</A>
 </H2>
 
-<P>The concept is platform deathmatch.  
-You run around a tile-based map, picking up <EM>stuff</EM> and shoot your 
-opponent.  Original.
+<P>The concept is a platform deathmatch game.  You run around a tile-based map, 
+picking up various items and shooting your opponent.  Original.
 <P>
-<H2><A NAME="ss2.2">2.2 Story (ahem)</A>
+<H2><A NAME="ss2.2">2.2 Story</A>
 </H2>
 
+<P>(ahem)
 <P>You have been thrown in a dungeon with a handful of other
 prisoners. Contained within the dungeon are various magical objects,
 mostly weapons, which respawn after a certain time period.
 <P>Surrounded by such weapons of destruction, you cannot resist the
-temptation... <EM>yes!</EM>
-<P><EM>Please</EM> don't take this too seriously...
+temptation...
 <P>
 <H2><A NAME="sec-starting"></A> <A NAME="ss2.3">2.3 Starting the game</A>
 </H2>
 
-<P>Simply run the executable <B>red.exe</B> to start.  Please note the
-following <EM>case-sensitive</EM> command-line options:
+<P>Simply run the executable <B>red.exe</B> (or <B>red</B> under Linux) to start.
+Please note the following command-line options are <EM>case-sensitive</EM>:
 <P>
 <DL>
 <P>
@@ -50,17 +49,18 @@ to be used on hard to see laptop displays.
 <DT><B>--skip, -s</B><DD><P>Skip introduction.
 <DT><B>--version, -v</B><DD><P>Display version number.
 </DL>
-<P>Note that you <B>cannot</B> collate the options.  e.g. you can't do: <CODE>red
--1ql</CODE>
+<P>Note that you <B>cannot</B> collate the options.  i.e. <CODE>red
+-1ql</CODE> is invalid.
+<P>Linux users: COM1 = /dev/ttyS0; COM2 = /dev/ttyS1; etc.
 <P>
-<H2><A NAME="ss2.4">2.4 Serial connection details (and trouble-shooting)</A>
+<H2><A NAME="ss2.4">2.4 Serial connection details </A>
 </H2>
 
-<P>Link two computers via serial cable in COM 1-4 (see Command line
+<P>Link two computers via a serial cable in COM 1-4 (see Command line
 options in section 
 <A HREF="#sec-starting">Starting the game</A>).  
 Select `Start' --> `Serial'.  Enter your name, then wait for
-the computers to connect.  If it hangs, press Ctrl-Alt-End and try
+the computers to connect.  If it hangs, press `Ctrl-Alt-End' and try
 again.
 <P>If it says `Error opening COM port', check to make
 sure you used the right <CODE>--comX</CODE> option.  If you're are
@@ -68,16 +68,17 @@ running Windows 9x, try running under pure DOS.  If you have a
 Logitech mouse you could also also try what I did, and get updated
 mouse drivers (MouseWare) for it from their web site.
 <P>From here on, you will be shown a map selection screen.  Only the maps
-existing on BOTH computers will be displayed.  Please make sure the
-maps are identical, otherwise your games will be unsynchronised.
-Press Up/Down to selection a map.  You may also have a conversation of
-here if you wish.  Please feel free to use any obscene words you
-desire.
+existing on both computers will be displayed.  Please make sure the maps
+are identical, otherwise your games will be unsynchronised. Press the up
+and down arrow keys to select a map.  You may also have a conversation of
+here if you wish.  Feel free to use any obscene words you desire.
 <P>(Note: The chat box was designed in case the game ever supported
-Internet play.  However it may be also useful in other areas,
-e.g. library :)
-<P>When you are ready to die, press <B>F10</B>.
-<P>If it ever says <EM>SYNC PROBLEM</EM>, then you'd better quit and restart.
+Internet play.  However it may be also useful in other areas, 
+e.g. library)
+<P>When you are ready to play, press <B>F10</B>.
+<P>If your game become unsynchronised, quit the level and restart.
+If it ever says <EM>SYNC PROBLEM</EM>, then you'd better restart 
+from the serial connection procedure.
 <P>
 <H2><A NAME="ss2.5">2.5 Controls</A>
 </H2>
@@ -94,12 +95,12 @@ e.g. library :)
 </LI>
 <LI>Aim the gun with the mouse, fire with the <EM>left mouse button</EM>.</LI>
 <LI>Select the weapon with the <EM>number keys</EM>, and with
-<EM>Q,E,R,Y</EM>.  The weapons you have collected will be displayed on the
+<EM>Q, E, R, Y</EM>.  The weapons you have collected will be displayed on the
 left.  Press <EM>Enter</EM> or press the <EM>right mouse button</EM> to lay a
 mine.</LI>
-<LI>TAB to see your scores.  ESC to quit.</LI>
-<LI>F12 to see frames per second (FPS).  This is a development
-thing, so it's not supposed to work properly.  Just push it real fast
+<LI><EM>TAB</EM> to see your scores.  <EM>ESC</EM> to quit.</LI>
+<LI><EM>F12</EM> to see the frame rate counter.  This is a development
+feature, so it's not supposed to work properly.  Just push it quickly
 and see.</LI>
 </UL>
 <P>
@@ -116,7 +117,7 @@ and see.</LI>
 <LI>Uzi</LI>
 <LI>M16 (just a big gun, nothing like an M16)</LI>
 <LI>Minigun</LI>
-<LI>Bow with <B>explosive</B> arrows</LI>
+<LI>Bow with explosive arrows</LI>
 <LI>Bazooka</LI>
 <LI>Mines</LI>
 </UL>
@@ -125,10 +126,10 @@ and see.</LI>
 <UL>
 <LI>Chicken (+health)</LI>
 <LI>Coke (+health)</LI>
-<LI>Armour.  Takes half the damage from an attack (1 health == 2 armour)</LI>
+<LI>Armour.  Takes half the damage from an attack (1 health = 2 armour)</LI>
 <LI>Goggles.  Lights up your vision, for about a minute.</LI>
 <LI>Backpack.  You drop half of all your ammo when you die, but your guns disappear.</LI>
-<LI>Bloodlust.  Double damage for all weapons, except mines.  Be careful!  
+<LI>Bloodlust.  Double damage for all weapons, except mines.  Be careful!
 Lasts 30 seconds.</LI>
 <LI>Scanner.  Points in the direction of your enemy.</LI>
 </UL>
@@ -138,10 +139,12 @@ Lasts 30 seconds.</LI>
 <H2><A NAME="sec-stats"></A> <A NAME="ss2.7">2.7 Stats</A>
 </H2>
 
-<P>Included with the game are two files <CODE>stats</CODE> and <CODE>stats.07</CODE>.
+<P>Included with the game are three files <CODE>stats</CODE>, <CODE>stats.07</CODE>
+<CODE>stats.fst</CODE>.
 <CODE>stats</CODE> is the more up to date version, providing more powerful
 weapons with quicker reload and respawn rates.  <CODE>stats.07</CODE>
-contains the older values, kept only for historic reasons.  
+contains the older values, kept only for historic reasons.  <CODE>stats.fst</CODE>
+contains values that will quickly increase the body count.
 <P>You can create your own stats by copying one of them, and editing
 them with a text editor, then use it with 
 <BLOCKQUOTE><CODE>
@@ -152,7 +155,7 @@ them with a text editor, then use it with
 <HR>
 </CODE></BLOCKQUOTE>
   
-Note that both machine will need <B>exactly</B> the same file, and both
+Note that both machines will need <B>exactly</B> the same file, and both
 must run with the <CODE>-s</CODE> command-line option.  You have been warned.
 <P>
 <H2><A NAME="ss2.8">2.8 Tips</A>
@@ -170,13 +173,12 @@ blood will conceal it :)</LI>
 <LI>Jump over your enemy and lay mines.</LI>
 <LI>Jump up ladders, never climb.</LI>
 </UL>
-<P>Send us some more!
 <P>
 <P>
 <P>
 <HR>
-<A HREF="manual-3.htm"><IMG SRC="next.gif" ALT="Next"></A>
-<A HREF="manual-1.htm"><IMG SRC="prev.gif" ALT="Previous"></A>
-<A HREF="manual.htm#toc2"><IMG SRC="toc.gif" ALT="Contents"></A>
+<A HREF="manual-3.htm">Next</A>
+<A HREF="manual-1.htm">Previous</A>
+<A HREF="manual.htm#toc2">Contents</A>
 </BODY>
 </HTML>

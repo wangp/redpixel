@@ -1,8 +1,6 @@
 // quick benchmarking util by Peter Wang 3 august 1998
 
 #include <stdio.h>
-#include <conio.h>
-#include <pc.h>
 #include <math.h>
 #include <allegro.h>    // :-)
 #include "fastsqrt.h"
@@ -26,12 +24,13 @@ int main()
     LOCK_VARIABLE(counter); 
     install_timer();
     install_int(persec, 1000);
+    install_keyboard();
 
     build_sqrt_table();
 
     printf("\nStandard C sqrt():\n");
 
-    while (!kbhit())
+    while (!keypressed())
     {
 	sqrt(anum++);
 	counter++;
@@ -42,11 +41,11 @@ int main()
 	    fflush(stdout);
 	}
     }
-    getch();
+    clear_keybuf();
 
     printf("\n\nfast_sqrt():\n");
 
-    while (!kbhit())
+    while (!keypressed())
     {
 	fast_fsqrt(anum++);
 	counter++;
@@ -57,11 +56,11 @@ int main()
 	    fflush(stdout);
 	}
     }
-    getch();
+    clear_keybuf();
 
     printf("\n\nfast_sqrt_asm():\n");
 
-    while (!kbhit())
+    while (!keypressed())
     {
 	fast_fsqrt_asm(anum++);
 	counter++;
@@ -72,7 +71,11 @@ int main()
 	    fflush(stdout);
 	}
     }
-    getch();
+    clear_keybuf();
+    
+    printf("\n");
 
     return 0;
 }
+
+END_OF_MAIN();

@@ -35,6 +35,7 @@ int raster_words(char *s)
     BITMAP *txt2;
     int w, h;
     int x, y;
+    int nopress = 0;
 
     w = text_length(dat[UNREAL].dat, s);
     h = text_height(dat[UNREAL].dat);
@@ -78,36 +79,41 @@ int raster_words(char *s)
 	    goto die;
     } while (x<320);
 
-    die:    // gotos.. nooo!!
+    nopress = 1;
+
+    die:
+    
     destroy_bitmap(txt1);
     destroy_bitmap(txt2);
-    if (keypressed())
-	return 0;
-    return 1;
+
+    return nopress;
 }
 
 
 int scan(int x, int y)
 {
+    BITMAP *dbuf;
     int x2, i, j=0;
     x2 = x + 60;
 
+    dbuf = create_bitmap(320,200);
+    clear(dbuf);
+
     do
     {
-	//clear(dbuf);
-
 	if (j==0) j=1; else j=0;
+
 	for (i=j; i<80; i+=2)
 	    blit(dat[TITLE].dat, dbuf, x, y+i, 120, 60+i, 80, 1);
 
 	blit(dbuf, screen, 0, 0, 0, 0, 320, 200);
 	x++;
 	rest(60);
-	if (keypressed())
-	    return 0;
-    } while (x < x2);
+    } while ((x < x2) && (!keypressed()));
 
-    return 1;
+    destroy_bitmap(dbuf);
+
+    return !(x < x2);
 }
 
 
@@ -117,12 +123,12 @@ void intro()
 
     clear_keybuf();
 
-    if (raster_words("1998") &&
-	scan(10, 100) &&
-	raster_words("PSYK SOFTWARE") &&
-	scan(160, 90) &&
-	raster_words("PRESENTS"))
-    {
+    if (raster_words("1998")
+	&& scan(10, 100) 
+	&& raster_words("PSYK SOFTWARE") 
+	&& scan(160, 90)
+	&& raster_words("PRESENTS")) {
+
 	x = 159; x2 = 160;
 	y = 99;  y2 = 100;
 

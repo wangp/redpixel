@@ -1,0 +1,32 @@
+  Map			  Author
+--------------------------------------
+Around			ps
+Barrlfun		bh
+Castle			dw
+Castle2			ps
+Chess			pw
+Devtest			pw
+Dome			dw
+Frogger			dw
+Garg			ps
+Hand			dw
+Hell			dw
+Icecaves		pw
+Mario			dw
+Megablam		ps
+Mini			dw
+Open			dw
+Peter			ps
+Pooyan			dw
+Small			dw
+Sniper			dw
+Splatter		ps
+Tower			bh
+Tunnels			dw
+Turret			dw
+--------------------------------------
+
+dw - David Wang
+ps - Peter Sundling (kaffepeter@telia.com)
+bh - Black Hand (black.hand@t-online.de)
+pw - Peter Wang

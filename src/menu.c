@@ -25,7 +25,7 @@
 
 #include <ctype.h>
 #include <string.h>
-#include <dir.h>
+//#include <dir.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <allegro.h>
@@ -42,11 +42,16 @@
 
 void load_map_wrapper(char *fn)
 {
-    char path[1024];
+    char path[1024], tmp[1024];
+    
     *game_path_p = '\0';
     strcpy(path, game_path);
     strcat(path, "maps/");
-    strcat(path, fn);
+    
+    strcpy(tmp, fn);
+    strlwr(tmp);
+    strcat(path, tmp);
+
     load_map(path);
 }
 
@@ -72,7 +77,9 @@ int     count, top;
 
 BLUBBER root_menu[];
 BLUBBER startgame_menu[];
+#ifdef MODEM_CODE
 BLUBBER modem_menu[];
+#endif
 
 
 //------------------------------------------------------ procs ---------------
@@ -765,7 +772,7 @@ void score_sheet()
 #define SER_CONNECTPLS  '?'
 #define SER_CONNECTOK   '!'
 #define SER_THROWDICE   '@'
-#define SER_MYNAMEIS    ''
+#define SER_MYNAMEIS    1	/* happy face */
 
 int linkup()
 {
@@ -807,6 +814,7 @@ int linkup()
 int connect_serial(int comport)
 {
     int l = 0, r = 0;
+    time_t seed;
 
     seed = time(NULL);
     srandom(seed);
@@ -889,10 +897,9 @@ int connect_serial(int comport)
 	seed = recv_long();
     }
 
-    srandom(seed);
-    next_position = random()%(24*24);
-    rnd_index = random()%600;
-    irnd_index = random()%600;
+    srnd(seed);
+    sirnd(seed);
+    next_position = irnd() % (24*24);
 
     num_players = 2;
     comm = serial;
@@ -1044,7 +1051,8 @@ int _cancel() { if (key[KEY_ESC]) return 1; return 0; }
 int connect_modem()
 {
     int l = 0, r = 0;
-
+    time_t seed;
+    
     seed = time(NULL);
     srandom(seed);
 
@@ -1055,7 +1063,7 @@ int connect_modem()
     skSend(SER_THROWDICE);
     while (skRecv() != SER_THROWDICE);
 
-    gprintf("trhowing 2");
+    gprintf("throwing 2");
 
     do
     {
@@ -1086,10 +1094,10 @@ int connect_modem()
 	seed = recv_long();
     }
 
-    srandom(seed);
-    next_position = random()%(24*24);
-    rnd_index = random()%600;
-    irnd_index = random()%600;
+    srnd(seed);
+    sirnd(seed);
+    next_position = irnd() % (24*24);
+    
     num_players = 2;
     comm = modem;
     return 1;
@@ -1344,7 +1352,8 @@ void single_func()
 {
     char *fn;
     int first_play = 1;
-
+    time_t seed;
+    
     // name
     if (!get_name())
 	return;
@@ -1356,11 +1365,10 @@ void single_func()
     players[1].exist = 0;	   /* just to be sure */
 
     seed = time(NULL);
-    srandom(seed);
-    next_position = random()%(24*24);
-    rnd_index = random()%600;
-    irnd_index = random()%600;
-
+    srnd(seed);
+    sirnd(seed);
+    next_position = irnd() % (24*24);
+    
     no_germs();
     strcpy(players[local].name, local_name);
 
@@ -1447,11 +1455,11 @@ BLUBBER startgame_menu[] =
     { func, "Serial", serial_func },
 #ifdef MODEM_CODE    
     { join, "Modem-Modem", modem_menu },
-#endif				       /* MODEM_CODE */
+#endif
 #if 0    
     { func, "IPX Network", not_yet_func },
     { func, "Internet", not_yet_func },
-#endif    			       /* 0 */
+#endif
     { prev, "", root_menu }
 };
 

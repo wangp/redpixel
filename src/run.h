@@ -120,8 +120,6 @@ extern RGB_MAP     rgb_table;
 extern COLOR_MAP   alpha_map;
 extern COLOR_MAP   light_map;
 
-extern time_t seed;
-
 extern int local;          // local player
 extern int num_players;
 
@@ -132,6 +130,15 @@ extern int irnd_index;
 extern PLAYER players[];
 
 extern volatile int speed_counter;
+
+
+//-------------------------------------------------------- RNG ---------------
+
+int rnd();
+void srnd(unsigned long seed);
+
+int irnd();
+void sirnd(unsigned long seed);
 
 
 //-------------------------------------------------------- connection type ---
