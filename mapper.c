@@ -6,8 +6,8 @@
 
 
 
-DATAFILE *dat;
-BITMAP *dbuf;
+extern DATAFILE *dat;
+extern BITMAP *dbuf;
 
 
 
@@ -276,15 +276,9 @@ void map_edit()
 
 
 
-int main()
+int mapper()
 {
     int i;
-
-    /* allegro */
-    allegro_init();
-    install_mouse();
-    install_timer();
-    install_keyboard();
 
     /* init screen etc */
     set_gfx_mode(GFX_AUTODETECT, 640, 480, 0, 0);
@@ -294,8 +288,6 @@ int main()
     text_mode(-1);
     set_mouse_sprite_focus(0,0);
 
-    /* load datafile */
-    dat = load_datafile("blood.dat");
     set_palette(dat[GAMEPAL].dat);
 
     gui_fg_color = 0;
@@ -317,7 +309,6 @@ int main()
     map_edit();
 
     /* bye bye */ 
-    unload_datafile(dat);
     destroy_bitmap(dbuf);
     return 0;
 }

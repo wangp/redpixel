@@ -1,6 +1,12 @@
 #ifndef RUN_H
 #define RUN_H
 
+#include "w_types.h"
+
+
+#define GAME_SPEED  40
+
+
 
 typedef struct
 {
@@ -14,9 +20,6 @@ typedef struct
     unsigned char   tag,  // player who fired it
 		    dmg;  // dmg it causes
     fixed angle; 
-
-    // for flamethrower
-    unsigned char flame;
 } PARTICLE;
 
 
@@ -67,7 +70,6 @@ typedef struct
     char alive, unactive;
     int x, y;
     int num_bullets, num_shells, num_rockets, num_arrows, num_mines;
-    int num_fuel, num_bottles;
 } BACKPACK;
 
 
@@ -76,23 +78,6 @@ enum {
     left,
     right
 };
-
-
-
-enum {
-    w_knife = 1,
-    w_pistol,
-    w_bow,
-    w_shotgun,
-    w_uzi,
-    w_m16,
-    w_minigun, 
-    w_bazooka,
-    w_mine,
-    w_bottle,
-    w_flamer,
-    num_weaps
-} w_types;
 
 
 
@@ -112,8 +97,6 @@ typedef struct
     int num_rockets;
     int num_mines;
     int num_arrows;
-    int num_bottles;
-    int num_fuel;
 
     int frags;
 
@@ -165,8 +148,14 @@ extern int irnd_index;
 extern PLAYER players[];
 
 
+extern volatile int speed_counter;
+
+
 
 // prototypes
+
+void send_long(long);
+long recv_long();
 
 void no_germs();
 void spawn_players();

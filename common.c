@@ -34,8 +34,8 @@ LIST ammos[] =
     { W_MINE,    3 },
     { A_ROCKET,  4 },
     { A_SHELL,   5 },
-    { W_BOTTLE,  6 },
-    { A_FUEL,    7 },
+    //{ W_BOTTLE,  6 },
+    //{ A_FUEL,    7 },
     { A_CHICKEN, 20 },
     { A_COKE,    21 },
     { A_ARMOUR,  50 }, 
@@ -48,7 +48,7 @@ LIST ammos[] =
     { W_ROCKET,  104 },
     { W_SHOTGUN, 105 },
     { W_UZI,     106 },
-    { W_FLAME,   107 },
+    //{ W_FLAME,   107 },
     { -1 }
 };
 
@@ -77,33 +77,32 @@ int pic2num(LIST *l, int pic)
 }
 
 
+int rr_a_bullet, rr_a_arrow, rr_w_mine, rr_a_rocket, rr_a_shell, rr_a_chicken;
+int rr_a_coke, rr_a_armour, rr_a_goggles, rr_w_bow, rr_w_m16, rr_w_mini;
+int rr_w_pistol, rr_w_rocket, rr_w_shotgun, rr_w_uzi;
 
 int ammo_respawn_rate(int pic)
 {
     switch (pic)
     {
-	case A_BULLET: return 700;
-	case A_ARROW: return 900;
-	case W_MINE: return 1500;
-	case A_ROCKET: return 1000;
-	case A_SHELL: return 700;
-	case A_CHICKEN: return 1800;
-	case A_COKE: return 1300;
-	case A_ARMOUR: return 2000;
-	case A_GOGGLES: return 4300; 
-	case W_BOTTLE: return 1700;
-	case A_FUEL: return 1900;
-	case W_FLAME: return 4300;
-	case W_BOW: return 3600;
-	case W_M16: return 3500;
-	case W_MINI: return 3800;
-	case W_PISTOL: return 750;
-	case W_ROCKET: return 4000;
-	case W_SHOTGUN: return 1700;
-	case W_UZI: return 1800;
+	case A_BULLET: return rr_a_bullet;
+	case A_ARROW: return rr_a_arrow;
+	case W_MINE: return rr_w_mine;
+	case A_ROCKET: return rr_a_rocket;
+	case A_SHELL: return rr_a_shell;
+	case A_CHICKEN: return rr_a_chicken;
+	case A_COKE: return rr_a_coke;
+	case A_ARMOUR: return rr_a_armour;
+	case A_GOGGLES: return rr_a_goggles; 
+	case W_BOW: return rr_w_bow;
+	case W_M16: return rr_w_m16;
+	case W_MINI: return rr_w_mini;
+	case W_PISTOL: return rr_w_pistol;
+	case W_ROCKET: return rr_w_rocket;
+	case W_SHOTGUN: return rr_w_shotgun;
+	case W_UZI: return rr_w_uzi;
+	default: return 0;
     }
-
-    return 0;
 }
 
 

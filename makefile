@@ -1,18 +1,18 @@
-all : mapper.exe run.exe
+all : red.exe
 
-OPT=-Wall -O2 -m486 -fomit-frame-pointer -ffast-math
+OPT=-Wall -O2 -m486 -fomit-frame-pointer -ffast-math -g
 
-%.o : %.c common.h blood.h
+%.o : %.c blood.h
 	gcc $(OPT) -c -o $@ $<
 
-mapper.exe : mapper.o common.o
-	gcc $(OPT) -s -o $@ mapper.o common.o -lalleg
+red.exe : run.o common.o sk.o rnd.o menu.o mapper.o creds.o intro.o
+	gcc $(OPT) -o $@ run.o common.o sk.o rnd.o menu.o mapper.o creds.o intro.o -lalleg -lseer
 
-run.exe : run.o common.o sk.o rnd.o menu.o
-	gcc $(OPT) -o $@ run.o common.o sk.o rnd.o menu.o -lalleg
+cs : stats.sc
+	seerc -a tjaden -t stats $<
 
-dist : mapper.exe run.exe
-	djp *.exe
+dist : red.exe
+	djp red.exe
 
 clean : 
 	rm -f *.exe *.o

@@ -1,9 +1,5 @@
 --- engine ---
 ûuse bb_collide
-ûflamer
-Xgrenades
-tiles on fire
-players on fire
 bloodlust
 
 --- comms ---
@@ -13,6 +9,5 @@ tcp/ip
 --- fancy shit ---
 intro - metroid style start
 creds - qwater type effect, with deaths at end
-gui shit
 define macros
 sound setup

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
+#include <seer.h>
 #include "common.h"
 #include "run.h"
 #include "sk.h"
@@ -10,8 +11,6 @@
 
 
 #define MAX_PLAYERS     16
-
-#define GAME_SPEED      40
 
 #define AMBIENT_LIGHT   16
 
@@ -86,21 +85,7 @@ struct
     int anim;
     int reload;
     int dmg;
-} weaps[] =
-{
-    { 0 },
-    { 3, 20, 12 },  // knife
-    { 4, 20, 14 },  // pistol
-    { 4, 28, 40 },  // bow
-    { 6, 24, 7 },   // shotty 5 x shells per shot
-    { 3, 8, 12 },   // uzi
-    { 2, 5, 15 },   // m16
-    { 1, 1, 5 },    // minigun
-    { 6, 40, 65 },  // zooka
-    { 0, 25, 45 },  // mine
-    { 10, 30, 55 }, // bottle
-    { 3, 3, 2 }     // flamer 4 x particles
-};
+} weaps[num_weaps];
 
 
 
@@ -238,10 +223,13 @@ inline int num_ammo(int pl, int weapon)
 	case w_bazooka: return players[pl].num_rockets;
 	case w_bow:     return players[pl].num_arrows;
 	case w_mine:    return players[pl].num_mines;
-	case w_bottle:  return players[pl].num_bottles;
-	case w_flamer:  return players[pl].num_fuel;
 	default: return -1;
     }
+}
+
+inline void snd_local(int snd)
+{
+    play_sample(dat[snd].dat, 255, 128, 1000, 0);
 }
 
 
@@ -767,7 +755,7 @@ void reset_backpacks(int lower)
 	backpacks[i].alive = 0;
 }
 
-void spawn_backpack(int x, int y, int b, int s, int r, int a, int m, int f, int bot)
+void spawn_backpack(int x, int y, int b, int s, int r, int a, int m)
 {
     int i;
     for (i=max_backpacks-1; i>=0; i--)
@@ -781,8 +769,8 @@ void spawn_backpack(int x, int y, int b, int s, int r, int a, int m, int f, int 
 	    backpacks[i].num_rockets = r;
 	    backpacks[i].num_arrows = a;
 	    backpacks[i].num_mines = m;
-	    backpacks[i].num_fuel = f;
-	    backpacks[i].num_bottles = bot;
+	    //backpacks[i].num_fuel = f;
+	    //backpacks[i].num_bottles = bot;
 	    backpacks[i].alive = 1;
 	    backpacks[i].unactive = 13*CORPSE_ANIM;
 	    return;
@@ -794,7 +782,7 @@ void spawn_backpack(int x, int y, int b, int s, int r, int a, int m, int f, int 
     if (backpacks==NULL)
 	suicide("Backpack overflow"); 
     reset_backpacks(max_backpacks-5);
-    spawn_backpack(x, y, b, s, r, a, m, f, bot);
+    spawn_backpack(x, y, b, s, r, a, m);
     add_msg("ALLOCED EXTRA 5 BACKPACKS", local);
 }
 
@@ -976,8 +964,7 @@ void hurt_player(int pl, int dmg, int protect, int tag, int deathseq)
 
 	spawn_backpack(players[pl].x, players[pl].y, players[pl].num_bullets/2,
 	    players[pl].num_shells/2, players[pl].num_rockets/2, 
-	    players[pl].num_arrows/2, players[pl].num_mines/2,
-	    players[pl].num_fuel/2, players[pl].num_bottles/2);
+	    players[pl].num_arrows/2, players[pl].num_mines/2);
 
 	players[pl].health = 0;
 	if (tag==pl)    // haha, suicide!
@@ -986,7 +973,7 @@ void hurt_player(int pl, int dmg, int protect, int tag, int deathseq)
 	    players[tag].frags++;
     }
 
-    play_sample(dat[WAV_DEAD1+(irnd()%5)].dat, 255, 128, 1000, 0);
+    play_sample(dat[WAV_ARR+(irnd()%5)].dat, 255, 128, 1000, 0);
 }
 
 inline int gun_pic(int pl)
@@ -1001,8 +988,8 @@ inline int gun_pic(int pl)
 	case w_bazooka: return P_ROCKET0;
 	case w_shotgun: return P_SHOTGUN0;
 	case w_uzi: return P_UZI0;
-	case w_flamer: return P_FLAMER0;
-	case w_bottle: return P_BOT0;
+	//case w_flamer: return P_FLAMER0;
+	//case w_bottle: return P_BOT0;
 	default: return 0;
     }
 }
@@ -1041,19 +1028,13 @@ void draw_players()
 
 	if (guy->facing==right)
 	{
-	    if (guy->cur_weap==w_flamer)
-		draw_sprite(dbuf, dat[P_FUELPACK].dat, u, v);
-	    else
-		draw_sprite(dbuf, dat[P_BODY].dat, u, v);
+	    draw_sprite(dbuf, dat[P_BODY].dat, u, v);
 	    draw_sprite(dbuf, dat[P_LEG0+guy->leg_frame].dat, u-1, v);
 	    rotate_sprite(dbuf, dat[gun].dat, u+3-w, v+6-h, guy->angle);
 	}
 	else
 	{
-	    if (guy->cur_weap==w_flamer)
-		draw_sprite_h_flip(dbuf, dat[P_FUELPACK].dat, u, v);
-	    else
-		draw_sprite_h_flip(dbuf, dat[P_BODY].dat, u, v);
+	    draw_sprite_h_flip(dbuf, dat[P_BODY].dat, u, v);
 	    draw_sprite_h_flip(dbuf, dat[P_LEG0+guy->leg_frame].dat, u-8, v);
 	    rotate_sprite(dbuf, dat[gun].dat, u+2-w, v+6-h, guy->angle - itofix(128)); 
 	}
@@ -1191,7 +1172,7 @@ void reset_bullets(int lower)
 	bullets[i].life = 0;
 }
 
-void spawn_bullet(int pl, fixed angle, int c, int bmp, int flame)
+void spawn_bullet(int pl, fixed angle, int c, int bmp)
 {
     int i, speed, w;
 
@@ -1199,9 +1180,10 @@ void spawn_bullet(int pl, fixed angle, int c, int bmp, int flame)
     {
 	if (!bullets[i].life)
 	{
-	    speed = flame ? 4 : 8;
+	    //speed = flame ? 4 : 8;
+	    speed = 8;
 
-	    w = (((BITMAP *)dat[gun_pic(pl)].dat)->w / 3);
+	    w = (((BITMAP *)dat[gun_pic(pl)].dat)->w / 4);
 
 	    bullets[i].x = itofix(players[pl].x + 3) + fcos(players[pl].angle) * w;
 	    bullets[i].y = itofix(players[pl].y + 4) + fsin(players[pl].angle) * w;
@@ -1213,7 +1195,7 @@ void spawn_bullet(int pl, fixed angle, int c, int bmp, int flame)
 	    bullets[i].tag = pl;
 	    bullets[i].angle = angle;
 	    bullets[i].life = 1;
-	    bullets[i].flame = flame * 30;
+	    //bullets[i].flame = flame * 30;
 	    return;
 	}
     }
@@ -1223,7 +1205,7 @@ void spawn_bullet(int pl, fixed angle, int c, int bmp, int flame)
     if (bullets==NULL)
 	suicide("Bullet overflow"); 
     reset_bullets(max_bullets-50);
-    spawn_bullet(pl, angle, c, bmp, flame);
+    spawn_bullet(pl, angle, c, bmp);
     add_msg("ALLOCED EXTRA 50 BULLETS", local);
 }
 
@@ -1239,20 +1221,6 @@ void update_bullets()
 
 	    if (bullets[i].bmp==J_KNIFE)
 		bullets[i].angle += (bullets[i].xv>0) ? itofix(20) : -itofix(20);
-	    else if (bullets[i].flame)
-	    {
-		if (--bullets[i].flame==0)
-		    bullets[i].life = 0;
-		else
-		{
-		    bullets[i].angle += itofix((irnd()%7)-3);
-		    bullets[i].xv = fcos(bullets[i].angle) * 4;
-		    bullets[i].yv = fsin(bullets[i].angle) * 4;
-		    // 160-175  orange - yellow
-		    //bullets[i].colour = (rnd()%(175-160))+160;
-		    bullets[i].colour--;
-		}
-	    }
 
 	    if (bullets[i].x < itofix(0)     || bullets[i].y < itofix(0) ||
 		bullets[i].x > itofix(map.w*16) || bullets[i].y > itofix(map.h*16))
@@ -1382,10 +1350,10 @@ struct
     { W_UZI,        w_uzi,      KEY_4,      "4" },
     { W_M16,        w_m16,      KEY_5,      "5" },
     { W_MINI,       w_minigun,  KEY_6,      "6" },
-    { W_FLAME,      w_flamer,   KEY_7,      "7" },
-    { W_BOW,        w_bow,      KEY_8,      "8" },
-    { W_ROCKET,     w_bazooka,  KEY_9,      "9" },
-    { W_BOTTLE,     w_bottle,   KEY_0,      "0" }, 
+    //{ W_FLAME,      w_flamer,   KEY_7,      "7" },
+    { W_BOW,        w_bow,      KEY_7,      "7" },
+    { W_ROCKET,     w_bazooka,  KEY_8,      "8" },
+    //{ W_BOTTLE,     w_bottle,   KEY_0,      "0" }, 
     { 0 }
 };
 
@@ -1426,7 +1394,7 @@ void draw_status()
 	for (i=0; i<MAX_PLAYERS; i++)
 	{
 	    if (players[tempbuf[i].no].exist) {
-		textprintf(dbuf, dat[UNREAL].dat, 55, y, -1, "%3d %s", players[tempbuf[i].no].frags, "TJADEN");
+		textprintf(dbuf, dat[UNREAL].dat, 55, y, -1, "%3d %s", players[tempbuf[i].no].frags, players[tempbuf[i].no].name);
 		y+=20;
 	    }
 	}
@@ -1435,7 +1403,7 @@ void draw_status()
 
     if (players[local].health==0)
     {
-	textout(dbuf, dat[UNREAL].dat, "PRESS SPACE TO RESPAWN", 40, SCREEN_H-30, RED);
+	textout(dbuf, dat[UNREAL].dat, "PRESS SPACE TO RESPAWN", 40, SCREEN_H-30, -1);
 	return;
     }
 
@@ -1457,7 +1425,7 @@ void draw_status()
 		sprintf(buf, "%d", ammo); 
 		textout(dbuf, dat[MINI].dat, buf, 24, y+6, YELLOW);
 		if (weapon_order[i].weap == players[local].cur_weap)
-		    textout(dbuf, dat[UNREAL].dat, buf, SCREEN_W-24-text_length(dat[UNREAL].dat, buf), SCREEN_H-24, -1);
+		    textout(dbuf, dat[UNREAL].dat, buf, SCREEN_W-48, SCREEN_H-24, -1);
 	    }
 
 	    y-=14;
@@ -1480,7 +1448,7 @@ void draw_status()
 
 /* handle player movement / input */
 
-int next_best[] = { w_minigun, w_flamer, w_m16, w_shotgun, w_uzi, w_pistol, 0 };
+int next_best[] = { w_minigun, w_m16, w_shotgun, w_uzi, w_pistol, 0 };
 
 void auto_weapon(int pl, int new_weapon)
 {
@@ -1582,7 +1550,7 @@ void get_local_input()
     players[local].select = 0;
 
     if (!players[local].next_fire) {
-	players[local].fire = (mouse_b & 1) | key[KEY_CONTROL];
+	players[local].fire = mouse_b & 1;
 	select_weapon();
     }
 }
@@ -1608,7 +1576,11 @@ void update_player(int pl)
 
     /* selecting weapon */
     if (guy->select)
+    {
 	guy->cur_weap = guy->pref_weap = guy->select;
+	if (pl==local)
+	    snd_local(WAV_SELECT);
+    }
 
     /* picking up stuff ie. pickups */
     kx = (guy->x+3)/16;
@@ -1690,22 +1662,6 @@ void update_player(int pl)
 		map.ammo[ky][kx] = 0;
 		break;
 
-	    case A_FUEL:
-		guy->num_fuel+=100;
-		map.ammo[ky][kx] = 0;
-		auto_weapon(pl, 0);
-		add_msg("LET'S BURN SOMETHING", pl);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
-		break;
-
-	    case W_BOTTLE:
-		guy->num_bottles++;
-		guy->have[w_bottle] = 1;
-		map.ammo[ky][kx] = 0;
-		add_msg("GOT YERSELF A BOTTLE", pl);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
-		break;
-
 	    case W_BOW:
 		guy->have[w_bow]=1;
 		guy->num_arrows+=3;
@@ -1758,13 +1714,6 @@ void update_player(int pl)
 		auto_weapon(pl, w_uzi);
 		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
 		break;
-
-	    case W_FLAME:
-		guy->num_fuel+=50;
-		map.ammo[ky][kx] = 0;
-		auto_weapon(pl, w_flamer);
-		play_sample(dat[WAV_PICKUP].dat, 255, 128, 1000, 0);
-		break;
 	}
     }
 
@@ -1778,24 +1727,12 @@ void update_player(int pl)
 
 	switch (guy->cur_weap)
 	{
-	    case w_flamer:
-		if (--guy->num_fuel < 0) {
-		    fired = guy->num_fuel = 0;
-		    auto_weapon(pl, 0);
-		} else {
-		    spawn_bullet(pl, guy->angle, YELLOW, 0, 1);
-		    spawn_bullet(pl, guy->angle, YELLOW, 0, 1);
-		    spawn_bullet(pl, guy->angle, YELLOW, 0, 1);
-		    spawn_bullet(pl, guy->angle, YELLOW, 0, 1);
-		}
-		break;
-
 	    case w_minigun:
 		if (--guy->num_bullets < 0) {
 		    fired = guy->num_bullets = 0;
 		    auto_weapon(pl, 0);
 		} else {
-		    spawn_bullet(pl, guy->angle, GREY, 0, 0);
+		    spawn_bullet(pl, guy->angle, GREY, 0);
 		    play_sample(dat[WAV_MINIGUN].dat, 255, 128, 1000, 0);
 		}
 		break;
@@ -1805,7 +1742,7 @@ void update_player(int pl)
 		    fired = guy->num_bullets = 0;
 		    auto_weapon(pl, 0);
 		} else {
-		    spawn_bullet(pl, guy->angle, GREY, 0, 0);
+		    spawn_bullet(pl, guy->angle, GREY, 0);
 		    play_sample(dat[WAV_M16].dat, 255, 128, 1000, 0);
 		}
 		break;
@@ -1815,7 +1752,7 @@ void update_player(int pl)
 		    fired = guy->num_bullets = 0;
 		    auto_weapon(pl, 0);
 		} else {
-		    spawn_bullet(pl, guy->angle, GREY, 0, 0);
+		    spawn_bullet(pl, guy->angle, GREY, 0);
 		    play_sample(dat[WAV_UZI].dat, 255, 128, 1000, 0);
 		}
 		break;
@@ -1825,7 +1762,7 @@ void update_player(int pl)
 		    fired = guy->num_bullets = 0;
 		    auto_weapon(pl, 0);
 		} else {
-		    spawn_bullet(pl, guy->angle, GREY, 0, 0);
+		    spawn_bullet(pl, guy->angle, GREY, 0);
 		    play_sample(dat[WAV_UZI].dat, 255, 128, 1000, 0);
 		}
 		break;
@@ -1837,11 +1774,11 @@ void update_player(int pl)
 		}
 		else
 		{
-		    spawn_bullet(pl, guy->angle - itofix(5), YELLOW, 0, 0);
-		    spawn_bullet(pl, guy->angle - itofix(3), YELLOW, 0, 0);
-		    spawn_bullet(pl, guy->angle,             YELLOW, 0, 0);
-		    spawn_bullet(pl, guy->angle + itofix(2), YELLOW, 0, 0);
-		    spawn_bullet(pl, guy->angle + itofix(4), YELLOW, 0, 0);
+		    spawn_bullet(pl, guy->angle - itofix(5), YELLOW, 0);
+		    spawn_bullet(pl, guy->angle - itofix(3), YELLOW, 0);
+		    spawn_bullet(pl, guy->angle,             YELLOW, 0);
+		    spawn_bullet(pl, guy->angle + itofix(2), YELLOW, 0);
+		    spawn_bullet(pl, guy->angle + itofix(4), YELLOW, 0);
 		    play_sample(dat[WAV_SHOTGUN].dat, 255, 128, 1000, 0);
 		}
 		break;
@@ -1853,7 +1790,7 @@ void update_player(int pl)
 		}
 		else 
 		{
-		    spawn_bullet(pl, guy->angle, 0, J_ROCKET, 0);
+		    spawn_bullet(pl, guy->angle, 0, J_ROCKET);
 		    play_sample(dat[WAV_ROCKET].dat, 255, 128, 1000, 0);
 		}
 		break;
@@ -1864,11 +1801,11 @@ void update_player(int pl)
 		    auto_weapon(pl, 0);
 		}
 		else
-		    spawn_bullet(pl, guy->angle, 0, J_ARROW, 0);
+		    spawn_bullet(pl, guy->angle, 0, J_ARROW);
 		break;
 
 	    case w_knife:
-		spawn_bullet(pl, guy->angle, 0, J_KNIFE, 0);
+		spawn_bullet(pl, guy->angle, 0, J_KNIFE);
 		play_sample(dat[WAV_KNIFE].dat, 255, 128, 1000, 0);
 		break;
 	}
@@ -2074,9 +2011,6 @@ void clean_player(int pl)
 
 /* serial/net */
 
-#define SER_CONNECTPLS  '?'
-#define SER_CONNECTOK   '!'
-#define SER_THROWDICE   '@'
 #define SER_PLAYERSTAT  's'
 #define SER_QUITGAME    'x'
 #define SER_QUITOK      'X'
@@ -2120,21 +2054,6 @@ void send_local_input()
 
 	// now send it off
 	skWrite(packet, 15);
-
-	/*
-	skSend(SER_PLAYERSTAT);
-	skSend(local);
-	skSend(players[local].up);
-	skSend(players[local].down);
-	skSend(players[local].left);
-	skSend(players[local].right);
-	skSend(players[local].fire);
-	skSend(players[local].drop_mine);
-	skSend(players[local].select);
-	skSend(players[local].respawn);
-	skSend(players[local].facing);
-	send_long(players[local].angle);
-	*/
     }
 };
 
@@ -2187,6 +2106,7 @@ void recv_remote_inputs()
 
 /* the loop */
 
+// help draw the spotlights
 void inline draw_spotlight()
 {
     int u = 0, v = 0;
@@ -2338,110 +2258,9 @@ void game_loop()
 	skFlush();
 	while (skRecv() != SER_QUITOK);
     }
-}
 
-
-/* connect via serial */
-
-int linkup()
-{
-    int x, y;
-
-    textout(screen, dat[MINI].dat, "LINKING UP", 16, 32, WHITE);
-    x = text_length(dat[MINI].dat, "LINKING UP") + 16;
-    y = 32;
-
-    for (;;)
-    {
-	skSend(SER_CONNECTPLS);
-	textout(screen, dat[MINI].dat, ".", x, y, WHITE);
-	if ((x+=4)>SCREEN_W-16) { y += 8; x = 16; }
-
-	if (skRecv() == SER_CONNECTPLS)
-	    break;
-
-	speed_counter = 0;
-	while (speed_counter < GAME_SPEED)
-	{
-	    if (key[KEY_ESC]) 
-	    {
-		while (key[KEY_ESC]);
-		return 0; 
-	    }
-	}
-    }
-
-    textout(screen, dat[MINI].dat, "TOUCHED", 16, y+8, WHITE);
-    return 1;
-}
-
-int connect_serial(int comport)
-{
-    int l = 0, r = 0;
-
-    seed = time(NULL);
-    srandom(seed);
-
-    skOpen(comport, BAUD_19200, BITS_8 | PARITY_NONE | STOP_1);    // 8n1
-
-    switch (comport)
-    {
-	case COM1:
-	    textout(screen, dat[MINI].dat, "COM1 OPENED", 16, 16, WHITE);
-	    break;
-	case COM2:
-	    textout(screen, dat[MINI].dat, "COM2 OPENED", 16, 16, WHITE);
-	    break;
-	case COM3:
-	    textout(screen, dat[MINI].dat, "COM3 OPENED", 16, 16, WHITE);
-	    break;
-	case COM4:
-	    textout(screen, dat[MINI].dat, "COM4 OPENED", 16, 16, WHITE);
-	    break;
-    }
-
-    if (skEnableFIFO())
-	textout(screen, dat[MINI].dat, "16550A UART FIFO ENABLED", 16, 24, WHITE);
-    else
-	textout(screen, dat[MINI].dat, "FIFO NOT ENABLED", 16, 24, WHITE);
-
-    if (!linkup(SER_CONNECTPLS))
-	return 0;
-
-    skSend(SER_THROWDICE);
-    while (skRecv() != SER_THROWDICE);
-
-    do
-    {
-	l = (random()%255) + 1;     // 1-255
-	skSend(l);
-
-	while (!skReady())
-	{
-	    if (key[KEY_ESC]) 
-	    {
-		while (key[KEY_ESC]);
-		return 0; 
-	    }
-	}
-
-	r = skRecv();
-    } while (l==r);
-
-    if (l>r)    // l>r we win
-    {
-	local = 0;
-	send_long(seed);
-    }
-    else        // l<r we lose
-    {
-	local = 1;
-	seed = recv_long();
-    }
-
-    num_players = 2;
-    comm = serial;
-    return 1;
+    while (key[KEY_ESC]);
+    clear_keybuf();
 }
 
 
@@ -2461,24 +2280,73 @@ void no_germs()
     oldest_corpse = 0;
 }
 
+
+
+int mapper();   // mapper.c
+void intro();   // intro.c
 void menu();    // menu.c
+void credits(); // creds.c
 
 int main(int argc, char **argv)
 {
-    int x, y;
+    scScript scrpt;
+    scInstance *prog;
+    int x, y, loc;
 
-    /* ego ego ego */
-    puts("Red Pixel " VERSION_STR " by Psyk Software, 1998.");
+    /* read in stats from stats.sc */
+    scrpt = scCompile_File("stats.sc");
+    if (scErrorNo)
+    {
+	printf("%s\n> %s\n", scErrorMsg, scErrorLine);
+	return 1;
+    }
+
+    prog = scCreate_Instance(scrpt, "");
+    if (!prog)
+    {
+	printf("Could not create instance of script\n");
+	free(scrpt);
+	return 1;
+    }
+
+    for (x=w_knife; x<num_weaps; x++)
+    {
+	weaps[x].dmg    = scCall_Instance(prog, scGet_Symbol(prog, "damage"), x);
+	weaps[x].reload = scCall_Instance(prog, scGet_Symbol(prog, "reload"), x);
+	weaps[x].anim   = scCall_Instance(prog, scGet_Symbol(prog, "anim"), x);
+    }
+
+    // dodgey, but this was not designed for scripts
+    loc = scGet_Symbol(prog, "respawn");
+    rr_a_bullet = scCall_Instance(prog, loc, A_BULLET);
+    rr_a_arrow  = scCall_Instance(prog, loc, A_ARROW);
+    rr_w_mine   = scCall_Instance(prog, loc, W_MINE);
+    rr_a_rocket = scCall_Instance(prog, loc, A_ROCKET);
+    rr_a_shell  = scCall_Instance(prog, loc, A_SHELL);
+    rr_a_chicken= scCall_Instance(prog, loc, A_CHICKEN);
+    rr_a_coke   = scCall_Instance(prog, loc, A_COKE);
+    rr_a_armour = scCall_Instance(prog, loc, A_ARMOUR);
+    rr_a_goggles= scCall_Instance(prog, loc, A_GOGGLES);
+    rr_w_bow    = scCall_Instance(prog, loc, W_BOW);
+    rr_w_m16    = scCall_Instance(prog, loc, W_M16);
+    rr_w_mini   = scCall_Instance(prog, loc, W_MINI);
+    rr_w_pistol = scCall_Instance(prog, loc, W_PISTOL);
+    rr_w_rocket = scCall_Instance(prog, loc, W_ROCKET);
+    rr_w_shotgun= scCall_Instance(prog, loc, W_SHOTGUN);
+    rr_w_uzi    = scCall_Instance(prog, loc, W_UZI);
+
+    scFree_Instance(prog);
+    free(scrpt);
 
     /* init allegro */
     allegro_init();
-    install_timer();
-    install_keyboard();
     if (install_mouse()==-1)
     {
 	printf("Please install a mouse driver.");
-	exit(1);
+	return 1;
     }
+    install_timer();
+    install_keyboard();
     install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);
 
     /* install timer interrupts */
@@ -2496,11 +2364,15 @@ int main(int argc, char **argv)
 	dat = load_datafile("blood.dat");
 	if (!dat)
 	{
-	    printf("Error loading blood.dat and #\n");
+	    printf("Error loading datafile\n");
 	    return 1;
 	}
     }
-    puts("datafile loaded");
+
+    /* map editor ? */
+    for (x=1; x<argc; x++)
+	if (strcmp(argv[x], "-edit")==0)
+	    return mapper();
 
     /* alloc */
     bullets = malloc(max_bullets * sizeof(PARTICLE));
@@ -2508,19 +2380,16 @@ int main(int argc, char **argv)
     backpacks = malloc(max_backpacks * sizeof(BACKPACK));
     if (!bullets || !mines || !backpacks)
 	suicide("Bullets or mines or backpacks malloc failed");
-    puts("bullets, mines and backpacks allocated");
 
     /* colour / lighting / translucency tables */
     create_rgb_table(&rgb_table, dat[GAMEPAL].dat, NULL);
     rgb_map = &rgb_table;
 
     create_light_table(&light_map, dat[GAMEPAL].dat, 0, 0, 0, NULL);
-    puts("light map created");
 
     for (x=0; x<256; x++)
 	for (y=0; y<256; y++)
 	    alpha_map.data[x][y] = MIN(x+y, 255);
-    puts("alpha map created");
 
     /* init screen etc */
     if (set_gfx_mode(GFX_VGA, 320, 200, 0, 0)<0)
@@ -2532,41 +2401,15 @@ int main(int argc, char **argv)
     set_mouse_sprite_focus(2,2);
     set_mouse_speed(1,1);
 
-    /* temp */
-    load_map("deathmat.wak");
-
     /* go */
-    //intro();
+    intro();
     menu();
-
-    /* connect! */
-    /*
-    comm = single; 
-    if (connect_serial(COM2))
-    {
-    }
-    else 
-    {
-	 num_players = 1;
-	 seed = time(NULL);
-    }
-
-    srandom(seed);
-    next_position = random()%(24*24);
-    rnd_index = random()%600;
-    irnd_index = random()%600;
-
-    no_germs();
-    for (i=0; i<num_players; i++)
-	respawn_player(i);
-
-    game_loop(); 
-
-    if (comm==serial)
-	skClose();
-    */
 
     /* bye bye */
     killall();
+
+    printf("Red Pixel " VERSION_STR " by Psyk Software 1998.\n");
+    printf("Freeware: Distribute me!\n");
+
     return 0;
 }

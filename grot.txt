@@ -10,7 +10,7 @@ done...Loselegs - legs fall off, body in air, immobile, then drops to ground
 
 Missle - breaks apart
 
-fountain - head looks up, splurts a fountain of blood, then body falls to ground, soaked in red pixels
+canceled...fountain - head looks up, splurts a fountain of blood, then body falls to ground, soaked in red pixels
 
 losestomach - stomach goes missing, body drips blood galore, then legs and upper body drop on different places
 

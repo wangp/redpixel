@@ -16,6 +16,8 @@
 21 june     fires from end of gun + menu system
 23 june     more menu stuff
 24 june     colour selection
+28 june     removed flamer/bottles + uses scripts for stats + credits
+	    + intro
 
 
 Red Pixel
