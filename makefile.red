@@ -189,11 +189,13 @@ sharedir := $(prefix)/share/redpixel
 INSTALL := install -p
 
 install: $(GAME)
-	$(INSTALL) -m 755 -D $(GAME) $(bindir)/$(GAME)
+	$(INSTALL) -m 755 -D -s $(GAME) $(bindir)/$(GAME)
 	$(INSTALL) -m 644 -D blood.dat $(sharedir)/blood.dat
-	for thedir in demos maps music stats; do			\
-		$(INSTALL) -m 755 -d $(sharedir)/$${thedir};		\
-		$(INSTALL) -m 644 $${thedir}/* $(sharedir)/$${thedir};	\
+	for thedir in demos maps music stats; do					\
+		files=`find $${thedir} -type f -print`;					\
+		for thefile in $${files}; do						\
+			$(INSTALL) -m 644 -D $${thefile} $(sharedir)/$${thefile};	\
+		done;									\
 	done
 
 uninstall:

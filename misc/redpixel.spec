@@ -21,7 +21,7 @@ make
 %install
 rm -rf %{buildroot}
 make prefix=%{buildroot}%{_prefix} \
-	sharedir=%{buildroot}%{_prefix}/share/games/redpixel \
+	sharedir=%{buildroot}%{_datadir}/redpixel \
 	install
 
 %clean
@@ -31,7 +31,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root)
 %doc LICENCE.txt docs/manual.html
 %{_prefix}/games/redpixel
-%{_datadir}/games/redpixel
+%{_datadir}/redpixel
 
 %changelog
 * Wed Dec 12 2001 Peter Wang <tjaden@users.sf.net>  1.0-1

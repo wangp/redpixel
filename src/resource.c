@@ -59,8 +59,8 @@ void set_game_path(char *p)
 	}
 	
 	if (strstr(p, "/usr/") == p) {
-	    strcpy(prefix_share, "/usr/share/games/redpixel");
-	    strcpy(prefix_lib, "/usr/lib/games/redpixel");
+	    strcpy(prefix_share, "/usr/share/redpixel");
+	    strcpy(prefix_lib, "/usr/lib/redpixel");
 	    return;
 	}
 	

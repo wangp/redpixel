@@ -16,7 +16,7 @@ if [ ! -d redpixel ]; then
 	exit 1
 fi
 
-if [ -e .tmp || -e $TARBALL || -e $ZIP ]; then
+if test -e .tmp || test -e $TARBALL || test -e $ZIP; then
 	echo "Something is in the way, aborting"
 	exit 1
 fi
