@@ -217,7 +217,7 @@ static struct packet *get_next_packet (struct hl_port *hl_port, int *to_slot)
 
     while (qsize >= PACKET_SIZE) {
 
-        if (marker == PACKET_MARKER) {
+        if ((unsigned int)marker == PACKET_MARKER) {
 
  	    int p = qtail;
 

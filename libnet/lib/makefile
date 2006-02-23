@@ -2,7 +2,7 @@ BASE = ..
 
 include $(BASE)/port.mak
 
-CFLAGS = -O2 $(WARNING_FLAGS) -g -I$(INCDIR) -Iinclude -DTARGET_$(TARGET)
+CFLAGS = -O2 -fno-strict-aliasing $(WARNING_FLAGS) -g -I$(INCDIR) -Iinclude -DTARGET_$(TARGET)
 CXXFLAGS = $(CFLAGS)
 
 

@@ -23,10 +23,13 @@ static int fixup_address (const char *target_addr, const char *remote_chan_addr,
 	/* copy the address part the target address (sans port) */
 	colon = strrchr (p, ':');
 	if (colon) {
-		while (p+i < colon)
-			dest[i++] = p[i];
+		while (p+i < colon) {
+			dest[i] = p[i];
+			i++;
+		}
 
-		dest[i++] = ':';
+		dest[i] = ':';
+		i++;
 	}
 
 	/* add the port number of the remote channel */
