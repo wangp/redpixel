@@ -53,7 +53,7 @@ static void usage(char *options)
 static void show_version()
 {
     allegro_message("Red Pixel " VERSION_STR " by Psyk Software " VERSION_YEAR ".\n"
-		    "http://www.alphalink.com.au/~tjaden/\n");
+		    "http://redpixel.sourceforge.net/\n");
 }
 
 
@@ -137,13 +137,6 @@ int main(int argc, char *argv[])
 
     load_settings();
 
-    /* load datafile */
-    /* ... before setting a graphics mode -- a big no-no :-) */
-    if (load_dat() < 0) {
-	allegro_message("Error loading blood.dat\n");
-	return 1;
-    }
-
     /* map editor option */
     if (editor) {
 	int x = mapper();
@@ -174,6 +167,13 @@ int main(int argc, char *argv[])
 	    "Perhaps the executable does not have root permissions?\n"
 #endif
 	);
+	return 1;
+    }
+
+    /* load datafile */
+    if (load_dat() < 0) {
+	allegro_message("Error loading blood.dat\n");
+	main_shutdown();
 	return 1;
     }
 
@@ -217,6 +217,7 @@ END_OF_MAIN();
  * when we exit if we're under X, which is no good.  */
 void main_shutdown()
 {
+    set_mouse_sprite(NULL);
     free_stretched_mouse_sprite();
     if (light) {
 	destroy_bitmap(light);

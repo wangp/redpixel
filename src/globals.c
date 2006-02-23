@@ -27,13 +27,17 @@ long seed;
 
 int load_dat()
 {
+    ASSERT(!dat);
     dat = load_datafile(get_resource(R_SHARE, "blood.dat"));
     return (dat) ? 0 : -1;
 }
 
 void unload_dat()
 {
-    unload_datafile(dat);
+    if (dat) {
+	unload_datafile(dat);
+	dat = NULL;
+    }
 }
 
 

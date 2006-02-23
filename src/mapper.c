@@ -317,6 +317,11 @@ int mapper()
     
     set_window_title("Red Pixel map editor");
 
+    if (load_dat() < 0) {
+	allegro_message("Error loading blood.dat\n");
+	return 1;
+    }
+
     dbuf = create_bitmap(SCREEN_W, SCREEN_H);
     clear_bitmap(dbuf);
 
@@ -336,8 +341,10 @@ int mapper()
 
     /* bye bye */ 
     rpagup_shutdown();
+    set_mouse_sprite(NULL);
     destroy_bitmap(dbuf);
     dbuf = NULL;
+    unload_dat();
     	       
     return 0;  
 }	       
