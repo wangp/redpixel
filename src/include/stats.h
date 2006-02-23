@@ -17,7 +17,7 @@ typedef struct {
 
 int read_stats(char *fn, STAT_VAR *block);
 void for_every_stat(STAT_VAR *block, int (*proc)(STAT_VAR *sv));
-unsigned long make_stat_checksum(STAT_VAR *block);
+uint32_t make_stat_checksum(STAT_VAR *block);
 
 
 extern char current_stats[];

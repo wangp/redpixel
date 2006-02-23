@@ -6,6 +6,7 @@
  */
 
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,7 +38,7 @@ static void set_value(STAT_VAR *sv, char *value)
 {
     switch (sv->type) {
 	case ST_INT:
-	*((int *)sv->p) = atoi(value);
+	*((uint32_t *)sv->p) = atoi(value);
 	break;
 	
 	case ST_FLOAT:
@@ -137,12 +138,12 @@ void for_every_stat(STAT_VAR *block, int (*proc)(STAT_VAR *sv))
 
 
 
-static unsigned long checksum;
+static uint32_t checksum;
 static int checksum_i;
 
-static unsigned long my_pow(unsigned long n, int p)
+static uint32_t my_pow(uint32_t n, int p)
 {
-    unsigned long nn = 1;
+    uint32_t nn = 1;
     while (p--)
 	nn *= n;
     return nn;
@@ -152,16 +153,17 @@ static int checksum_proc(STAT_VAR *sv)
 {
     int x = 0;
     if (sv->type == ST_INT)
-	x = *(int *)sv->p;
+	x = *(uint32_t *)sv->p;
     else if (sv->type == ST_FLOAT)
 	x = 1000 * *(float *)sv->p;
     else
 	suicide("internal error in make_stat_checksum");
-    checksum += my_pow(x, checksum_i++);
+    checksum += my_pow(x, checksum_i);
+    checksum_i++;
     return 0;
 }
 
-unsigned long make_stat_checksum(STAT_VAR *block)
+uint32_t make_stat_checksum(STAT_VAR *block)
 {
     checksum = checksum_i = 0;
     for_every_stat(block, checksum_proc);

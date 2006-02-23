@@ -6,14 +6,14 @@
 #include "rnd.h"
 
 
-static long _rnd;
+static int32_t _rnd;
 
 int rnd()
 {
     return (_rnd = longrand(_rnd));
 }
 
-void srnd(unsigned long seed)
+void srnd(uint32_t seed)
 {
     _rnd = slongrand(seed);
 }
@@ -24,14 +24,14 @@ void srnd(unsigned long seed)
  * (the stuff that has to be synchronised)
  */
 
-static long _irnd;
+static int32_t _irnd;
 
 int irnd()
 {
     return (_irnd = longrand(_irnd));
 }
 
-void sirnd(unsigned long seed)
+void sirnd(uint32_t seed)
 {
     _irnd = slongrand(seed);
 }

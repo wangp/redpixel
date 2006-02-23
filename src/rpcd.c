@@ -21,7 +21,7 @@
 
 
 static int inited = 0;
-static long rnd;
+static int32_t rnd;
 
 
 void rpcd_init()

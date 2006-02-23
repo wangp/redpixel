@@ -8,7 +8,7 @@
 #include "skhelp.h"
 
 
-void send_long(long val)
+void send_long(int32_t val)
 {
     skSend(val & 0xff);
     skSend((val >> 8) & 0xff);
@@ -17,7 +17,7 @@ void send_long(long val)
 }
 
 
-long recv_long()
+int32_t recv_long()
 {
     while (skReady() < 4) ;
     return skRecv() | (skRecv() << 8) | (skRecv() << 16) | (skRecv() << 24);

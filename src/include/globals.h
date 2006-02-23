@@ -10,7 +10,7 @@ extern RGB_MAP rgb_table;
 extern COLOR_MAP alpha_map;
 extern COLOR_MAP light_map;
 
-extern long seed;
+extern int32_t seed;
 
 
 int load_dat();

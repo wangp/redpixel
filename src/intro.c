@@ -28,7 +28,7 @@ static void set_watch(WATCH *watch)
     gettimeofday(watch, NULL);
 }
 
-static unsigned long elapsed_time(WATCH *watch)
+static uint32_t elapsed_time(WATCH *watch)
 {
     WATCH now;
     set_watch(&now);
@@ -38,14 +38,14 @@ static unsigned long elapsed_time(WATCH *watch)
 
 #else
 
-typedef unsigned long WATCH;
+typedef uint32_t WATCH;
 
 static void set_watch(WATCH *watch)
 {
     *watch = clock() * 1000 / CLOCKS_PER_SEC;
 }
 
-static unsigned long elapsed_time(WATCH *watch)
+static uint32_t elapsed_time(WATCH *watch)
 {
     WATCH now;
     set_watch(&now);
@@ -54,7 +54,7 @@ static unsigned long elapsed_time(WATCH *watch)
 
 #endif
 
-static void wait_until(WATCH *watch, unsigned long msecs_elaspsed)
+static void wait_until(WATCH *watch, uint32_t msecs_elaspsed)
 {
     while (elapsed_time(watch) < msecs_elaspsed)
 	yield_timeslice();

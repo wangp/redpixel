@@ -21,7 +21,7 @@ RGB_MAP rgb_table;
 COLOR_MAP alpha_map;
 COLOR_MAP light_map;
 
-long seed;
+int32_t seed;
 
 
 

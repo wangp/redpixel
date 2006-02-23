@@ -93,7 +93,7 @@ void demo_read_header()
 }
 
 
-long demo_read_seed()
+int32_t demo_read_seed()
 {
     return pack_igetl(fp);    
 }
@@ -202,7 +202,7 @@ void demo_write_close()
 }
 
 
-void demo_write_set_rng_seed(long seed)
+void demo_write_set_rng_seed(int32_t seed)
 {
     if (!fp) return;
     

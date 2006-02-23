@@ -12,9 +12,10 @@
  */
 
 #include <math.h>
+#include <stdint.h>
 #include "fastsqrt.h"
 
-long sqrt_table[0x100];
+static int32_t sqrt_table[0x100];
 
 void build_sqrt_table(void) {
     unsigned short i;

@@ -849,9 +849,9 @@ static int peerpeer_negotiate_environment()
 
 static int peerpeer_check_stats()
 {
-    unsigned long sum = make_stat_checksum(stat_block);
+    uint32_t sum = make_stat_checksum(stat_block);
     send_long(sum);
-    return sum == (unsigned long)recv_long();
+    return sum == (uint32_t)recv_long();
 }
 
 static void peerpeer_trade_names()

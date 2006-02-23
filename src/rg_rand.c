@@ -4,6 +4,8 @@
  *  20/05/2000 - modified slightly to support multiple instances.
  */
 
+#include "rg_rand.h"
+
 /* +++Date last modified: 05-Jul-1997 */
 
 /*
@@ -26,12 +28,12 @@
 #define q 127773L       /* m div a */
 #define r 2836          /* m mod a */
 
-static long nextlongrand(long seed)
+static int32_t nextlongrand(int32_t seed)
 {
-      unsigned long lo, hi;
+      uint32_t lo, hi;
 
-      lo = a * (long)(seed & 0xFFFF);
-      hi = a * (long)((unsigned long)seed >> 16);
+      lo = a * (int32_t)(seed & 0xFFFF);
+      hi = a * (int32_t)((uint32_t)seed >> 16);
       lo += (hi & 0x7FFF) << 16;
       if (lo > m)
       {
@@ -44,15 +46,15 @@ static long nextlongrand(long seed)
             lo &= m;
             ++lo;
       }
-      return (long)lo;
+      return (int32_t)lo;
 }
 
-long longrand(long randomnum)           /* return next random long */
+int32_t longrand(int32_t randomnum)           /* return next random long */
 {
       return nextlongrand(randomnum);
 }
 
-long slongrand(unsigned long seed)      /* to seed it */
+int32_t slongrand(uint32_t seed)      /* to seed it */
 {
       return (seed ? (seed & m) : 1);   /* nonzero seed */
 }
@@ -67,8 +69,8 @@ long slongrand(unsigned long seed)      /* to seed it */
 
 int main(int argc, char *argv[])
 {
-      long reps, k, num;
-      unsigned long seed;
+      int32_t reps, k, num;
+      uint32_t seed;
 
       reps = 10000;
       seed = 1;
