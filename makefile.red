@@ -8,8 +8,7 @@ CC := gcc
 INCLUDES :=	-Isrc -Isrc/include -Isrc/sk			\
 		-Ilibnet/include -Ilibcda -Ijgmod/src -Iagup
 CFLAGS :=	-W -Wall -Wno-deprecated-declarations -O2 	\
-		-mcpu=pentium -ffast-math			\
-		-fomit-frame-pointer -funroll-loops $(INCLUDES)
+		-ffast-math -funroll-loops $(INCLUDES)
 
 ifdef DEBUG
 CFLAGS += -g
