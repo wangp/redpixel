@@ -153,6 +153,8 @@ static int linux_open(int num, char *dummy)
 {
     char device[20];
     struct termios tio;
+
+    (void)dummy;
     
     sprintf(device, "/dev/ttyS%d", num);
     fd = open(device, O_RDWR | O_NOCTTY | O_NONBLOCK);

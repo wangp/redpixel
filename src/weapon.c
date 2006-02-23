@@ -25,7 +25,7 @@ struct weapon_order weapon_order[] = {
     { W_MINI, 	 w_minigun, 	KEY_6,     "6" },
     { W_BOW,     w_bow, 	KEY_7,     "7" },
     { W_ROCKET,  w_bazooka, 	KEY_8, 	   "8" },
-    { 0 }
+    { 0,	 0,		0,	   NULL }
 };
 
 

@@ -85,7 +85,9 @@ static void my_keyboard_lowlevel_callback(int scancode)
 	    break;
         case KEY_F1:
 	    want_help = pressed;
+	    break;
         default:
+	    break;
     }
 }
 

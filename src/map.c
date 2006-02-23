@@ -39,7 +39,7 @@ LIST tiles[] =
     { T_CRATE, 30 },
     { T_LAD,   40 },
     { T_SPIKE, 50 },
-    { -1 }
+    { -1, -1 }
 };
 
 LIST ammos[] =
@@ -62,7 +62,7 @@ LIST ammos[] =
     { W_ROCKET,  104 },
     { W_SHOTGUN, 105 },
     { W_UZI,     106 },
-    { -1 }
+    { -1, -1 }
 };
 
 int num2pic(LIST *l, int num)

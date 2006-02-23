@@ -220,7 +220,7 @@ void intro()
 	&& raster_words("PRESENTS")) {
 
 	WATCH watch;
-	int step = 0;
+	unsigned int step = 0;
 	set_watch(&watch);
 
 	x = 159; x2 = 160;

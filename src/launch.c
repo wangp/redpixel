@@ -851,7 +851,7 @@ static int peerpeer_check_stats()
 {
     unsigned long sum = make_stat_checksum(stat_block);
     send_long(sum);
-    return sum == recv_long();
+    return sum == (unsigned long)recv_long();
 }
 
 static void peerpeer_trade_names()
@@ -1222,18 +1222,18 @@ static void demo_playback_proc()
 static BLUBBER serial_menu[] =
 {
 #ifdef TARGET_DJGPP
-    { menu_proc, "COM1", 	serial_port_0_proc },
-    { menu_proc, "COM2",	serial_port_1_proc },
-    { menu_proc, "COM3", 	serial_port_2_proc },
-    { menu_proc, "COM4",	serial_port_3_proc },
+    { menu_proc, "COM1", 	serial_port_0_proc, 0, 0 },
+    { menu_proc, "COM2",	serial_port_1_proc, 0, 0 },
+    { menu_proc, "COM3", 	serial_port_2_proc, 0, 0 },
+    { menu_proc, "COM4",	serial_port_3_proc, 0, 0 },
 #endif
 #ifdef TARGET_LINUX
-    { menu_proc, "/dev/ttyS0", 	serial_port_0_proc },
-    { menu_proc, "/dev/ttyS1",	serial_port_1_proc },
-    { menu_proc, "/dev/ttyS2", 	serial_port_2_proc },
-    { menu_proc, "/dev/ttyS3",	serial_port_3_proc },
+    { menu_proc, "/dev/ttyS0", 	serial_port_0_proc, 0, 0 },
+    { menu_proc, "/dev/ttyS1",	serial_port_1_proc, 0, 0 },
+    { menu_proc, "/dev/ttyS2", 	serial_port_2_proc, 0, 0 },
+    { menu_proc, "/dev/ttyS3",	serial_port_3_proc, 0, 0 },
 #endif
-    { prev_menu, "", 		startgame_menu }
+    { prev_menu, "", 		startgame_menu, 0, 0 }
 };
 
 #endif /* SERIAL */
@@ -1242,34 +1242,34 @@ static BLUBBER serial_menu[] =
 
 static BLUBBER libnet_menu[] =
 {
-    { menu_proc, "Connect", 	libnet_connect_proc },
-    { menu_proc, "Listen",	libnet_listen_proc },
-    { prev_menu, "", 		startgame_menu }
+    { menu_proc, "Connect", 	libnet_connect_proc, 0, 0 },
+    { menu_proc, "Listen",	libnet_listen_proc, 0, 0 },
+    { prev_menu, "", 		startgame_menu, 0, 0 }
 };
 
 #endif
 
 static BLUBBER startgame_menu[] = 
 {
-    { menu_proc, "Solo", 	single_proc },
+    { menu_proc, "Solo", 	single_proc, 0, 0 },
 #ifdef SERIAL
-    { join_menu, "Serial", 	serial_menu },
+    { join_menu, "Serial", 	serial_menu, 0, 0 },
 #endif
 #ifndef NO_LIBNET_CODE
-    { join_menu, "Sockets",	libnet_menu },
+    { join_menu, "Sockets",	libnet_menu, 0, 0 },
 #endif
-    { menu_proc, "CPU", 	cpu_proc },
-    { menu_proc, "Play Demo", 	demo_playback_proc },
-    { prev_menu, "", 		root_menu }
+    { menu_proc, "CPU", 	cpu_proc, 0, 0 },
+    { menu_proc, "Play Demo", 	demo_playback_proc, 0, 0 },
+    { prev_menu, "", 		root_menu, 0, 0 }
 };
 
 static BLUBBER root_menu[] =
 {
-    { join_menu, "Start", 	startgame_menu },
-    { menu_proc, "Options", 	options_proc },
-    { menu_proc, "Credits", 	credits_proc },
-    { menu_proc, "Quit", 	quit_proc },
-    { prev_menu, "", 		NULL }
+    { join_menu, "Start", 	startgame_menu, 0, 0 },
+    { menu_proc, "Options", 	options_proc, 0, 0 },
+    { menu_proc, "Credits", 	credits_proc, 0, 0 },
+    { menu_proc, "Quit", 	quit_proc, 0, 0 },
+    { prev_menu, "", 		NULL, 0, 0 }
 };
 
 

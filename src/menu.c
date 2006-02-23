@@ -39,7 +39,12 @@ int menu_end;
  *----------------------------------------------------------------------*/
 
 /* Dummy function.  */
-void prev_menu(BLUBBER *bp, int command, int ex) { }
+void prev_menu(BLUBBER *bp, int command, int ex)
+{
+    (void)bp;
+    (void)command;
+    (void)ex;
+}
 
 
 /* Switch to another node of menu.  */
@@ -112,7 +117,7 @@ static void switch_in_callback(void)
 }
 
 
-static int inline touch(int item)
+static inline int touch(int item)
 {
     int my = mouse_y * 200.0/SCREEN_H;
     return ((my >= (top + (item * 32) + (text_height(big) / 2) - 16))

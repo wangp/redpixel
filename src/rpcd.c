@@ -20,7 +20,7 @@
 #endif
 
 
-static int inited;
+static int inited = 0;
 static long rnd;
 
 

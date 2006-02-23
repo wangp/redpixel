@@ -20,7 +20,7 @@ STAT_VAR stat_block[] = {
 #define XXX(a) { #a, ST_INT, &st_##a }, 
 #include "statlist.inc"
 #undef XXX    
-    { NULL }
+    { NULL, ST_INT, NULL }
 };
 
 
@@ -29,7 +29,7 @@ static STAT_VAR _stat_block[] = {
 #define XXX(a) { #a, ST_INT, &_st_##a }, 
 #include "statlist.inc"
 #undef XXX    
-    { NULL }
+    { NULL, ST_INT, NULL }
 };
 
 

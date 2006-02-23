@@ -66,6 +66,7 @@ static char *res_list(int index, int *list_size)
 
 static int mouse_speed_callback(void *dp3, int d2)
 {
+    (void)dp3;
     set_mouse_speed(d2, d2);
     return D_O_K;
 }
@@ -73,6 +74,7 @@ static int mouse_speed_callback(void *dp3, int d2)
 
 static int sfx_volume_callback(void *dp3, int d2)
 {
+    (void)dp3;
     set_volume(d2 * 32, -1);
     snd_local(WAV_DEAD1 + (rand() % (WAV_DEAD5 - WAV_DEAD1 + 1)));
     return D_O_K;
