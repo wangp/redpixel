@@ -123,8 +123,10 @@ static int create_queues (NET_CONN *conn)
 		return 1;
 	}
 
-	for (i = 0; i < MAX_OUTGOING_PACKETS; i++)
+	for (i = 0; i < MAX_OUTGOING_PACKETS; i++) {
+		data->out.packets[i].ack = 0;
 		data->out.packets[i].data = NULL;
+	}
 	data->out.next_index = data->out.base_index = 1;
 	
 	return 0;
@@ -412,7 +414,8 @@ static void poll (NET_CONN *conn)
 				if (id == data->out.base_index) {
 					int i, j = id % MAX_OUTGOING_PACKETS;
 					for (i = 0; i < MAX_OUTGOING_PACKETS; i++) {
-						if (!data->out.packets[j].ack || !data->out.packets[j].data) break;
+						if (!data->out.packets[j].ack) break;
+						if (!data->out.packets[j].data) break;
 						data->out.base_index++;
 						free (data->out.packets[j].data);
 						data->out.packets[j].data = NULL;
