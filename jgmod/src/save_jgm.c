@@ -29,7 +29,7 @@
 void save_jgm (JGMOD_FILE *file, JGMOD *j);
 void save_note (int no_field, PATTERN_INFO *pi, JGMOD_FILE *file, JGMOD *j);
 int repeat_note (int curr_field, int no_field, PATTERN_INFO *pi);
-void save_sample (int no_field, PATTERN_INFO *pi, JGMOD_FILE *file);
+void jgmod_save_sample (int no_field, PATTERN_INFO *pi, JGMOD_FILE *file);
 int repeat_sample (int curr_field, int no_field, PATTERN_INFO *pi);
 void save_volume (int no_field, PATTERN_INFO *pi, JGMOD_FILE *file);
 int repeat_volume (int curr_field, int no_field, PATTERN_INFO *pi);
@@ -152,7 +152,7 @@ void save_jgm (JGMOD_FILE *file, JGMOD *j)
         if (pi->no_pos > 0)
             {
             save_note (no_field, pi, file, j);
-            save_sample (no_field, pi, file);
+            jgmod_save_sample (no_field, pi, file);
             save_volume (no_field, pi, file);
             save_command (no_field, pi, file);
             save_extcommand (no_field, pi, file);
@@ -223,7 +223,7 @@ int repeat_note (int curr_field, int no_field, PATTERN_INFO *pi)
 }
 
 
-void save_sample (int no_field, PATTERN_INFO *pi, JGMOD_FILE *file)
+void jgmod_save_sample (int no_field, PATTERN_INFO *pi, JGMOD_FILE *file)
 {
     int curr_field=0;
     int repeat;
