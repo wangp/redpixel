@@ -65,32 +65,3 @@ float fast_fsqrt(float n) {
     *num = ((sqrt_table[*num >> 16])) + ((e + 127) << 23);
     return(n);
 }
-
-/* this is based on Javier Arevalo's Watcom code. Rearranged a bit
-   for Pentium scheduling and GCC's superior inline asm, now 8 cycles
-   *including* the AGI, theoretically. I have clocked this at 19-30 cycles
-   in actual use, w/RDTSC. -- BU */
-/* non-inline version for those who aren't optimizing */
-float fast_fsqrt_asm(float n) {
-  asm (
-	"leal 0xc0800000(%%eax), %%edx\n"/*U1 movl eax, edx; subl 0x3f800000,edx */
-	"andl $0x007fffff, %%eax\n"	/* V1 */
-
-	"movl %%edx, %%ebx\n"		/* U2 */
-	"andl $0xff000000, %%edx\n"	/* V2 */
-
-	"sarl $1, %%edx\n"		/* U3 */
-	"andl $0x00800000, %%ebx\n"	/* V3 */
-
-	"addl $0x3f800000, %%edx\n"	/* U4 */
-	"orl %%ebx, %%eax\n"		/* V4 */
-
-	"shrl $16, %%eax\n"		/* U5 */
-					/* U6 - AGI */
-	"movl _sqrt_table(,%%eax,4), %%eax\n" /* U7 */
-	"addl %%edx, %%eax\n"		/* U8 */
-	: "=a" (n)
-	: "a" (n)
-	: "%ebx", "%edx");
-  return n;
-}
