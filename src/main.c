@@ -97,7 +97,10 @@ int main(int argc, char *argv[])
     /* initialisation */
     srand(time(0));
 
-    allegro_init();
+    if (allegro_init() != 0) {
+	allegro_message("Error initialising Allegro.\n");
+	return 1;
+    }
     set_window_title("Red Pixel");
     
     install_timer();
