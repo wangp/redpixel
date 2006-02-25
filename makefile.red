@@ -18,7 +18,11 @@ endif
 ifeq "$(PLATFORM)" "LINUX"
 CFLAGS += -DTARGET_LINUX
 GAME := redpixel
+ifdef DEBUG
+ALLEGRO := `allegro-config --libs debug` 
+else
 ALLEGRO := `allegro-config --libs` 
+endif
 LIBS := $(ALLEGRO) $(LIBNET) -lpthread $(LIBCDA) $(JGMOD) $(AGUP)
 PLATFORM_MODULES := sklinux
 OBJDIR := obj/linux
