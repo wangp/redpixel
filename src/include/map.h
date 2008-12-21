@@ -31,15 +31,15 @@ extern LIST tiles[];
 extern LIST ammos[];
 
 
-int num2pic(LIST *l, int num);
-int pic2num(LIST *l, int pic);
+int num2pic(const LIST *l, int num);
+int pic2num(const LIST *l, int pic);
 
 int ammo_respawn_rate(int pic);
 
 void reset_map(void);
-int save_map(char *fn);
-int load_map(char *fn);
-int load_map_wrapper(char *fn);
+int save_map(const char *fn);
+int load_map(const char *fn);
+int load_map_wrapper(const char *fn);
 
 
 #endif

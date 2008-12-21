@@ -155,7 +155,7 @@ void rpjgmod_poll(void)
 }
 
 
-void rpjgmod_play_specific_track(char *filename)
+void rpjgmod_play_specific_track(const char *filename)
 {
     char buf[1024];
     

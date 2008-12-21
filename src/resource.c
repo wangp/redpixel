@@ -19,13 +19,13 @@ static char game_path[MAX_PATH_LENGTH];
 static char path[MAX_PATH_LENGTH];
 
 
-char *get_resource(int type, char *name)
+char *get_resource(int type, const char *name)
 {
     return replace_filename(path, game_path, name, MAX_PATH_LENGTH);
 }
 
 
-void set_game_path(char *p)
+void set_game_path(const char *p)
 {
     strcpy(game_path, p);
 }
@@ -39,7 +39,7 @@ static char prefix_lib[MAX_PATH_LENGTH];
 static char path[MAX_PATH_LENGTH];
 
 
-char *get_resource(int type, char *name)
+char *get_resource(int type, const char *name)
 {
     snprintf(path, sizeof path, "%s/%s",
 	     ((type == R_SHARE) ? prefix_share :
@@ -49,7 +49,7 @@ char *get_resource(int type, char *name)
 }
 
 
-void set_game_path(char *p)
+void set_game_path(const char *p)
 {
     if ((p[0] == 0) || (strchr(p, '/'))) {
 	if (strstr(p, "/usr/local/") == p) {

@@ -65,7 +65,7 @@ void fblit(BITMAP *src, BITMAP *dest)
 }
 
 
-void fblit_init(RGB *pal)
+void fblit_init(const RGB *pal)
 {
     int i;
     

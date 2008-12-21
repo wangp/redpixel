@@ -1,1 +1,1 @@
-void suicide(char *s);
+void suicide(const char *s);

@@ -12,8 +12,8 @@
 #define R_HOME		3
 
 
-char *get_resource(int type, char *name);
-void set_game_path(char *p);
+char *get_resource(int type, const char *name);
+void set_game_path(const char *p);
 
 
 #endif

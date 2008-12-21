@@ -17,11 +17,13 @@ typedef struct {
 
 int read_stats(char *fn, STAT_VAR *block);
 void for_every_stat(STAT_VAR *block, int (*proc)(STAT_VAR *sv));
-uint32_t make_stat_checksum(STAT_VAR *block);
+void for_every_stat_const(const STAT_VAR *block,
+    int (*proc)(const STAT_VAR *sv));
+uint32_t make_stat_checksum(const STAT_VAR *block);
 
 
 extern char current_stats[];
-char *set_current_stats(char *filename);
+char *set_current_stats(const char *filename);
 
 
 #endif 

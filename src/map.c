@@ -65,7 +65,7 @@ LIST ammos[] =
     { -1, -1 }
 };
 
-int num2pic(LIST *l, int num)
+int num2pic(const LIST *l, int num)
 {
     int i = 0;
     if (!num) return 0;
@@ -76,7 +76,7 @@ int num2pic(LIST *l, int num)
     return l[i].pic;
 }
 
-int pic2num(LIST *l, int pic)
+int pic2num(const LIST *l, int pic)
 {
     int i;
     
@@ -151,7 +151,7 @@ void reset_map(void)
 }
 
 
-int save_map(char *fn)
+int save_map(const char *fn)
 {
     PACKFILE *fp;
     int u, v; 
@@ -180,7 +180,7 @@ int save_map(char *fn)
 }
 
 
-int load_map(char *fn)
+int load_map(const char *fn)
 { 
     PACKFILE *fp;
     int u, v;
@@ -233,7 +233,7 @@ int load_map(char *fn)
 /* Needed, mostly for Unix, because of some of old case-insensitive
  * filename assumptions. */
 
-int load_map_wrapper(char *fn)
+int load_map_wrapper(const char *fn)
 {
     char path[MAX_PATH_LENGTH], tmp[MAX_PATH_LENGTH];
 

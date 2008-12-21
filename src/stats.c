@@ -138,6 +138,20 @@ void for_every_stat(STAT_VAR *block, int (*proc)(STAT_VAR *sv))
 
 
 
+void for_every_stat_const(const STAT_VAR *block,
+    int (*proc)(const STAT_VAR *sv))
+{
+    const STAT_VAR *sv = block;
+
+    while (sv->id) {
+	if (proc(sv))
+	    break;
+	sv++;
+    }
+}
+
+
+
 static uint32_t checksum;
 static int checksum_i;
 
@@ -149,7 +163,7 @@ static uint32_t my_pow(uint32_t n, int p)
     return nn;
 }
 
-static int checksum_proc(STAT_VAR *sv)
+static int checksum_proc(const STAT_VAR *sv)
 {
     int x = 0;
     if (sv->type == ST_INT)
@@ -163,10 +177,10 @@ static int checksum_proc(STAT_VAR *sv)
     return 0;
 }
 
-uint32_t make_stat_checksum(STAT_VAR *block)
+uint32_t make_stat_checksum(const STAT_VAR *block)
 {
     checksum = checksum_i = 0;
-    for_every_stat(block, checksum_proc);
+    for_every_stat_const(block, checksum_proc);
     return checksum;
 }
 
@@ -175,7 +189,7 @@ uint32_t make_stat_checksum(STAT_VAR *block)
 
 char current_stats[1024];
 
-char *set_current_stats(char *filename)
+char *set_current_stats(const char *filename)
 {
     strncpy(current_stats, filename, sizeof current_stats);
     return current_stats;

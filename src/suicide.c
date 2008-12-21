@@ -10,7 +10,7 @@
 #include "sk.h"
 
 
-void suicide(char *s)
+void suicide(const char *s)
 {
     main_shutdown();
     skClose();

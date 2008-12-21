@@ -81,7 +81,7 @@ void introduce_demo(void)
  * Show mapname and current frag count.
  */
 
-void introduce_map(char *mapname)
+void introduce_map(const char *mapname)
 {
     BITMAP *buf;
     FONT *small = dat[MINI].dat;
