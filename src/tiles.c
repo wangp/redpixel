@@ -70,7 +70,7 @@ int hurt_tile(int u, int v, int dmg, int tag)
 }
 
 
-void respawn_tiles()
+void respawn_tiles(void)
 {
     int v, u, i;
 
@@ -104,7 +104,7 @@ void respawn_tiles()
 }
 
 
-void respawn_ammo()
+void respawn_ammo(void)
 {
     int v, u;
     for (v = map.h - 1; v >= 0; v--) {
@@ -123,7 +123,7 @@ void respawn_ammo()
 }
 
 
-void draw_tiles_and_stuff()
+void draw_tiles_and_stuff(void)
 {
     int u, v;
 

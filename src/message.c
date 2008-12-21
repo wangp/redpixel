@@ -25,7 +25,7 @@ static char msg_queue[MAX_MSGS][MSG_LEN];
 static int num_msgs, msg_tics;
 
 
-static void scroll()
+static void scroll(void)
 {
     int i;
     
@@ -64,7 +64,7 @@ void add_msgf(int target, char *fmt, ...)
 }
 
 
-void update_msgs()
+void update_msgs(void)
 {
     if (--msg_tics < 1) {
 	if (num_msgs) scroll();
@@ -73,7 +73,7 @@ void update_msgs()
 }
 
 
-void draw_msgs()
+void draw_msgs(void)
 {
     int i, len;
 
@@ -87,7 +87,7 @@ void draw_msgs()
 }
 
 
-void reset_msgs()
+void reset_msgs(void)
 {
     num_msgs = 0;
 }

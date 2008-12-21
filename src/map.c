@@ -132,7 +132,7 @@ int ammo_respawn_rate(int pic)
 
 static char file_hdr[] = { 0xad, 'W', 'A', 'C', 'K', 'E', 'D', 0xad, '\0' };
 
-void reset_map()
+void reset_map(void)
 {
     int u, v;
 

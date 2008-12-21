@@ -1,2 +1,2 @@
-void intro();
+void intro(void);
 

@@ -7,7 +7,7 @@ extern int cpu_agressiveness;
 extern char *cpu_angst_str[5];
 
 
-void do_cpu();
+void do_cpu(void);
 
 
 #endif

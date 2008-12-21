@@ -5,9 +5,9 @@
 int tile_is_solid(int x);
 
 int hurt_tile(int u, int v, int dmg, int tag);
-void respawn_tiles();
-void respawn_ammo();
-void draw_tiles_and_stuff();
+void respawn_tiles(void);
+void respawn_ammo(void);
+void draw_tiles_and_stuff(void);
 
 int tile_collide(int x, int y);
 int tile_collide_p(int x, int y);

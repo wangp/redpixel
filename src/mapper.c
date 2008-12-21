@@ -174,7 +174,7 @@ static void selector_players(int command)
 
 
 
-static void map_edit()
+static void map_edit(void)
 {
     int u, v;
     int dirty = 1;
@@ -308,7 +308,7 @@ static void map_edit()
 
 
 
-int mapper()
+int mapper(void)
 {
     if (set_gfx_mode(GFX_AUTODETECT, 640, 480, 0, 0) < 0) {
 	allegro_message("Error setting 640x480 video mode.\n");

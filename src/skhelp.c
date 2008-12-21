@@ -17,7 +17,7 @@ void send_long(int32_t val)
 }
 
 
-int32_t recv_long()
+int32_t recv_long(void)
 {
     while (skReady() < 4) ;
     return skRecv() | (skRecv() << 8) | (skRecv() << 16) | (skRecv() << 24);

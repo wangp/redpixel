@@ -27,7 +27,7 @@ static struct termios oldtio;
 static int recv_head, recv_tail;
 static unsigned char recv_buf[BUFFER_SIZE];
 
-static void poll_read()
+static void poll_read(void)
 {
     char buf[256];
     int size, i;
@@ -46,7 +46,7 @@ static void poll_read()
 /*  This functions returns the number of characters waiting 
  *  in the receive buffer.
  */
-static int linux_ready()
+static int linux_ready(void)
 {
     poll_read();
     
@@ -60,7 +60,7 @@ static int linux_ready()
 /*  This function reads a character from the receive buffer 
  *  and returns it to the caller.
  */
-static int linux_recv()
+static int linux_recv(void)
 {
     poll_read();
 
@@ -94,7 +94,7 @@ static void linux_read(unsigned char *dest, int num)
 
 /*  This function puts the last retrieved character back into the buffer.
  */
-static void linux_putback()
+static void linux_putback(void)
 {
     if (--recv_tail < 0)
 	recv_tail = BUFFER_SIZE - 1;
@@ -103,7 +103,7 @@ static void linux_putback()
 
 /*  This function simplys clears the receive buffer.
  */
-static void linux_clear()
+static void linux_clear(void)
 {
     tcflush(fd, TCIFLUSH);
     recv_head = recv_tail = 0;
@@ -139,7 +139,7 @@ static void linux_write(unsigned char *str, int len)
 /*  This function writes all characters waiting to be sent into the
  *  transmit buffer.
  */
-static void linux_flush()
+static void linux_flush(void)
 {
     tcdrain(fd);
 }
@@ -192,7 +192,7 @@ static int linux_open(int num, char *dummy)
 
 /*  This function closes the port.
  */
-static void linux_close()
+static void linux_close(void)
 {
     if (fd < 0) 
 	return;

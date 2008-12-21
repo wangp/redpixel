@@ -79,7 +79,7 @@ void spawn_bullet(int pl, fixed angle, int c, int bmp)
 }
 
 
-void update_bullets()
+void update_bullets(void)
 {
     int u, v, i;
     PARTICLE *b;
@@ -139,7 +139,7 @@ void update_bullets()
 }
 
 
-void draw_bullets()
+void draw_bullets(void)
 {
     int i;
     PARTICLE *b;
@@ -160,7 +160,7 @@ void draw_bullets()
 }
 
 
-void touch_bullets()
+void touch_bullets(void)
 {
     int i, j, x, y;
     PARTICLE *b;
@@ -196,19 +196,19 @@ void touch_bullets()
 }
 
 
-int bullets_init()
+int bullets_init(void)
 {
     return vector_resize(bullets, 200);
 }
 
 
-void bullets_shutdown()
+void bullets_shutdown(void)
 {
     vector_resize(bullets, 0);
 }
 
 
-void reset_bullets()
+void reset_bullets(void)
 {
     _reset_bullets(0);
 }

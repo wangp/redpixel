@@ -26,7 +26,7 @@
 
 volatile int speed_counter;
 
-static void speed_timer()
+static void speed_timer(void)
 {
     speed_counter++;
 }
@@ -38,7 +38,7 @@ END_OF_STATIC_FUNCTION(speed_timer);
 
 volatile int frame_counter, last_fps;
 
-static void fps_timer()
+static void fps_timer(void)
 {
     last_fps = frame_counter;
     frame_counter = 0;
@@ -92,7 +92,7 @@ void draw_light(int bmp, int cx, int cy)
 
 /*----------------------------------------------------------------------*/
 
-void reset_engine()
+void reset_engine(void)
 {
     reset_bullets();
     reset_mines();
@@ -106,7 +106,7 @@ void reset_engine()
 }
 
 
-void engine_init()
+void engine_init(void)
 {
     build_sqrt_table();
 
@@ -126,7 +126,7 @@ void engine_init()
 }
 
 
-void engine_shutdown()
+void engine_shutdown(void)
 {
     remove_int(fps_timer);
     remove_int(speed_timer);

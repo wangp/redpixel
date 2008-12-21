@@ -201,7 +201,7 @@ static int scan(int x, int y)
 }
 
 
-void intro()
+void intro(void)
 {
     int x, y, x2, y2;
 

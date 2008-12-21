@@ -20,9 +20,9 @@ fixed find_angle(int x1, int y1, int x2, int y2);
 int find_distance(int x1, int y1, int x2, int y2);
 void draw_light(int bmp, int cx, int cy);
 
-void engine_init();
-void engine_shutdown();
-void reset_engine();
+void engine_init(void);
+void engine_shutdown(void);
+void reset_engine(void);
 
 
 #endif

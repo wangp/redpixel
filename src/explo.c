@@ -56,7 +56,7 @@ void spawn_explo(int x, int y, int pic, int frames)
 }
 
 
-void update_explo()
+void update_explo(void)
 {
     int i;
     
@@ -70,7 +70,7 @@ void update_explo()
 }
 
 
-void draw_explo()
+void draw_explo(void)
 {
     int i;
 
@@ -86,7 +86,7 @@ void draw_explo()
 }
 
 
-void reset_explo()
+void reset_explo(void)
 {
     memset(explos, 0, MAX_EXPLOSIONS * sizeof(EXPLOSION));
 }

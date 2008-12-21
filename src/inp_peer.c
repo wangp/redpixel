@@ -17,7 +17,7 @@
 #include "sk.h"
 
 
-void send_local_input()
+void send_local_input(void)
 {
     char packet[10];
     
@@ -27,7 +27,7 @@ void send_local_input()
 }
 
 
-int recv_remote_inputs()
+int recv_remote_inputs(void)
 {
     char packet[10];
 

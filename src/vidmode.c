@@ -153,7 +153,7 @@ void blit_to_screen(BITMAP *buffer)
 }
 
 
-void vidmode_init()
+void vidmode_init(void)
 {
 }
 

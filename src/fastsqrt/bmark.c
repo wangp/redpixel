@@ -7,14 +7,14 @@
 
 volatile int last_count = 0, counter = 0;
 
-void persec()
+void persec(void)
 {
     last_count = counter;
     counter = 0;
 };
 END_OF_FUNCTION(persec);
 
-int main()
+int main(void)
 {
     int old = 0, anum = 0;
 

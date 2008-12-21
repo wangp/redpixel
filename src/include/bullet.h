@@ -3,13 +3,13 @@
 
 
 void spawn_bullet(int pl, fixed angle, int c, int bmp);
-void update_bullets();
-void draw_bullets();
-void touch_bullets();
+void update_bullets(void);
+void draw_bullets(void);
+void touch_bullets(void);
 
-int bullets_init();
-void bullets_shutdown();
-void reset_bullets();
+int bullets_init(void);
+void bullets_shutdown(void);
+void reset_bullets(void);
 void reset_bullets_with_tag(int tag);
 
 

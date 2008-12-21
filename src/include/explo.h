@@ -3,9 +3,9 @@
 
 
 void spawn_explo(int x, int y, int pic, int frames);
-void update_explo();
-void draw_explo();
-void reset_explo();
+void update_explo(void);
+void draw_explo(void);
+void reset_explo(void);
 
 
 #endif

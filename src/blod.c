@@ -42,7 +42,7 @@ void spawn_blods(int x, int y, int num)
 }
 
 
-void update_blods()
+void update_blods(void)
 {
     int i;
     
@@ -56,7 +56,7 @@ void update_blods()
 }
 
 
-void draw_blods()
+void draw_blods(void)
 {
     int i;
 
@@ -69,7 +69,7 @@ void draw_blods()
 }
 
 
-void reset_blods()
+void reset_blods(void)
 {
     memset(blods, 0, MAX_BLODS * sizeof(BLOD));
 }

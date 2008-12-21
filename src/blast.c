@@ -15,7 +15,7 @@
 #include "tiles.h"
 
 
-#define CLAMP(x, lower, upper) x = MID(lower, x, upper)
+#define ASSIGN_CLAMP(x, lower, upper) (x = MID(lower, x, upper))
 
 
 void blast(int x, int y, int dmg, int tag)
@@ -66,8 +66,8 @@ void blast(int x, int y, int dmg, int tag)
 	    players[i].xv += fixtoi(fcos(angle) * 15) / d;
 	    players[i].yv += fixtoi(fsin(angle) * 15) / d - 1;
 	    
-	    CLAMP(players[i].yv, -15, 15);
-	    CLAMP(players[i].xv, -15, 15);
+	    ASSIGN_CLAMP(players[i].yv, -15, 15);
+	    ASSIGN_CLAMP(players[i].xv, -15, 15);
 
 	    players[i].jump = (players[i].yv < 0);
 	}

@@ -60,7 +60,7 @@ void spawn_corpse(int x, int y, int facing, int first, int frames)
 }
 
 
-void update_corpses()
+void update_corpses(void)
 {
     int i;
     
@@ -85,7 +85,7 @@ void update_corpses()
 }
 
 
-void draw_corpses()
+void draw_corpses(void)
 {
     void (*draw)(BITMAP *, BITMAP *, int, int);
     int i;
@@ -104,7 +104,7 @@ void draw_corpses()
 }
 
 
-void reset_corpses()
+void reset_corpses(void)
 {
     memset(corpses, 0, MAX_CORPSES * sizeof(CORPSE));
     oldest = 0;

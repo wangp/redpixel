@@ -3,11 +3,11 @@
 
 
 /* inp_peer.c */
-void send_local_input();
-int recv_remote_inputs();
+void send_local_input(void);
+int recv_remote_inputs(void);
 
 /* inp_demo.c */
-int recv_demo_inputs();
+int recv_demo_inputs(void);
 
 
 #endif

@@ -72,7 +72,7 @@ static int unsave_stat(STAT_VAR *sv)
     return 0;
 }
 
-void demo_read_header()
+void demo_read_header(void)
 {
     int i;
 
@@ -93,13 +93,13 @@ void demo_read_header()
 }
 
 
-int32_t demo_read_seed()
+int32_t demo_read_seed(void)
 {
     return pack_igetl(fp);    
 }
 
 
-int demo_read_next_packet_type()
+int demo_read_next_packet_type(void)
 {
     return pack_getc(fp);
 }
@@ -126,7 +126,7 @@ void demo_read_string(char *filename, int len)
 }
 
 
-void demo_read_close()
+void demo_read_close(void)
 {
     if (fp) pack_fclose(fp);
     fp = NULL, mode = 0;
@@ -186,13 +186,13 @@ int demo_write_open(char *filename, int players, char *names[])
 }
 
 
-int demo_is_recording()
+int demo_is_recording(void)
 {
     return (mode == RECORDING);
 }
 
 
-void demo_write_close()
+void demo_write_close(void)
 {
     if (!fp) return;
     
@@ -229,7 +229,7 @@ void demo_write_frame_data(void *packet, int len)
 }
 
 
-void demo_write_player_inputs()
+void demo_write_player_inputs(void)
 {
     char packet[10];
     int i;

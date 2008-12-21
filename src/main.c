@@ -50,7 +50,7 @@ static void usage(char *options)
 }
 
 
-static void show_version()
+static void show_version(void)
 {
     allegro_message("Red Pixel " VERSION_STR " by Psyk Software " VERSION_YEAR ".\n"
 		    "http://redpixel.sourceforge.net/\n");
@@ -218,7 +218,7 @@ END_OF_MAIN();
 
 /* "shutdown" is a sockets function, which gets called 
  * when we exit if we're under X, which is no good.  */
-void main_shutdown()
+void main_shutdown(void)
 {
     set_mouse_sprite(NULL);
     free_stretched_mouse_sprite();

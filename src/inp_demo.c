@@ -16,7 +16,7 @@
 #include "player.h"
 
 
-int recv_demo_inputs()
+int recv_demo_inputs(void)
 {
     int num = num_players, x;
     char packet[10];

@@ -3,9 +3,9 @@
 
 
 void spawn_corpse(int x, int y, int facing, int first, int frames);
-void update_corpses();
-void draw_corpses();
-void reset_corpses();
+void update_corpses(void);
+void draw_corpses(void);
+void reset_corpses(void);
 
 
 #endif

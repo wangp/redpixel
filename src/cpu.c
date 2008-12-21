@@ -27,7 +27,7 @@ int cpu_agressiveness = 3;	/* 1-5, 1 highest */
 char *cpu_angst_str[5] = { "PSYKO!!", "ANGRY", "NORMAL", "LAME", "SHEEP" };
 
 
-void do_cpu()
+void do_cpu(void)
 {
     int surround = 0;
     players[cpu_num].right = FALSE;
@@ -129,7 +129,7 @@ void do_cpu()
 }
 
 
-void cpu_head_for_player()
+void cpu_head_for_player(void)
 {
     if (players[local].x > players[cpu_num].x) {
 	if ((cpu_agressiveness == 5) && (rnd() % 3 == 0)) {	/* baa - please don't kill me! */
@@ -158,7 +158,7 @@ void cpu_head_for_player()
 }
 
 
-void cpu_do_random_jump()
+void cpu_do_random_jump(void)
 {
     if ((rnd() % cpu_agressiveness) != 0)
 	return;
@@ -171,7 +171,7 @@ void cpu_do_random_jump()
 }
 
 
-void cpu_climb_down_ladders()
+void cpu_climb_down_ladders(void)
 {
     if (tile_collide_p(players[cpu_num].x + 3, players[cpu_num].y + 20) == T_LAD) {
 	players[cpu_num].down = TRUE;
@@ -182,7 +182,7 @@ void cpu_climb_down_ladders()
 }
 
 
-void cpu_climb_up_ladders()
+void cpu_climb_up_ladders(void)
 {
     if (tile_collide_p(players[cpu_num].x + 3, players[cpu_num].y - 4) == T_LAD) {
 	players[cpu_num].up = TRUE;

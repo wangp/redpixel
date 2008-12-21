@@ -76,7 +76,7 @@ void spawn_backpack(int x, int y, int b, int s, int r, int a, int m)
 }
 
 
-void update_backpacks()
+void update_backpacks(void)
 {
     int i;
 
@@ -96,7 +96,7 @@ void update_backpacks()
 }
 
 
-void draw_backpacks()
+void draw_backpacks(void)
 {
     int i;
     
@@ -111,7 +111,7 @@ void draw_backpacks()
 }
 
 
-void touch_backpacks()
+void touch_backpacks(void)
 {
     int i, j;
     
@@ -142,19 +142,19 @@ void touch_backpacks()
 }
 
 
-int backpacks_init()
+int backpacks_init(void)
 {
     return vector_resize(backpacks, 5);
 }
 
 
-void backpacks_shutdown()
+void backpacks_shutdown(void)
 {
     free(backpacks);
 }
 
 
-void reset_backpacks()
+void reset_backpacks(void)
 {
     _reset_backpacks(0);
 }

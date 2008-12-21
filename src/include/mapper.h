@@ -1,2 +1,2 @@
-int mapper();
+int mapper(void);
 

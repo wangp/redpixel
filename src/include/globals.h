@@ -13,10 +13,10 @@ extern COLOR_MAP light_map;
 extern int32_t seed;
 
 
-int load_dat();
-void unload_dat();
+int load_dat(void);
+void unload_dat(void);
 
-void setup_lighting();
+void setup_lighting(void);
 
 
 #endif

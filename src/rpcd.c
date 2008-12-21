@@ -24,7 +24,7 @@ static int inited = 0;
 static int32_t rnd;
 
 
-void rpcd_init()
+void rpcd_init(void)
 {
     rnd = slongrand(time(0));
     
@@ -32,7 +32,7 @@ void rpcd_init()
 }
 
 
-void rpcd_shutdown()
+void rpcd_shutdown(void)
 {
     if (inited) {
 	cd_stop();
@@ -42,7 +42,7 @@ void rpcd_shutdown()
 }
 
 
-int rpcd_get_volume()
+int rpcd_get_volume(void)
 {
     int v = 0;
     if (inited) {
@@ -60,7 +60,7 @@ void rpcd_set_volume(int volume)
 }
 
 
-void rpcd_play_random_track()
+void rpcd_play_random_track(void)
 {
     int t0, t1, i;
     
@@ -90,7 +90,7 @@ void rpcd_play_random_track()
 }
 
 
-void rpcd_poll()
+void rpcd_poll(void)
 {
     if (cd_current_track() == 0)
 	if (cd_get_tracks(NULL, NULL))
@@ -98,7 +98,7 @@ void rpcd_poll()
 }
 
 
-void rpcd_stop()
+void rpcd_stop(void)
 {
     cd_stop();
 }

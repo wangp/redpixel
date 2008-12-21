@@ -50,23 +50,23 @@ extern int next_position;
 void respawn_player(int pl);
 void hurt_player(int pl, int dmg, int protect, int tag, int deathseq);
 int gun_pic(int pl);	
-void draw_players();
+void draw_players(void);
 void draw_scanner(int haywire);
 
 void auto_weapon(int pl, int new_weapon);
 int num_ammo(int pl, int weapon);
 
-void get_local_input();
+void get_local_input(void);
 int load_playerstat(char *packet);
 void make_playerstat(char *packet, int pl);
 
 void clean_player(int pl);
-void retain_players();
-void restore_players();
+void retain_players(void);
+void restore_players(void);
 
-void spawn_players();
-void reset_players();
-void reset_player_frags();
+void spawn_players(void);
+void reset_players(void);
+void reset_player_frags(void);
 
 
 /* plupdate.c */

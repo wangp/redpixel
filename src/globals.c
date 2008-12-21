@@ -25,14 +25,14 @@ int32_t seed;
 
 
 
-int load_dat()
+int load_dat(void)
 {
     ASSERT(!dat);
     dat = load_datafile(get_resource(R_SHARE, "blood.dat"));
     return (dat) ? 0 : -1;
 }
 
-void unload_dat()
+void unload_dat(void)
 {
     if (dat) {
 	unload_datafile(dat);
@@ -43,7 +43,7 @@ void unload_dat()
 
 
 /* colour / lighting / translucency tables */
-void setup_lighting()
+void setup_lighting(void)
 {
     int x, y;
     

@@ -62,17 +62,17 @@ static char target_addr[32 + 1];
  * 
  *----------------------------------------------------------------------*/
 
-static void options_proc()
+static void options_proc(void)
 {
     options();
 }
 
-static void credits_proc()
+static void credits_proc(void)
 {
     credits();
 }
 
-static void quit_proc()
+static void quit_proc(void)
 {
     fade_out(32);
     menu_end = 1;
@@ -158,7 +158,7 @@ static int prompt(char *string, char *dest, int maxlen)
 }
 
 
-static int get_name()
+static int get_name(void)
 {
     int x;
     
@@ -187,7 +187,7 @@ static MAPFILE maphead, *curmap, *tmpmap;
 static int num_maps;
 
 
-static void get_map_filenames()
+static void get_map_filenames(void)
 {
     struct al_ffblk f;
     int i;
@@ -230,7 +230,7 @@ static void get_map_filenames()
     }
 }
 
-static void sort_map_filenames()
+static void sort_map_filenames(void)
 {
     int finish = 0, order;
     MAPFILE *a, *b, *c, *d;
@@ -269,7 +269,7 @@ static void sort_map_filenames()
     } while (!finish);
 }
 
-static void free_map_filenames()
+static void free_map_filenames(void)
 {
     curmap = maphead.next;
     while (curmap) {
@@ -307,7 +307,7 @@ static MAPFILE *match(char *fn)
     return NULL;
 }
 
-static void trade_map_filenames()
+static void trade_map_filenames(void)
 {
     char buf[1024];
     int x = 16, ch;
@@ -662,7 +662,7 @@ static char *select_map(int *top, int *selected, char *current_map)
  * 
  *----------------------------------------------------------------------*/
 
-static void score_sheet()
+static void score_sheet(void)
 {
     int i, y;
 
@@ -697,7 +697,7 @@ static void score_sheet()
  * 
  *----------------------------------------------------------------------*/
 
-static void try_demo_write_open()
+static void try_demo_write_open(void)
 {
     char *names[2] = { players[0].name, players[1].name };
     char *fn;
@@ -722,7 +722,7 @@ static void try_demo_write_open()
 }
 
 
-static void do_session()
+static void do_session(void)
 {
     char *fn;
     char *last_fn = NULL;
@@ -795,7 +795,7 @@ static void do_session()
 #define PEERPEER_THROWDICE   '@'
 #define PEERPEER_MYNAMEIS    1	/* happy face :) */
 
-static int peerpeer_negotiate_environment()
+static int peerpeer_negotiate_environment(void)
 {
     int l, r;
 
@@ -847,14 +847,14 @@ static int peerpeer_negotiate_environment()
     return 1;
 }
 
-static int peerpeer_check_stats()
+static int peerpeer_check_stats(void)
 {
     uint32_t sum = make_stat_checksum(stat_block);
     send_long(sum);
     return sum == (uint32_t)recv_long();
 }
 
-static void peerpeer_trade_names()
+static void peerpeer_trade_names(void)
 {
     int pos, player, ch, left;
 
@@ -880,7 +880,7 @@ static void peerpeer_trade_names()
     } while (left);
 }
 
-static void peerpeer_session()
+static void peerpeer_session(void)
 {
     strcpy(players[local].name, local_name);
     peerpeer_trade_names();
@@ -911,7 +911,7 @@ static void peerpeer_session()
 
 static int com_port = 1;	/* /dev/ttyS1; COM2 */
 
-static int serial_linkup()
+static int serial_linkup(void)
 {
     int x, y;
     char *msg = "LINKING UP (PRESS ESC TO ABORT)";
@@ -968,7 +968,7 @@ static int serial_linkup()
     return 1;
 }
 
-static void serial_proc()
+static void serial_proc(void)
 {
     if (!get_name())
 	return;
@@ -1005,7 +1005,7 @@ static void serial_port_3_proc() { com_port = 3; serial_proc(); }
  * 
  *----------------------------------------------------------------------*/
 
-static void single_proc()
+static void single_proc(void)
 {
     if (!get_name())
 	return;
@@ -1040,7 +1040,7 @@ static void single_proc()
  * 
  *----------------------------------------------------------------------*/
 
-static void cpu_proc()
+static void cpu_proc(void)
 {
     if (!get_name())
 	return;
@@ -1082,7 +1082,7 @@ static void cpu_proc()
 static char *connect_msg;
 static int no_error;
 
-static int libnet_connect_callback()
+static int libnet_connect_callback(void)
 {
     if (connect_msg) {
 	clear_bitmap(dbuf);
@@ -1129,7 +1129,7 @@ static void libnet_proc(int x, char *addr)
     enter_menu(root_menu);
 } 
 
-static void libnet_listen_proc()
+static void libnet_listen_proc(void)
 {
     if (!get_name()) 
 	return;
@@ -1138,7 +1138,7 @@ static void libnet_listen_proc()
     libnet_proc(1, 0);
 }
 
-static void libnet_connect_proc()
+static void libnet_connect_proc(void)
 {
     if (!get_name()) 
 	return;
@@ -1159,7 +1159,7 @@ static void libnet_connect_proc()
  * 
  *----------------------------------------------------------------------*/
 
-static void demo_playback_proc()
+static void demo_playback_proc(void)
 {
     char filename[MAX_PATH_LENGTH];
     int x;
@@ -1280,7 +1280,7 @@ static BLUBBER root_menu[] =
  * 
  *----------------------------------------------------------------------*/
 
-void main_menu()
+void main_menu(void)
 {
     big = dat[UNREAL].dat;
     small = dat[MINI].dat;

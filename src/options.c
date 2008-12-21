@@ -312,7 +312,7 @@ static void close_cfg(void)
 static char *section = "redpixel";
 
 
-void load_settings()
+void load_settings(void)
 {
     open_cfg();
     
@@ -333,7 +333,7 @@ void load_settings()
 }
 
 
-void save_settings()
+void save_settings(void)
 {
     open_cfg();
 

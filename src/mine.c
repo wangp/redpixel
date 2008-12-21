@@ -71,7 +71,7 @@ void spawn_mine(int x, int y, int tag)
 }
 
 
-void update_mines()
+void update_mines(void)
 {
     int i, t;
     
@@ -108,7 +108,7 @@ void update_mines()
 }
 
 
-void draw_mines()
+void draw_mines(void)
 {
     int i;
     
@@ -129,7 +129,7 @@ void blow_mine(int i)
 }
 
 
-void touch_mines()
+void touch_mines(void)
 {
     int i, j;
     int x, y, x2, y2;
@@ -162,19 +162,19 @@ int mine_in_range(int i, int x1, int y1, int x2, int y2)
 }
 
 
-int mines_init()
+int mines_init(void)
 {
     return vector_resize(mines, 30);
 }
 
 
-void mines_shutdown()
+void mines_shutdown(void)
 {
     free(mines);
 }
 
 
-void reset_mines()
+void reset_mines(void)
 {
     _reset_mines(0);
 }
@@ -191,7 +191,7 @@ void reset_mines_with_tag(int tag)
 }
 
 
-int max_mines()
+int max_mines(void)
 {
     return vector_size(mines);
 }

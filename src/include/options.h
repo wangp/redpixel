@@ -12,8 +12,8 @@ extern int mute_sfx;
 void options(void);
 
 
-void load_settings();
-void save_settings();
+void load_settings(void);
+void save_settings(void);
 
 
 #endif

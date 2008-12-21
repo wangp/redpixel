@@ -3,13 +3,13 @@
 
 
 void spawn_backpack(int x, int y, int b, int s, int r, int a, int m);
-void update_backpacks();
-void draw_backpacks();
-void touch_backpacks();
+void update_backpacks(void);
+void draw_backpacks(void);
+void touch_backpacks(void);
 
-int backpacks_init();
-void backpacks_shutdown();
-void reset_backpacks();
+int backpacks_init(void);
+void backpacks_shutdown(void);
+void reset_backpacks(void);
 
 
 #endif

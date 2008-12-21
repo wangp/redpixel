@@ -8,7 +8,7 @@
 
 static int32_t _rnd;
 
-int rnd()
+int rnd(void)
 {
     return (_rnd = longrand(_rnd));
 }
@@ -26,7 +26,7 @@ void srnd(uint32_t seed)
 
 static int32_t _irnd;
 
-int irnd()
+int irnd(void)
 {
     return (_irnd = longrand(_irnd));
 }

@@ -42,12 +42,12 @@ static void copy_block(STAT_VAR *dest, STAT_VAR *src)
 	*((int *)dest[i].p) = *((int *)src[i].p);
 }
 
-void push_stat_block() 
+void push_stat_block(void)
 {
     copy_block(_stat_block, stat_block);
 }
 
-void pop_stat_block()
+void pop_stat_block(void)
 {
     copy_block(stat_block, _stat_block);
 }

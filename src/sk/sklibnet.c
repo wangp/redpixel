@@ -21,7 +21,7 @@ static NET_CONN *conn;
 static int recv_head, recv_tail;
 static unsigned char recv_buf[BUFFER_SIZE];
 
-static void poll_read()
+static void poll_read(void)
 {
     char buf[256];
     int size, i;
@@ -37,7 +37,7 @@ static void poll_read()
 }
 
 
-static int libnet_ready()
+static int libnet_ready(void)
 {
     if (!conn) return 0;
 
@@ -50,7 +50,7 @@ static int libnet_ready()
 }
 
 
-static int libnet_recv()
+static int libnet_recv(void)
 {
     if (!conn) return 0;
     
@@ -83,14 +83,14 @@ static void libnet_read(unsigned char *dest, int num)
 }
 
 
-static void libnet_putback()
+static void libnet_putback(void)
 {
     if (--recv_tail < 0)
 	recv_tail = BUFFER_SIZE - 1;
 }
 
 
-static void libnet_clear()
+static void libnet_clear(void)
 {
     if (conn) while (net_ignore_rdm(conn));
     recv_head = recv_tail = 0;
@@ -120,7 +120,7 @@ static void libnet_write(unsigned char *str, int len)
 }
 
 
-static void libnet_flush() 
+static void libnet_flush(void)
 {
     int out; 
     
@@ -217,7 +217,7 @@ static int libnet_open(int listen, char *info)
 }
 
 
-static void libnet_close()
+static void libnet_close(void)
 {
     net_shutdown();
     conn = 0;

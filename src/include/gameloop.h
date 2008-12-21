@@ -17,7 +17,7 @@ extern int mx, my, offsetx, offsety, px, py;
 extern int shake_factor;
 
 
-void game_loop();
+void game_loop(void);
 
 
 #endif

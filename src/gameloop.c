@@ -94,7 +94,7 @@ static void my_keyboard_lowlevel_callback(int scancode)
 END_OF_STATIC_FUNCTION(my_keyboard_lowlevel_callback);
 
 
-static void install_my_keyboard_lowlevel_callback()
+static void install_my_keyboard_lowlevel_callback(void)
 {
     static int first = 1;
     if (first) {
@@ -114,7 +114,7 @@ static void install_my_keyboard_lowlevel_callback()
 }
 
 
-static void uninstall_my_keyboard_lowlevel_callback()
+static void uninstall_my_keyboard_lowlevel_callback(void)
 {
     keyboard_lowlevel_callback = NULL;
 }
@@ -123,7 +123,7 @@ static void uninstall_my_keyboard_lowlevel_callback()
 /*----------------------------------------------------------------------*/
 
 
-static void draw_spotlight()
+static void draw_spotlight(void)
 {
     int u = 0, v = 0;
 
@@ -141,7 +141,7 @@ static void draw_spotlight()
 }
 
 
-static void calc()
+static void calc(void)
 {
     /* find top-left */
     mx = players[local].x / 16 - 10;
@@ -183,7 +183,7 @@ static int frag_sorter(const void *e1, const void *e2)
 
 /*----------------------------------------------------------------------*/
 
-static void draw_status()
+static void draw_status(void)
 {
     int y, i;
     int ammo;
@@ -271,7 +271,7 @@ static void draw_status()
 }
 
 
-static void render()
+static void render(void)
 {
     int bx, by;
 
@@ -327,7 +327,7 @@ static void render()
 }
 
 
-void game_loop()
+void game_loop(void)
 {
     int frames_dropped;
     int update;

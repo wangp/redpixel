@@ -9,8 +9,8 @@
 extern STAT_VAR stat_block[];
 
 
-void push_stat_block();
-void pop_stat_block();
+void push_stat_block(void);
+void pop_stat_block(void);
 
 
 #endif

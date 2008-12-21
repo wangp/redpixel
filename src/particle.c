@@ -118,7 +118,7 @@ void spawn_casing(int x, int y, int facing)
 }
 
 
-void update_particles()
+void update_particles(void)
 {
     int i, t;
 
@@ -141,7 +141,7 @@ void update_particles()
 }
 
 
-void draw_particles()
+void draw_particles(void)
 {
     int i;
     
@@ -153,19 +153,19 @@ void draw_particles()
 }
 
 
-int particles_init()
+int particles_init(void)
 {
     return vector_resize(particles, DEFAULT_PARTICLES);
 }
 
 
-void particles_shutdown()
+void particles_shutdown(void)
 {
     vector_resize(particles, 0);
 }
 
 
-void reset_particles()
+void reset_particles(void)
 {
     _reset_particles(0);
 }

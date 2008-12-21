@@ -53,7 +53,7 @@ static void fade_in_and_out(BITMAP *buf, int wait, int allow_int)
  *    at date, time
  */
 
-void introduce_demo()
+void introduce_demo(void)
 {
     BITMAP *buf;
     FONT *small = dat[MINI].dat;

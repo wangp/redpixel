@@ -19,7 +19,7 @@
 
 static volatile int timer;
 
-static void timer_func()
+static void timer_func(void)
 {
     timer++;
 } 
@@ -86,7 +86,7 @@ static char *text[] = {
 };
 
 
-void credits()
+void credits(void)
 {
     BITMAP *ftmp, *bmp;
     int line = 0;

@@ -79,7 +79,7 @@ void respawn_player(int pl)
 }
 
 
-void spawn_players()
+void spawn_players(void)
 {
     int i;
 
@@ -185,7 +185,7 @@ int gun_pic(int pl)
 }
 
 
-void draw_players()
+void draw_players(void)
 {
     int i;
     int gun;
@@ -357,7 +357,7 @@ static int prev_have_weapon_order(PLAYER * guy, int wo)
 }
 
 
-void select_weapon()
+void select_weapon(void)
 {
     static int next, prev;
     static int old_mouse_z = 0;
@@ -431,7 +431,7 @@ int num_ammo(int pl, int weapon)
 
 /*----------------------------------------------------------------------*/
 
-void get_local_input()
+void get_local_input(void)
 {
     int mx = mouse_x * 320.0/SCREEN_W;
     int my;
@@ -525,7 +525,7 @@ void clean_player(int pl)
 static char retain_names[MAX_PLAYERS][40];
 static int retain_frags[MAX_PLAYERS];
 
-void retain_players()
+void retain_players(void)
 {
     int i;
 
@@ -535,7 +535,7 @@ void retain_players()
     }
 }
 
-void restore_players()
+void restore_players(void)
 {
     int i;
 
@@ -545,12 +545,12 @@ void restore_players()
     }
 }
 
-void reset_players()
+void reset_players(void)
 {
     memset(players, 0, MAX_PLAYERS * sizeof(PLAYER));
 }
 
-void reset_player_frags()
+void reset_player_frags(void)
 {
     int i;
     

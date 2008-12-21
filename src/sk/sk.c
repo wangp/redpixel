@@ -12,13 +12,13 @@ static SK_DRIVER *drv;
 static int open;
 
 
-int skReady()
+int skReady(void)
 {
     if (!open) return 0;
     return drv->ready();
 }
 
-int skRecv()
+int skRecv(void)
 {
     if (!open) return 0;
     return drv->recv();
@@ -30,12 +30,12 @@ void skRead(unsigned char *dest, int num)
     if (open) drv->read(dest, num);
 }
 
-void skPutback()
+void skPutback(void)
 {
     if (open) drv->putback();
 }
 
-void skClear()
+void skClear(void)
 {
     if (open) drv->clear();
 }
@@ -55,7 +55,7 @@ void skWrite(unsigned char *p, int n)
     if (open) drv->write(p, n);
 }
 
-void skFlush()
+void skFlush(void)
 {
     if (open) drv->flush();
 }
@@ -68,7 +68,7 @@ int skOpen(int x, char *y)
     return open;
 }
 
-void skClose()
+void skClose(void)
 {
     if (drv && open) {
 	drv->close();

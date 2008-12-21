@@ -1,2 +1,2 @@
-void credits();
+void credits(void);
 

@@ -36,7 +36,7 @@ int pic2num(LIST *l, int pic);
 
 int ammo_respawn_rate(int pic);
 
-void reset_map();
+void reset_map(void);
 int save_map(char *fn);
 int load_map(char *fn);
 int load_map_wrapper(char *fn);

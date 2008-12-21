@@ -10,9 +10,9 @@ typedef struct {
 
 
 void spawn_blods(int x, int y, int num);
-void update_blods();
-void draw_blods();
-void reset_blods();
+void update_blods(void);
+void draw_blods(void);
+void reset_blods(void);
 
 
 #endif

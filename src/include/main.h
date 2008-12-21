@@ -2,7 +2,7 @@
 #define __included_main_h
 
 
-void main_shutdown();
+void main_shutdown(void);
 
 
 #endif

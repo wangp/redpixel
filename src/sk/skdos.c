@@ -15,19 +15,19 @@
 /*  Started:    14 March 1998
  *  Modified:   15 March 1998   0.51b   skClear() more efficient
  *                                      added #define DEBUGME
- *  Modified:   13 June 1998    0.51c   skPutback()
+ *  Modified:   13 June 1998    0.51c   skPutback(void)
  *                                      removed DEBUGME
- *  Modified:   14 June 1998    0.51d   skSendString() skWrite()
- *                                      open_port = 0 in Close()
+ *  Modified:   14 June 1998    0.51d   skSendString() skWrite(void)
+ *                                      open_port = 0 in Close(void)
  *                                      boosted BUFFER_SIZE to 2K
  *  Modified:   15 June 1998    x.xx    FIFO used if possible [unfinished]
  *                                      started send buffer
  *  Modified:   16 June 1998    0.7     FIFO works! (i think) + better ISR
  *                                      send buffer finished
- *  Modified:   17 June 1998    0.7a    fixed small bug in detect_UART()
- *  Modified:   18 June 1998    0.7b    fixed the fix in detect_UART()
- *  Modified:   14 July 1998    0.7c    added skHand()
- *  Modified:   25 July 1998    0.7d    added skRead()
+ *  Modified:   17 June 1998    0.7a    fixed small bug in detect_UART(void)
+ *  Modified:   18 June 1998    0.7b    fixed the fix in detect_UART(void)
+ *  Modified:   14 July 1998    0.7c    added skHand(void)
+ *  Modified:   25 July 1998    0.7d    added skRead(void)
  * ----------------------------------------------------------------------
  *  Modified:   20 May 2000             Red Pixel-specificised.
  *                                      from here, check `log.txt'
@@ -111,7 +111,7 @@ static END_OF_FUNCTION(disable_interrupt);
  *  called, it gets the next character out of the recieve buffer register 0 
  *  and places it into the software buffer.
  */
-static void dos_isr()
+static void dos_isr(void)
 {
     int cause, chars;
 
@@ -170,7 +170,7 @@ static END_OF_FUNCTION(dos_isr);
 /*  This functions returns the number of characters waiting 
  *  in the receive buffer.
  */
-static int dos_ready()
+static int dos_ready(void)
 {
     if (recv_head >= recv_tail)
 	return recv_head - recv_tail;
@@ -182,7 +182,7 @@ static int dos_ready()
 /*  This function reads a character from the receive buffer 
  *  and returns it to the caller.
  */
-static int dos_recv()
+static int dos_recv(void)
 {
     int ch;
 
@@ -229,7 +229,7 @@ static void dos_read(unsigned char *dest, int num)
 
 /*  This function puts the last retrieved character back into the buffer.
  */
-static void dos_putback()
+static void dos_putback(void)
 {
     DISABLE();
 
@@ -242,7 +242,7 @@ static void dos_putback()
 
 /*  This function simplys clears the receive buffer.
  */
-static void dos_clear()
+static void dos_clear(void)
 {
     DISABLE();
 
@@ -303,7 +303,7 @@ static void dos_send_string(unsigned char *str)
 /*  This function writes all characters waiting to be sent into the
  *  transmit buffer.
  */
-static void dos_flush()
+static void dos_flush(void)
 {
     DISABLE();
 
@@ -367,7 +367,7 @@ static int detect_UART(unsigned baseaddr)
 
 /*  Enables FIFO if possible.
  */
-static int enable_fifo()
+static int enable_fifo(void)
 {
     if (!open_port) return 0;
 
@@ -477,7 +477,7 @@ static int dos_open(int num, char *dummy)
 
 /*  This function closes the port.
  */
-static void dos_close()
+static void dos_close(void)
 {
     if (!open_port) return;
     
