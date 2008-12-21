@@ -23,7 +23,7 @@ void send_local_input(void)
     
     packet[0] = PACKET_PLAYERSTAT;
     make_playerstat(packet + 1, local);
-    skWrite(packet, 5);
+    skWrite((unsigned char *) packet, 5);
 }
 
 
@@ -40,7 +40,7 @@ int recv_remote_inputs(void)
 	    case PACKET_PLAYERSTAT: 
 		while (skReady() < 4)
 		    ;
-		skRead(packet, 4);
+		skRead((unsigned char *) packet, 4);
 	    	load_playerstat(packet);
 	    	return 0;
 

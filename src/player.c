@@ -468,7 +468,7 @@ void get_local_input(void)
 }
 
 
-int load_playerstat(char *packet)
+int load_playerstat(const char *packet)
 {
     int pl, ch;
 

@@ -326,7 +326,7 @@ static void trade_map_filenames(void)
 	/* send */
 	if (curmap) {
 	    sprintf(buf, "%c%s", MAPLIST_START, get_filename(curmap->fn));
-	    skSendString(buf);
+	    skSendString((unsigned char *) buf);
 	    
 	    curmap = curmap->next;
 	    putpixel(screen, x++, SCREEN_H - 20, RED);
@@ -600,7 +600,7 @@ static char *select_map(int *top, int *selected, char *current_map)
 
 		if (comm == peerpeer) {
 		    skSend(CHAT_INCOMING);
-		    skSendString(temp);
+		    skSendString((unsigned char *) temp);
 		}
 	    }
 	}
@@ -860,7 +860,7 @@ static void peerpeer_trade_names(void)
 
     skSend(PEERPEER_MYNAMEIS);
     skSend(local);
-    skSendString(local_name);
+    skSendString((unsigned char *) local_name);
 
     left = num_players - 1;
 

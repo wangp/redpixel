@@ -107,7 +107,7 @@ static void libnet_send(unsigned char ch)
 static void libnet_send_string(unsigned char *str)
 {
     if (conn) {
-	int len = strlen(str);
+	int len = strlen((const char *) str);
 	net_send_rdm(conn, str, len + 1);   /* want trailing \0 */
     }
 }

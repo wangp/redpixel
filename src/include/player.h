@@ -57,7 +57,7 @@ void auto_weapon(int pl, int new_weapon);
 int num_ammo(int pl, int weapon);
 
 void get_local_input(void);
-int load_playerstat(char *packet);
+int load_playerstat(const char *packet);
 void make_playerstat(char *packet, int pl);
 
 void clean_player(int pl);
