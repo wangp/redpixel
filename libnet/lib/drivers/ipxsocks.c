@@ -80,8 +80,8 @@ static int disable_driver = 0;
 /* Internal data for channels */
 struct channel_data_t {
 	int port;
-	char target_port[4];
-	char source_port[4];
+	unsigned char target_port[4];
+	unsigned char source_port[4];
 	struct sockaddr_ipx target_address;
 	int address_length;
 };
@@ -179,7 +179,7 @@ static void poll_ipx_socket (void)
 	struct port_queue_t *port;
 	struct packet_t *pack;
 	struct sockaddr_ipx from_addr;
-	int addrsize;
+	socklen_t addrsize;
 	
 	do {	
 		FD_ZERO (&rfds);
@@ -322,7 +322,7 @@ static int init (void)
 {
 	int one;
 	struct sockaddr_ipx addr;
-	int addrlength;
+	socklen_t addrlength;
 
 #ifdef __USE_REAL_WSOCK_WIN__
 	short wVersionRequested = MAKEWORD (1, 1);

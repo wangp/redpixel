@@ -96,7 +96,7 @@ static int drv_exit (void)
 static int do_init_channel (NET_CHANNEL *chan, int addr, int port, int forceport)
 {
   struct channel_data_t *data;
-  int addrlength;
+  socklen_t addrlength;
   struct sockaddr_in sock_addr;
   int a;
   
@@ -200,7 +200,8 @@ static int drv_recv (NET_CHANNEL *chan, void *buf, int size, char *from)
 {
   struct channel_data_t *data = chan->data;
   struct sockaddr_in from_addr;
-  int size_read, addrsize = sizeof (from_addr);
+  int size_read;
+  socklen_t addrsize = sizeof (from_addr);
   
   size_read = recvfrom (data->sock, (char *)buf, size, 0, (struct sockaddr *) &from_addr, &addrsize);
   if (size_read >= 0) {
