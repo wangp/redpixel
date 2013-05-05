@@ -47,10 +47,8 @@ set(REDPIXEL_SOURCES
     src/weapon.c
 
     src/sk/sk.c
-    # src/sk/skdos.c
     # src/sk/skdummy.c
     src/sk/sklibnet.c
-    src/sk/sklinux.c
 
     src/fastsqrt/fastsqrt.c
     )

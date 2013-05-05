@@ -38,11 +38,6 @@
 #include "winhelp.h"
 
 
-#ifndef TARGET_WINDOWS
-#define SERIAL
-#endif
-
-
 #define big	dat[UNREAL].dat
 #define small	dat[MINI].dat
 
@@ -900,107 +895,6 @@ static void peerpeer_session(void)
 
 /*----------------------------------------------------------------------
  *
- * 	Serial connection
- * 
- *----------------------------------------------------------------------*/
-
-#ifdef SERIAL
-
-#define SER_CONNECTPLS  '?'
-#define SER_CONNECTOK   '!'
-
-static int com_port = 1;	/* /dev/ttyS1; COM2 */
-
-static int serial_linkup(void)
-{
-    int x, y;
-    char *msg = "LINKING UP (PRESS ESC TO ABORT)";
-
-    skSetDriver(SK_SERIAL);
-
-    if (!skOpen(com_port, 0)) {
-	error_screen("ERROR OPENING COM PORT");
-	return 0;
-    }
-
-    clear_bitmap(dbuf);
-    textprintf(dbuf, dat[MINI].dat, 16, 16, WHITE,
-#ifdef TARGET_LINUX
-	       "/DEV/TTYS%d OPENED", com_port
-#else
-	       "COM%d OPENED", com_port+1
-#endif
-	       );
-
-    y = 24;
-    textout(dbuf, dat[MINI].dat, msg, 16, y, WHITE);
-    x = text_length(dat[MINI].dat, msg) + 16;
-    blit_to_screen(dbuf);
-
-    /* Do NOT remove this.  */
-    rest(500);
-    skClear();
-    
-    while (1) {
-	skSend(SER_CONNECTPLS);
-
-	textout(dbuf, dat[MINI].dat, ".", x, y, WHITE);
-	blit_to_screen(dbuf);
-	if ((x += 4) > 320-16)
-	    y += 8, x = 16;
-
-	if (skRecv() == SER_CONNECTPLS)
-	    break;
-
-	speed_counter = 0;
-	while (speed_counter < GAME_SPEED) {
-	    if (key[KEY_ESC]) {
-		while (key[KEY_ESC])
-		    yield_timeslice();
-		skClose();
-		return 0; 
-	    }
-	}
-    }
-
-    textout(dbuf, dat[MINI].dat, "TOUCHED", 16, y+8, WHITE);
-    blit_to_screen(dbuf);
-    return 1;
-}
-
-static void serial_proc(void)
-{
-    if (!get_name())
-	return;
-
-    if (!serial_linkup()) 
-	return;
-
-    if (!peerpeer_negotiate_environment())
-	return;
-	
-    if (!peerpeer_check_stats()) {
-	error_screen("INCOMPATIBLE STATS");
-	return;
-    }
-
-    peerpeer_session();
-        
-    enter_menu(root_menu);
-}
-
-
-static void serial_port_0_proc() { com_port = 0; serial_proc(); }
-static void serial_port_1_proc() { com_port = 1; serial_proc(); }
-static void serial_port_2_proc() { com_port = 2; serial_proc(); }
-static void serial_port_3_proc() { com_port = 3; serial_proc(); }
-
-#endif
-
-
-
-/*----------------------------------------------------------------------
- *
  * 	Solo
  * 
  *----------------------------------------------------------------------*/
@@ -1217,27 +1111,6 @@ static void demo_playback_proc(void)
  * 
  *----------------------------------------------------------------------*/
 
-#ifdef SERIAL
-
-static BLUBBER serial_menu[] =
-{
-#ifdef TARGET_DJGPP
-    { menu_proc, "COM1", 	serial_port_0_proc, 0, 0 },
-    { menu_proc, "COM2",	serial_port_1_proc, 0, 0 },
-    { menu_proc, "COM3", 	serial_port_2_proc, 0, 0 },
-    { menu_proc, "COM4",	serial_port_3_proc, 0, 0 },
-#endif
-#ifdef TARGET_LINUX
-    { menu_proc, "/dev/ttyS0", 	serial_port_0_proc, 0, 0 },
-    { menu_proc, "/dev/ttyS1",	serial_port_1_proc, 0, 0 },
-    { menu_proc, "/dev/ttyS2", 	serial_port_2_proc, 0, 0 },
-    { menu_proc, "/dev/ttyS3",	serial_port_3_proc, 0, 0 },
-#endif
-    { prev_menu, "", 		startgame_menu, 0, 0 }
-};
-
-#endif /* SERIAL */
-
 #ifndef NO_LIBNET_CODE
 
 static BLUBBER libnet_menu[] =
@@ -1252,9 +1125,6 @@ static BLUBBER libnet_menu[] =
 static BLUBBER startgame_menu[] = 
 {
     { menu_proc, "Solo", 	single_proc, 0, 0 },
-#ifdef SERIAL
-    { join_menu, "Serial", 	serial_menu, 0, 0 },
-#endif
 #ifndef NO_LIBNET_CODE
     { join_menu, "Sockets",	libnet_menu, 0, 0 },
 #endif

@@ -3,7 +3,6 @@
 
 
 #define SK_NONE  	0
-#define SK_SERIAL	1
 #define SK_LIBNET	2
 
 
