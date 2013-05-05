@@ -6,6 +6,12 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 find_package(PkgConfig)
 pkg_check_modules(ALLEGRO REQUIRED allegro)
+pkg_search_module(ALLEGRO5 REQUIRED allegro-5 allegro-5.0)
+pkg_search_module(ALLEGRO5_AUDIO REQUIRED allegro_audio-5 allegro_audio-5.0)
+pkg_search_module(ALLEGRO5_ACODEC REQUIRED allegro_acodec-5 allegro_acodec-5.0)
+pkg_search_module(ALLEGRO5_FONT REQUIRED allegro_font-5 allegro_font-5.0)
+pkg_search_module(ALLEGRO5_IMAGE REQUIRED allegro_image-5 allegro_image-5.0)
+pkg_search_module(ALLEGRO5_PRIMITIVES REQUIRED allegro_primitives-5 allegro_primitives-5.0)
 
 # Avoid link errors by linking to pthread directly.
 find_package(Threads)
@@ -34,6 +40,12 @@ add_executable(redpixel
 
 include_directories(SYSTEM
     ${ALLEGRO_INCLUDE_DIRS}
+    ${ALLEGRO5_INCLUDE_DIRS}
+    ${ALLEGRO5_AUDIO_INCLUDE_DIRS}
+    ${ALLEGRO5_ACODEC_INCLUDE_DIRS}
+    ${ALLEGRO5_FONT_INCLUDE_DIRS}
+    ${ALLEGRO5_IMAGE_INCLUDE_DIRS}
+    ${ALLEGRO5_PRIMITIVES_INCLUDE_DIRS}
     )
 
 include_directories(
@@ -45,6 +57,12 @@ include_directories(
 
 target_link_libraries(redpixel
     ${ALLEGRO_LIBRARIES}
+    ${ALLEGRO5_LIBRARIES}
+    ${ALLEGRO5_AUDIO_LIBRARIES}
+    ${ALLEGRO5_ACODEC_LIBRARIES}
+    ${ALLEGRO5_FONT_LIBRARIES}
+    ${ALLEGRO5_IMAGE_LIBRARIES}
+    ${ALLEGRO5_PRIMITIVES_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     -lm
     )
