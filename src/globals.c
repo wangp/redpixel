@@ -7,7 +7,7 @@
 
 
 #include <sys/time.h>
-#include <allegro.h>
+#include "a4aux.h"
 #include "blood.h"
 #include "globals.h"
 #include "resource.h"

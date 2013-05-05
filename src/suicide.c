@@ -4,7 +4,7 @@
  */
 
 
-#include <allegro.h>
+#include "a4aux.h"
 #include "suicide.h"
 #include "main.h"
 #include "sk.h"

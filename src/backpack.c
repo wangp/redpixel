@@ -7,7 +7,7 @@
 
 
 #include <stdlib.h>
-#include <allegro.h>
+#include "a4aux.h"
 #include "anim.h"
 #include "backpack.h"
 #include "blood.h"

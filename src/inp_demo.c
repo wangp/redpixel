@@ -7,7 +7,7 @@
 
 
 #include <string.h>
-#include <allegro.h>
+#include "a4aux.h"
 #include "demo.h"
 #include "demintro.h"
 #include "map.h"

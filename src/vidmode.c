@@ -6,7 +6,7 @@
  */
 
 
-#include <allegro.h>
+#include "a4aux.h"
 #include "suicide.h"
 #include "vidmode.h"
 
@@ -18,6 +18,7 @@ static BITMAP *scanlined_screen;
 
 static void prepare_scanlines(void)
 {
+#if __A4__
     int y, off;
     
     if ((!want_scanlines) || (SCREEN_H < 400))
@@ -50,6 +51,7 @@ static void prepare_scanlines(void)
     off = (SCREEN_H == 400) ? 0 : 20;
     for (y = 0; y < scanlined_screen->h; y++)
 	scanlined_screen->line[y] = screen->line[off + (y*2)];
+#endif
 }
 
 
@@ -103,6 +105,7 @@ int set_desired_video_mode_or_fallback(void)
     unprepare_scanlines();
     
     if (set_desired_video_mode() < 0) {
+#if __A4__
 	if (get_desktop_resolution(&width, &height) == 0) {
 	    /* Probably a windowed environment: choose 640x400 so we
 	     * don't end up in a tiny window. */
@@ -115,6 +118,9 @@ int set_desired_video_mode_or_fallback(void)
 	    if (set_gfx_mode(GFX_SAFE, 320, 200, 0, 0) < 0)
 		return -1;
 	}
+#else
+	return -1;
+#endif
     }
     
     clear_bitmap(screen);

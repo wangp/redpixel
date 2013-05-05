@@ -9,7 +9,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-#include <allegro.h>
+#include "a4aux.h"
 #include "menu.h"
 #include "launch.h"
 #include "credits.h"

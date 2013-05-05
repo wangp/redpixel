@@ -59,6 +59,29 @@ set(REDPIXEL_INCLUDE_DIRS
     src/sk
     )
 
+set(ALLEGRO4_to_5_SOURCES
+    allegro4/allegro.c
+    allegro4/clip3df.c
+    allegro4/color.c
+    allegro4/datafile.c
+    allegro4/dataregi.c
+    allegro4/file.c
+    allegro4/font.c
+    allegro4/fsel.c
+    allegro4/gui.c
+    allegro4/guiproc.c
+    allegro4/lzss.c
+    allegro4/math.c
+    allegro4/math3d.c
+    allegro4/palette.c
+    allegro4/quat.c
+    allegro4/sound.c
+    allegro4/ufile.c
+    allegro4/unicode.c
+    )
+
+set(ALLEGRO4_to_5_INCLUDE_DIRS allegro4/include)
+
 set(AGUP_SOURCES
     agup/agtk.c
     agup/agup.c

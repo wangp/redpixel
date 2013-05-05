@@ -8,7 +8,7 @@
 
 #include <ctype.h>
 #include <time.h>
-#include <allegro.h>
+#include "a4aux.h"
 #include "main.h"
 #include "engine.h"
 #include "blood.h"
@@ -120,13 +120,7 @@ int main(int argc, char *argv[])
     }
     
     reserve_voices(32, -1);
-#ifdef TARGET_WINDOWS
-    /* the default hardware-based mixer sounds bad with jgmod */
-    if (install_sound(DIGI_DIRECTAMX(0), MIDI_NONE, NULL) != 0)
-	install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);    
-#else
     install_sound(DIGI_AUTODETECT, MIDI_NONE, NULL);
-#endif
 
     /* set up game path */
     set_game_path(argv[0]);
@@ -193,7 +187,9 @@ int main(int argc, char *argv[])
     dbuf = create_bitmap(320, 200);
     light = create_bitmap(320, 200);
     set_stretched_mouse_sprite(dat[XHAIRLCD].dat, (SCREEN_W == 640) ? 2 : 1, 2, 2);
+#if __A4__
     set_mouse_speed(mouse_speed, mouse_speed);
+#endif
 
     /* begin */
 

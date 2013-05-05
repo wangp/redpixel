@@ -6,7 +6,7 @@
  */
 
 
-#include <allegro.h>
+#include "a4aux.h"
 #include "fastsqrt/fastsqrt.h"
 #include "engine.h"
 #include "backpack.h"
@@ -31,8 +31,6 @@ static void speed_timer(void)
     speed_counter++;
 }
 
-END_OF_STATIC_FUNCTION(speed_timer);
-
 
 /*----------------------------------------------------------------------*/
 
@@ -43,8 +41,6 @@ static void fps_timer(void)
     last_fps = frame_counter;
     frame_counter = 0;
 }
-
-END_OF_STATIC_FUNCTION(fps_timer);
 
 
 /*----------------------------------------------------------------------*/

@@ -11,8 +11,8 @@
  */
 
 
-#include <allegro.h>
-#include <allegro/internal/aintern.h>	/* for _draw_textbox */
+#include "../allegro4/allegro.h"
+#include "../allegro4/include/internal/aintern.h" /* for _draw_textbox */
 #include "awin95.h"
 #include "agupitrn.h"
 
@@ -74,7 +74,6 @@ static volatile int awin95_time_toggle = 0;
 static void awin95_timer() {
 	awin95_time_toggle ^= 1;
 }
-END_OF_STATIC_FUNCTION(awin95_timer);
 
 
 /*----------------------------------------------------------------------*/
@@ -873,8 +872,10 @@ static void fill_textout(BITMAP *bmp, FONT *f, AL_CONST char *text,
     text_w = text_length(f, text);
     text_h = text_height(f);
 
+#if __A4__
     if (is_screen_bitmap(bmp))
 	scare_mouse_area(x, y, x+w-1, y+text_h-1);
+#endif
 
     cl = bmp->cl, ct = bmp->ct, cr = bmp->cr, cb = bmp->cb;
     set_clip_rect(bmp, x, y, x+w-1, y+text_h-1);
@@ -885,8 +886,10 @@ static void fill_textout(BITMAP *bmp, FONT *f, AL_CONST char *text,
 
     set_clip_rect(bmp, cl, ct, cr, cb);
 
+#if __A4__
     if (is_screen_bitmap(bmp))
 	unscare_mouse();
+#endif
 }
 
 

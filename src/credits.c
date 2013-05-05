@@ -6,7 +6,7 @@
  */
 
 
-#include <allegro.h>
+#include "a4aux.h"
 #include "blood.h"
 #include "colours.h"
 #include "globals.h"
@@ -23,8 +23,6 @@ static void timer_func(void)
 {
     timer++;
 } 
-
-END_OF_STATIC_FUNCTION(timer_func);
 
 
 #define FULLSCREEN	\

@@ -8,7 +8,7 @@
  */
 
 
-#include <allegro.h>
+#include "a4aux.h"
 #include "blood.h"
 #include "globals.h"
 #include "rpjgmod.h"
@@ -68,8 +68,6 @@ static void frame_ticker(void)
 {
     frames++;
 }
-
-END_OF_STATIC_FUNCTION(frame_ticker);
 
 
 

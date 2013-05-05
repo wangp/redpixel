@@ -6,7 +6,7 @@
  */
 
 
-#include <allegro.h>
+#include "a4aux.h"
 #include <string.h>
 #include "agup.h"
 #include "blood.h"
@@ -65,7 +65,9 @@ static char *res_list(int index, int *list_size)
 static int mouse_speed_callback(void *dp3, int d2)
 {
     (void)dp3;
+#if __A4__
     set_mouse_speed(d2, d2);
+#endif
     return D_O_K;
 }
 
@@ -263,7 +265,9 @@ void options(void)
 	rpagup_init();
     }
 
+#if __A4__
     set_mouse_speed(mouse_speed, mouse_speed);
+#endif
 
     set_volume(sfx_volume * 32, -1);
     rpjgmod_set_volume(mod_volume * 32);

@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <math.h>
-#include <allegro.h>  
+#include "a4aux.h"  
 #include "fastsqrt.h"
 
 volatile int last_count = 0, counter = 0;

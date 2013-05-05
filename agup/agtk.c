@@ -7,8 +7,8 @@
  */
 
 
-#include <allegro.h>
-#include <allegro/internal/aintern.h>	/* for _draw_textbox */
+#include "../allegro4/allegro.h"
+#include "../allegro4/include/internal/aintern.h" /* for _draw_textbox */
 #include "agtk.h"
 #include "agupitrn.h"
 

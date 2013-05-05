@@ -8,7 +8,7 @@
 
 
 #include <string.h>
-#include <allegro.h>
+#include "a4aux.h"
 #include "blood.h"
 #include "colours.h"
 #include "globals.h"

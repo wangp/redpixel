@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <allegro.h>
+#include "a4aux.h"
 #include "resource.h"
 
 

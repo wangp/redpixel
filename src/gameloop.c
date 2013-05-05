@@ -7,7 +7,7 @@
 
 
 #include <stdio.h>
-#include <allegro.h>
+#include "a4aux.h"
 #include "gameloop.h"
 #include "anim.h"
 #include "blood.h"
@@ -90,8 +90,6 @@ static void my_keyboard_lowlevel_callback(int scancode)
 	    break;
     }
 }
-
-END_OF_STATIC_FUNCTION(my_keyboard_lowlevel_callback);
 
 
 static void install_my_keyboard_lowlevel_callback(void)
@@ -279,6 +277,9 @@ static void render(void)
     bx = -(px % 640) / 2;
     by = -(py % 400) / 2;
 
+    /* XXX this was not necessary before; probably a bug in allegro4-to-5 */
+    clear_bitmap(dbuf);
+
     blit(dat[BACKDROP].dat, dbuf, 0, 0, bx, by, 320, 200);
     blit(dat[BACKDROP].dat, dbuf, 0, 0, bx, by + 200, 320, 200);
     blit(dat[BACKDROP].dat, dbuf, 0, 0, bx + 320, by, 320, 200);
@@ -407,7 +408,7 @@ void game_loop(void)
 				sprintf(ss_name, "shot%04d.pcx", ss_num++);
 				if (exists(ss_name))
 				    continue;
-				if (save_pcx(ss_name, dbuf, dat[GAMEPAL].dat) != 0)
+				if (save_bitmap(ss_name, dbuf, dat[GAMEPAL].dat) != 0)
 				    add_msgf(-1, "Error writing %s", ss_name);
 				break;
 			    }

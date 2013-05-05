@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <allegro.h>
+#include "a4aux.h"
 #include "jgmod.h"
 #include "resource.h"
 #include "rnd.h"
@@ -186,7 +186,9 @@ void rpjgmod_stop(void)
 
 void rpjgmod_init(void) {}
 void rpjgmod_shutdown(void) {}
+void rpjgmod_set_volume(int volume) {}
 void rpjgmod_play_random_track(void) {}
+void rpjgmod_play_specific_track(const char *filename) {}
 void rpjgmod_poll(void) {}
 void rpjgmod_stop(void) {}
 

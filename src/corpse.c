@@ -7,7 +7,7 @@
 
 
 #include <string.h>
-#include <allegro.h>
+#include "a4aux.h"
 #include "corpse.h"
 #include "anim.h"
 #include "blood.h"

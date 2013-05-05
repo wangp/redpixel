@@ -6,7 +6,7 @@
  */
 
 
-#include <allegro.h>
+#include "a4aux.h"
 #include "blood.h"
 #include "player.h"
 #include "weapon.h"

@@ -7,7 +7,7 @@
  */
 
 
-#include <allegro.h>
+#include "../allegro4/allegro.h"
 #include "agup.h"
 #include "agupitrn.h"
 

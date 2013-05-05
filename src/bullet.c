@@ -6,7 +6,7 @@
  */
 
 
-#include <allegro.h>
+#include "a4aux.h"
 #include "particle.h"
 #include "bullet.h"
 #include "blast.h"

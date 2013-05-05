@@ -6,7 +6,7 @@
  */
 
 
-#include <allegro.h>
+#include "a4aux.h"
 #include "blood.h"
 #include "colours.h"
 #include "demo.h"
@@ -29,7 +29,9 @@ static void fade_in_and_out(BITMAP *buf, int wait, int allow_int)
     
     /* Fade in, then out.  */
     show_mouse(NULL);
+#if __A4__
     set_palette(black_palette);
+#endif
     blit_to_screen(buf);
     fade_in(dat[GAMEPAL].dat, 8);
     

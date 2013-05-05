@@ -3,7 +3,7 @@
  */
 
 
-#include <allegro.h>
+#include "a4aux.h"
 #include "engine.h"
 #include "stats.h"
 #include "statlist.h"

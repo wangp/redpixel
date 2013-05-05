@@ -7,7 +7,7 @@
 
 
 #include <string.h>
-#include <allegro.h>
+#include "a4aux.h"
 #include "blood.h"
 #include "engine.h"
 #include "gameloop.h"

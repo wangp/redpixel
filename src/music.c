@@ -6,7 +6,7 @@
  */
 
 
-#include <allegro.h>
+#include "a4aux.h"
 #include "music.h"
 #include "rpjgmod.h"
 
@@ -20,8 +20,6 @@ static void need_poll_ticker(void)
 {
     need_poll = 1;
 }
-
-END_OF_STATIC_FUNCTION(need_poll_ticker);
 
 
 void music_init(void)

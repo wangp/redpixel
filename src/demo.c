@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <allegro.h>
+#include "a4aux.h"
 #include "demo.h"
 #include "engine.h"
 #include "player.h"

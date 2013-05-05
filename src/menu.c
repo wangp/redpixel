@@ -7,7 +7,7 @@
 
 
 #include <string.h>
-#include <allegro.h>
+#include "a4aux.h"
 #include "blood.h"
 #include "globals.h"
 #include "menu.h"
@@ -129,7 +129,7 @@ static void do_blubber(BLUBBER *start)
 {
     BLUBBER *bp;
     int do_action = 0, do_prev = 0;
-    int old_mouse_pos = 0;
+    int old_mouse_y = 0;
     int i;
 
     menu_end = 0;
@@ -140,7 +140,7 @@ static void do_blubber(BLUBBER *start)
     while (!menu_end) {
 
 	/* Handle mouse.  */
-	if (old_mouse_pos != mouse_pos) {
+	if (old_mouse_y != mouse_y) {
 	    int saved = selected;
 	    
 	    for (i = 0; cur[i].proc != prev_menu; i++) 
@@ -149,7 +149,7 @@ static void do_blubber(BLUBBER *start)
 		    break;
 		}
 	    
-	    old_mouse_pos = mouse_pos;
+	    old_mouse_y = mouse_y;
 	    if (selected != saved)
 		dirty = 1;
 	}
@@ -249,7 +249,7 @@ static void do_blubber(BLUBBER *start)
 	    if (bp->thing) {
 		enter_menu(bp->thing);
 		show_mouse(screen);
-		selected = old_mouse_pos = 0;
+		selected = old_mouse_y = 0;
 	    }
 
 	    do_prev = 0;
