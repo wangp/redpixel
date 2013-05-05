@@ -5,7 +5,6 @@ project(REDPIXEL C)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 find_package(PkgConfig)
-pkg_check_modules(ALLEGRO REQUIRED allegro)
 pkg_search_module(ALLEGRO5 REQUIRED allegro-5 allegro-5.0)
 pkg_search_module(ALLEGRO5_AUDIO REQUIRED allegro_audio-5 allegro_audio-5.0)
 pkg_search_module(ALLEGRO5_ACODEC REQUIRED allegro_acodec-5 allegro_acodec-5.0)
@@ -39,7 +38,6 @@ add_executable(redpixel
     )
 
 include_directories(SYSTEM
-    ${ALLEGRO_INCLUDE_DIRS}
     ${ALLEGRO5_INCLUDE_DIRS}
     ${ALLEGRO5_AUDIO_INCLUDE_DIRS}
     ${ALLEGRO5_ACODEC_INCLUDE_DIRS}
@@ -56,7 +54,6 @@ include_directories(
     )
 
 target_link_libraries(redpixel
-    ${ALLEGRO_LIBRARIES}
     ${ALLEGRO5_LIBRARIES}
     ${ALLEGRO5_AUDIO_LIBRARIES}
     ${ALLEGRO5_ACODEC_LIBRARIES}
