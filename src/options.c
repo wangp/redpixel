@@ -15,7 +15,6 @@
 #include "globals.h"
 #include "resource.h"
 #include "rpagup.h"
-#include "rpcd.h"
 #include "rpjgmod.h"
 #include "setweaps.h"
 #include "sound.h"
@@ -34,7 +33,6 @@ int mute_sfx;
 
 static int sfx_volume;
 static int mod_volume;
-static int cd_volume;
 
 
 
@@ -123,7 +121,7 @@ DIALOG config_dlg[] =
     { d_agup_check_proc,      15,   70,   130, 20,  0,    0,    0,   0,           0,    0,  "MUTE SOUND EFFECTS", NULL,  NULL }, /* 8 */
     { d_agup_radio_proc,      15,   95,   130, 20,  0,    0,    0,   0,           1,    0,  "NO MUSIC",       NULL,  NULL }, /* 9 */
     { d_agup_radio_proc,      15,   115,  130, 20,  0,    0,    0,   0,           1,    0,  "PLAY MODULES",   NULL,  NULL }, /* 10 */
-    { d_agup_radio_proc,      15,   135,  130, 20,  0,    0,    0,   0,           1,    0,  "PLAY CD",        NULL,  NULL }, /* 11 */
+    { d_yield_proc,           15,   135,  130, 20,  0,    0,    0,   0,           1,    0,  "PLAY CD",        NULL,  NULL }, /* 11 */
 
     { d_agup_check_proc,      180,  70,   100, 20,  0,    0,    0,   0,           0,    0,  "RECORD DEMOS",   NULL,  NULL }, /* 12 */
 
@@ -134,8 +132,8 @@ DIALOG config_dlg[] =
     { d_agup_slider_proc,     185,  115,  100, 12,  0,    0,    0,   0,           8,    0,  NULL,             sfx_volume_callback,  NULL }, /* 16 */
     { d_text_proc,            160,  132,  20,  8,   0,    0,    0,   0,           0,    0,  "MODS",           NULL,  NULL }, /* 17 */
     { d_agup_slider_proc,     185,  130,  100, 12,  0,    0,    0,   0,           8,    0,  NULL,             NULL,  NULL }, /* 18 */
-    { d_text_proc,            160,  147,  20,  8,   0,    0,    0,   0,           0,    0,  "CD",             NULL,  NULL }, /* 19 */
-    { d_agup_slider_proc,     185,  145,  100, 12,  0,    0,    0,   0,           8,    0,  NULL,             NULL,  NULL }, /* 20 */
+    { d_yield_proc,           160,  147,  20,  8,   0,    0,    0,   0,           0,    0,  "CD",             NULL,  NULL }, /* 19 */
+    { d_yield_proc,           185,  145,  100, 12,  0,    0,    0,   0,           8,    0,  NULL,             NULL,  NULL }, /* 20 */
 
     { d_agup_push_proc,       20,   170,  130, 20,  0,    0,    0,   0,           0,    0,  stats_filename,   NULL,  push_stats_button }, /* 21 */
 
@@ -154,12 +152,12 @@ DIALOG config_dlg[] =
 #define I_MUTESFX	8
 #define I_NOMUSIC	9
 #define I_PLAYMODULES	10
-#define I_PLAYCD	11
+#define I_PLAYCD_	11
 #define I_RECORDREMOS	12
 #define I_MOUSESPEED	14
 #define I_SFXVOLUME	16
 #define I_MODVOLUME	18
-#define I_CDVOLUME	20
+#define I_CDVOLUME_	20  /* removed */
 #define I_STATS		21
 #define I_ACCEPT	22
 #define I_REJECT	23
@@ -199,11 +197,9 @@ void options(void)
 	{
 	    config_dlg[I_NOMUSIC].flags &=~ D_SELECTED;
 	    config_dlg[I_PLAYMODULES].flags &=~ D_SELECTED;
-	    config_dlg[I_PLAYCD].flags &=~ D_SELECTED;
 	    switch (music_get_format()) {
 		case MUSIC_FMT_NONE: config_dlg[I_NOMUSIC].flags |= D_SELECTED; break;
 		case MUSIC_FMT_MOD: config_dlg[I_PLAYMODULES].flags |= D_SELECTED; break;
-		case MUSIC_FMT_CD: config_dlg[I_PLAYCD].flags |= D_SELECTED; break;
 	    }
 	}
 	    
@@ -213,7 +209,6 @@ void options(void)
 	
 	config_dlg[I_SFXVOLUME].d2 = sfx_volume;
 	config_dlg[I_MODVOLUME].d2 = mod_volume;
-	config_dlg[I_CDVOLUME].d2 = cd_volume;
 
 	strncpy(stats_filename, get_filename(current_stats), sizeof stats_filename);
 	strncpy(stats_path, current_stats, sizeof stats_path);
@@ -241,8 +236,6 @@ void options(void)
 		music_set_format(MUSIC_FMT_NONE);
 	    else if (config_dlg[I_PLAYMODULES].flags & D_SELECTED)
 		music_set_format(MUSIC_FMT_MOD);
-	    else if (config_dlg[I_PLAYCD].flags & D_SELECTED)
-		music_set_format(MUSIC_FMT_CD);
 	}
 	
 	record_demos = config_dlg[I_RECORDREMOS].flags & D_SELECTED;
@@ -251,7 +244,6 @@ void options(void)
 
 	sfx_volume = config_dlg[I_SFXVOLUME].d2;
 	mod_volume = config_dlg[I_MODVOLUME].d2;
-	cd_volume = config_dlg[I_CDVOLUME].d2;
 	
 	set_current_stats(stats_path);
     }
@@ -275,8 +267,6 @@ void options(void)
 
     set_volume(sfx_volume * 32, -1);
     rpjgmod_set_volume(mod_volume * 32);
-    rpcd_set_volume(cd_volume * 32);
-
     
     set_weapon_stats();
     
@@ -327,7 +317,6 @@ void load_settings(void)
     set_current_stats((char *)get_config_string(section, "stats_file", "stats/default.st"));
     sfx_volume = get_config_int(section, "sfx_volume", 8); set_volume(sfx_volume * 32, -1);
     mod_volume = get_config_int(section, "mod_volume", 3); rpjgmod_set_volume(mod_volume * 32);
-    cd_volume = rpcd_get_volume() / 32;
     
     close_cfg();
 }

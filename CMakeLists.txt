@@ -30,7 +30,6 @@ add_executable(redpixel
     ${AGUP_SOURCES}
     ${LIBNET_SOURCES}
     ${JGMOD_SOURCES}
-    ${LIBCDA_SOURCES}
     )
 
 include_directories(SYSTEM
@@ -42,7 +41,6 @@ include_directories(
     ${AGUP_INCLUDE_DIRS}
     ${LIBNET_INCLUDE_DIRS}
     ${JGMOD_INCLUDE_DIRS}
-    ${LIBCDA_INCLUDE_DIRS}
     )
 
 target_link_libraries(redpixel

@@ -2,13 +2,12 @@
  *  Red Pixel, a violent game.
  *  Copyright (C) 1999 Psyk Software.
  * 
- *  A layer above rpcd and rpjgmod.
+ *  A layer above rpjgmod (and formerly rpcd).
  */
 
 
 #include <allegro.h>
 #include "music.h"
-#include "rpcd.h"
 #include "rpjgmod.h"
 
 
@@ -27,7 +26,6 @@ END_OF_STATIC_FUNCTION(need_poll_ticker);
 
 void music_init(void)
 {
-    rpcd_init();
     rpjgmod_init();
     LOCK_VARIABLE(need_poll);
     LOCK_FUNCTION(need_poll_ticker);
@@ -41,7 +39,6 @@ void music_shutdown(void)
     if (inited) {
 	remove_int(need_poll_ticker);
 	rpjgmod_shutdown();
-	rpcd_shutdown();
 	inited = 0;
     }
 }
@@ -55,7 +52,7 @@ int music_get_format(void)
 
 void music_set_format(int music_format)
 {
-    if ((music_format == MUSIC_FMT_MOD) || (music_format == MUSIC_FMT_CD))
+    if (music_format == MUSIC_FMT_MOD)
 	format = music_format;
     else
 	format = MUSIC_FMT_NONE;
@@ -66,9 +63,7 @@ void music_play_random_track(void)
 {
     if (!inited)
 	return;
-    if (format == MUSIC_FMT_CD)
-	rpcd_play_random_track();
-    else if (format == MUSIC_FMT_MOD)
+    if (format == MUSIC_FMT_MOD)
 	rpjgmod_play_random_track();
 }
 
@@ -76,9 +71,7 @@ void music_play_random_track(void)
 void music_poll(void)
 {
     if (inited && need_poll) {
-	if (format == MUSIC_FMT_CD)
-	    rpcd_poll();
-	else if (format == MUSIC_FMT_MOD)
+	if (format == MUSIC_FMT_MOD)
 	    rpjgmod_poll();
 	need_poll = 0;
     }
@@ -89,8 +82,6 @@ void music_stop(void)
 {
     if (!inited)
 	return;
-    if (format == MUSIC_FMT_CD)
-	rpcd_stop();
-    else if (format == MUSIC_FMT_MOD)
+    if (format == MUSIC_FMT_MOD)
 	rpjgmod_stop();
 }

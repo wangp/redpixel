@@ -4,7 +4,6 @@
 
 #define MUSIC_FMT_NONE	0
 #define MUSIC_FMT_MOD	1
-#define MUSIC_FMT_CD	2
 
 
 void music_init(void);

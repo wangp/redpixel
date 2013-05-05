@@ -34,7 +34,6 @@ set(REDPIXEL_SOURCES
     src/rg_rand.c
     src/rnd.c
     src/rpagup.c
-    src/rpcd.c
     src/rpjgmod.c
     src/setweaps.c
     src/skhelp.c
@@ -119,14 +118,5 @@ set(JGMOD_SOURCES
     )
 
 set(JGMOD_INCLUDE_DIRS jgmod/src)
-
-set(LIBCDA_SOURCES
-    # libcda/bcc.c
-    # libcda/djgpp.c
-    libcda/linux.c
-    # libcda/windows.c
-    )
-
-set(LIBCDA_INCLUDE_DIRS libcda)
 
 # vim: set sts=4 sw=4 et:
