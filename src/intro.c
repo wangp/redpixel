@@ -57,7 +57,7 @@ static uint32_t elapsed_time(WATCH *watch)
 static void wait_until(WATCH *watch, uint32_t msecs_elaspsed)
 {
     while (elapsed_time(watch) < msecs_elaspsed)
-	yield_timeslice();
+	rest(0);
 }
 
 

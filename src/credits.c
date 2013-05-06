@@ -135,7 +135,7 @@ void credits(void)
 	blit_to_screen(dbuf);
 
 	while (timer == 0)
-	    yield_timeslice();
+	    rest(0);
     }
 
     fade_out(6);

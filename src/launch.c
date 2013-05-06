@@ -122,13 +122,13 @@ static int prompt(char *string, char *dest, int maxlen)
 
 	if ((k >> 8) == KEY_ENTER) {
 	    while (key[KEY_ENTER])
-		yield_timeslice();
+		rest(0);
 	    return 1;
 	}
 
 	if ((k >> 8) == KEY_ESC) {
 	    while (key[KEY_ESC])
-		yield_timeslice();
+		rest(0);
 	    return 0;
 	}
 
@@ -544,7 +544,7 @@ static char *select_map(int *top, int *selected, char *current_map)
 	/* escape key */
 	if ((k >> 8) == KEY_ESC || (remote == CHAT_RETURN)) {
 	    while (key[KEY_ESC])
-		yield_timeslice();
+		rest(0);
 	    if ((k >> 8) == KEY_ESC && (comm == peerpeer))
 		skSend(CHAT_RETURN);
 	    return return_str;
@@ -801,7 +801,7 @@ static int peerpeer_negotiate_environment(void)
     while (skRecv() != PEERPEER_THROWDICE) {
 	if (key[KEY_ESC]) {
 	    while (key[KEY_ESC])
-		yield_timeslice();
+		rest(0);
 	    skClose();
 	    return 0;
 	}
@@ -814,7 +814,7 @@ static int peerpeer_negotiate_environment(void)
 	while (!skReady()) {
 	    if (key[KEY_ESC]) {
 		while (key[KEY_ESC])
-		    yield_timeslice();
+		    rest(0);
 		skClose();
 		return 0; 
 	    }

@@ -537,7 +537,7 @@ void game_loop(void)
     }
 
     while (key[KEY_ESC] && mouse_b)
-	yield_timeslice();
+	rest(0);
     clear_keybuf();
 
   quit:
