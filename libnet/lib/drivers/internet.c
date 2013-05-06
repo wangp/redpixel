@@ -167,7 +167,7 @@ static int update_target (NET_CHANNEL *chan)
   
   if (parse_address (chan->target_addr,&addr,&port)) return 1;
 #ifndef __USE_REAL_BESOCKS__
-  if (addr == INADDR_BROADCAST) {
+  if ((unsigned int)addr == INADDR_BROADCAST) {
     char one = 1;
     if (setsockopt (data->sock, SOL_SOCKET, SO_BROADCAST, &one, sizeof one)) return 1;
   }
