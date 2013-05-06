@@ -225,7 +225,7 @@ static void map_edit(void)
 		char tmp[1024];
 		strcpy(tmp, get_resource(R_SHARE, "maps/"));
 		
-		if (file_select("Save As...", tmp, "wak"))
+		if (file_select_ex("Save As...", tmp, "wak", sizeof(tmp), 0, 0))
 		    if (save_map(tmp) < 0)
 			alert("Error saving", tmp, "", "Ok", NULL, 13, 27);
 		dirty = 1;
@@ -235,7 +235,7 @@ static void map_edit(void)
 		char tmp[1024];
 		strcpy(tmp, get_resource(R_SHARE, "maps/"));
 
-		if (file_select("Load...", tmp, "wak"))
+		if (file_select_ex("Load...", tmp, "wak", sizeof(tmp), 0, 0))
 		    if (load_map(tmp) < 0)
 			alert("Error loading", tmp, "", "Ok", NULL, 13, 27);
 		mx = my = 0;
