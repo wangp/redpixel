@@ -90,9 +90,9 @@ static int set_desired_video_mode(void)
 static void clip_to_size(void)
 {
     if ((SCREEN_W == 320) && (SCREEN_H == 240))
-	set_clip(screen, 0, 20, 319, 219);
+	set_clip_rect(screen, 0, 20, 319, 219);
     else if ((SCREEN_W == 640) && (SCREEN_H == 480))
-	set_clip(screen, 0, 40, 640, 439);
+	set_clip_rect(screen, 0, 40, 640, 439);
 }
 
 

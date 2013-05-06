@@ -877,13 +877,13 @@ static void fill_textout(BITMAP *bmp, FONT *f, AL_CONST char *text,
 	scare_mouse_area(x, y, x+w-1, y+text_h-1);
 
     cl = bmp->cl, ct = bmp->ct, cr = bmp->cr, cb = bmp->cb;
-    set_clip(bmp, x, y, x+w-1, y+text_h-1);
+    set_clip_rect(bmp, x, y, x+w-1, y+text_h-1);
 
     textout_ex(bmp, f, text, x, y, fg, bg);
     if (text_w < w)
 	rectfill(bmp, x + text_w, y, x+w-1, y+text_h-1, bg);
 
-    set_clip(bmp, cl, ct, cr, cb);
+    set_clip_rect(bmp, cl, ct, cr, cb);
 
     if (is_screen_bitmap(bmp))
 	unscare_mouse();

@@ -677,11 +677,11 @@ int d_agtk_window_proc(int msg, DIALOG *d, int c)
 
 	if (d->dp) {
 	    int cl = screen->cl, ct = screen->ct, cr = screen->cr, cb = screen->cb;
-	    set_clip(screen, d->x, d->y, d->x+d->w-1, d->y+d->h-1);
+	    set_clip_rect(screen, d->x, d->y, d->x+d->w-1, d->y+d->h-1);
 	    
 	    textout_ex(screen, font, d->dp, d->x+6, d->y+6, black, normal);
 
-	    set_clip(screen, cl, ct, cr, cb);
+	    set_clip_rect(screen, cl, ct, cr, cb);
 	}
     }
 
