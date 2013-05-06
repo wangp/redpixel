@@ -70,12 +70,12 @@ void spawn_particles(int x, int y, int num, int grad)
 	if (particles[i].life) continue;
 	
 	spd = itofix((rnd() % 40) + 1);
-	spd = fdiv(spd, itofix(15));
+	spd = fixdiv(spd, itofix(15));
 	particles[i].x = itofix(x);
 	particles[i].y = itofix(y);
 	angle = itofix(rnd() % 256);
-	particles[i].xv = fmul(fcos(angle), spd);
-	particles[i].yv = fmul(fsin(angle), spd);
+	particles[i].xv = fixmul(fixcos(angle), spd);
+	particles[i].yv = fixmul(fixsin(angle), spd);
 
 	particles[i].life = 
 	    (grad == grad_red) 	

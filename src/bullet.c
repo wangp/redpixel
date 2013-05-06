@@ -56,10 +56,10 @@ void spawn_bullet(int pl, fixed angle, int c, int bmp)
 	
 	b = bullets + i;
 	
-	b->x = itofix(players[pl].x + 3) + fcos(players[pl].angle) * w;
-	b->y = itofix(players[pl].y + 4) + fsin(players[pl].angle) * w;
-	b->xv = fcos(angle) * speed;
-	b->yv = fsin(angle) * speed;
+	b->x = itofix(players[pl].x + 3) + fixcos(players[pl].angle) * w;
+	b->y = itofix(players[pl].y + 4) + fixsin(players[pl].angle) * w;
+	b->xv = fixcos(angle) * speed;
+	b->yv = fixsin(angle) * speed;
 	b->dmg = weaps[players[pl].cur_weap].dmg * (players[pl].bloodlust + 1);
 	b->colour = c;
 	b->bmp = bmp;

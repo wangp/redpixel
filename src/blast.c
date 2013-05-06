@@ -63,8 +63,8 @@ void blast(int x, int y, int dmg, int tag)
 	    hurt_player(i, dmg / d, 1, tag, 0);
 
 	    angle = find_angle(x, y, u, v);
-	    players[i].xv += fixtoi(fcos(angle) * 15) / d;
-	    players[i].yv += fixtoi(fsin(angle) * 15) / d - 1;
+	    players[i].xv += fixtoi(fixcos(angle) * 15) / d;
+	    players[i].yv += fixtoi(fixsin(angle) * 15) / d - 1;
 	    
 	    ASSIGN_CLAMP(players[i].yv, -15, 15);
 	    ASSIGN_CLAMP(players[i].xv, -15, 15);

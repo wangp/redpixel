@@ -462,8 +462,8 @@ void update_player(int pl)
 		(guy->cur_weap == w_uzi && guy->fire_frame == 3) ||
 		(guy->cur_weap == w_minigun && guy->fire_frame == 2)) {
 
-		x = guy->x + 3 + fixtoi(fcos(guy->angle)) * 5;
-		y = guy->y + 3 + fixtoi(fsin(guy->angle)) * 5;
+		x = guy->x + 3 + fixtoi(fixcos(guy->angle)) * 5;
+		y = guy->y + 3 + fixtoi(fixsin(guy->angle)) * 5;
 		spawn_casing(x, y, guy->facing);
 	    }
 

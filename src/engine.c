@@ -59,7 +59,7 @@ int bb_collide(BITMAP *spr1, int x1, int y1, BITMAP *spr2, int x2, int y2)
 
 fixed find_angle(int x1, int y1, int x2, int y2)
 {    
-    return fatan2(itofix(y2 - y1), itofix(x2 - x1)) & 0x00ff0000; /* get rid of decimals */
+    return fixatan2(itofix(y2 - y1), itofix(x2 - x1)) & 0x00ff0000; /* get rid of decimals */
 }
 
 

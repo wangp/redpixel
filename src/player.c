@@ -253,10 +253,10 @@ void draw_scanner(int haywire)
     else
 	angle = find_angle(p->x + 8, p->y + 8, other->x + 8, other->y + 8);
 
-    x1 = cx + fixtoi(fmul(fcos(angle), 20 << 16));
-    y1 = cy + fixtoi(fmul(fsin(angle), 20 << 16));
-    x2 = cx + fixtoi(fmul(fcos(angle), 40 << 16));
-    y2 = cy + fixtoi(fmul(fsin(angle), 40 << 16));
+    x1 = cx + fixtoi(fixmul(fixcos(angle), 20 << 16));
+    y1 = cy + fixtoi(fixmul(fixsin(angle), 20 << 16));
+    x2 = cx + fixtoi(fixmul(fixcos(angle), 40 << 16));
+    y2 = cy + fixtoi(fixmul(fixsin(angle), 40 << 16));
     line(dbuf, x1, y1, x2, y2, 250);
 }
 
