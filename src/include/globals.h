@@ -4,7 +4,7 @@
 
 extern DATAFILE *dat;
 extern BITMAP *dbuf;
-extern BITMAP *light;
+extern ALLEGRO_BITMAP *light;
 
 extern RGB_MAP rgb_table;
 extern COLOR_MAP alpha_map;

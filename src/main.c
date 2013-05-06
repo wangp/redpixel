@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
     setup_lighting();
 
     dbuf = create_bitmap(320, 200);
-    light = create_bitmap(320, 200);
+    light = al_create_bitmap(320, 200);
     set_stretched_mouse_sprite(dat[XHAIRLCD].dat, (SCREEN_W == 640) ? 2 : 1, 2, 2);
 #if __A4__
     set_mouse_speed(mouse_speed, mouse_speed);
@@ -219,7 +219,7 @@ void main_shutdown(void)
     set_mouse_sprite(NULL);
     free_stretched_mouse_sprite();
     if (light) {
-	destroy_bitmap(light);
+	al_destroy_bitmap(light);
 	light = NULL;
     }
     if (dbuf) {

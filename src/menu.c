@@ -210,6 +210,7 @@ static void do_blubber(BLUBBER *start)
 	    /* Add spotlight. */
 	    y = (top + selected * 32) + (text_height(big) / 2 - 192 / 2);
 		
+#if __A4__
 	    clear_bitmap(light);
 	    blit(dbuf, light, 160 - 192/2, y, 160 - 192/2, y, 192, 192);
 	    draw_trans_sprite(light, dat[L_SPOT].dat, 160 - 192/2, y);
@@ -217,10 +218,15 @@ static void do_blubber(BLUBBER *start)
 	    /* Little message space.  */
 	    textout_right_ex(light, dat[MINI].dat, get_filename(current_stats),
 			     320-2, 200 - text_height(dat[MINI].dat), 8, -1);
+#endif
 	    
 	    /* Blit to screen.  */
 	    scare_mouse();
+#if __A4__
 	    blit_to_screen(light);
+#else
+	    blit_to_screen(dbuf);
+#endif
 	    unscare_mouse();
 	 
 	    dirty = 0;

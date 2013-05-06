@@ -131,11 +131,15 @@ static void draw_spotlight(void)
 	&& (players[local].health)) {
 	u = (rnd() % 10) - 5;
 	v = (rnd() % 10) - 5;
+#if __A4__
 	blit(light, light, 0, 0, u, v, 320, 200);
+#endif
     }
 
-    color_map = &light_map;
-    draw_trans_sprite(dbuf, light, 0, 0);
+    al_set_target_bitmap(dbuf->real);
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_DST_COLOR, ALLEGRO_ZERO);
+    al_draw_bitmap(light, 0, 0, 0);
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
 }
 
 
@@ -286,8 +290,8 @@ static void render(void)
     blit(dat[BACKDROP].dat, dbuf, 0, 0, bx + 320, by + 200, 320, 200);
 
     /* ready light */
-    clear_to_color(light, AMBIENT_LIGHT);
-    color_map = &alpha_map;
+    al_set_target_bitmap(light);
+    al_clear_to_color(al_map_rgb(AMBIENT_LIGHT, AMBIENT_LIGHT, AMBIENT_LIGHT));
 
     /* draw */
     draw_mines();

@@ -15,7 +15,7 @@
 
 DATAFILE *dat;
 BITMAP *dbuf;
-BITMAP *light;
+ALLEGRO_BITMAP *light;
 
 RGB_MAP rgb_table;
 COLOR_MAP alpha_map;
@@ -42,17 +42,36 @@ void unload_dat(void)
 
 
 
+static void setup_light_sprite(BITMAP *bitmap)
+{
+    ALLEGRO_LOCKED_REGION *lock;
+    unsigned char *rgba;
+    int x, y;
+
+    bitmap->real = al_create_bitmap(bitmap->w, bitmap->h);
+    lock = al_lock_bitmap(bitmap->real, ALLEGRO_PIXEL_FORMAT_ABGR_8888_LE,
+	ALLEGRO_LOCK_WRITEONLY);
+    rgba = lock->data;
+    for (y = 0; y < bitmap->h; y++){
+	for (x = 0; x < bitmap->w; x++){
+	    int c = *(bitmap->line[y] + x);
+	    unsigned char red = c;
+	    unsigned char green = c;
+	    unsigned char blue = c;
+	    unsigned char alpha = 255;
+	    rgba[y * lock->pitch + x * 4 + 0] = red;
+	    rgba[y * lock->pitch + x * 4 + 1] = green;
+	    rgba[y * lock->pitch + x * 4 + 2] = blue;
+	    rgba[y * lock->pitch + x * 4 + 3] = alpha;
+	}
+    }
+    al_unlock_bitmap(bitmap->real);
+}
+
 /* colour / lighting / translucency tables */
 void setup_lighting(void)
 {
-    int x, y;
-    
-    create_rgb_table(&rgb_table, dat[GAMEPAL].dat, NULL);
-    rgb_map = &rgb_table;
-        
-    create_light_table(&light_map, dat[GAMEPAL].dat, 0, 0, 0, NULL);
-
-    for (x = 0; x < 256; x++)
-	for (y = 0; y < 256; y++)
-	    alpha_map.data[x][y] = MIN(x+y, 255);
+    setup_light_sprite(dat[L_EXPLO].dat);
+    setup_light_sprite(dat[L_SPOT].dat);
+    setup_light_sprite(dat[L_SPOTB].dat);
 }

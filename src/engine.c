@@ -82,7 +82,10 @@ int find_distance(int x1, int y1, int x2, int y2)
 void draw_light(int bmp, int cx, int cy)
 {
     BITMAP *mask = dat[bmp].dat;
-    draw_trans_sprite(light, mask, cx - (mask->w / 2), cy - (mask->h / 2));
+    al_set_target_bitmap(light);
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ONE);
+    al_draw_bitmap(mask->real, cx - (mask->w / 2), cy - (mask->h / 2), 0);
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
 }
 
 

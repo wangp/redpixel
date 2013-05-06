@@ -97,9 +97,7 @@ void draw_corpses(void)
 	draw(dbuf, dat[corpses[i].first_frame + corpses[i].cur].dat, corpses[i].x - px, corpses[i].y - py);
 
 	if (corpses[i].cur < corpses[i].num_frames - 1)
-	    draw_trans_sprite(light, dat[L_SPOT].dat, 
-			      corpses[i].x - px - 192 / 2,
-			      corpses[i].y - py - 192 / 2);
+	    draw_light(L_SPOT, corpses[i].x - px, corpses[i].y - py);
     }
 }
 
