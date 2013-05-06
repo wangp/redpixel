@@ -66,7 +66,7 @@ void jgmod_skip (JGMOD_FILE *f, int skip)
 }
 
 
-int jgmod_fread (char *buf, int size, JGMOD_FILE *f)
+int jgmod_fread (void *buf, int size, JGMOD_FILE *f)
 {
 #ifdef JGMOD_PACKFILE
     return pack_fread (buf, size, f);

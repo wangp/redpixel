@@ -8,7 +8,7 @@ JGMOD_FILE *jgmod_fopen (char *filename, char *mode);
 int jgmod_fclose (JGMOD_FILE *f);
 void jgmod_fseek (JGMOD_FILE **f, char *filename, int offset);
 void jgmod_skip (JGMOD_FILE *f, int skip);
-int jgmod_fread (char *buf, int size, JGMOD_FILE *f);
+int jgmod_fread (void *buf, int size, JGMOD_FILE *f);
 int jgmod_getc (JGMOD_FILE *f);
 int jgmod_mgetw (JGMOD_FILE *f);
 long jgmod_mgetl (JGMOD_FILE *f);
