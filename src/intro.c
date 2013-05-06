@@ -202,10 +202,6 @@ static int scan(int x, int y)
 void intro(void)
 {
     int x, y, x2, y2;
-
-    /* Give monitor a chance to set the mode.  I'm serious.  
-     * Only important because we want to see the year scroll in.  */
-    rest(1500);
     
     clear_keybuf();
 
