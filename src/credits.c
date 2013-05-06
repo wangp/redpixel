@@ -124,9 +124,9 @@ void credits(void)
 		if (text[line+i][0] == 'x')
 		    theend = 1;
 		else if (text[line+i][0] == 'r')
-		    textout_centre(bmp, dat[MINI].dat, text[line+i]+1, 160, i*h + offset, RED);
+		    textout_centre_ex(bmp, dat[MINI].dat, text[line+i]+1, 160, i*h + offset, RED, -1);
 		else
-		    textout_centre(bmp, dat[MINI].dat, text[line+i], 160, i*h + offset, WHITE);
+		    textout_centre_ex(bmp, dat[MINI].dat, text[line+i], 160, i*h + offset, WHITE, -1);
 	    }
 	}
 	

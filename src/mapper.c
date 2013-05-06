@@ -281,8 +281,7 @@ static void map_edit(void)
 
 	    mouse_grid_x = mouse_x/16+mx;
 	    mouse_grid_y = mouse_y/16+my;
-	    text_mode(0);
-	    textprintf(dbuf, font, 0, 0, WHITE, "x: %2d  y: %2d  w: %2d  h: %2d", mouse_grid_x, mouse_grid_y, map.w, map.h); 
+	    textprintf_ex(dbuf, font, 0, 0, WHITE, 0, "x: %2d  y: %2d  w: %2d  h: %2d", mouse_grid_x, mouse_grid_y, map.w, map.h); 
 
 	    scare_mouse();
 	    blit(dbuf, screen, 0, 0, 0, 0, SCREEN_W, SCREEN_H);
@@ -298,8 +297,7 @@ static void map_edit(void)
 		mouse_grid_x = xx;
 		mouse_grid_y = yy;
 		scare_mouse();
-		text_mode(0);
-		textprintf(screen, font, 0, 0, WHITE, "x: %2d  y: %2d  w: %2d  h: %2d", mouse_grid_x, mouse_grid_y, map.w, map.h); 
+		textprintf_ex(screen, font, 0, 0, WHITE, 0, "x: %2d  y: %2d  w: %2d  h: %2d", mouse_grid_x, mouse_grid_y, map.w, map.h); 
 		unscare_mouse();
 	    }
 	}

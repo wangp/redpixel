@@ -277,12 +277,10 @@ int d_awin95_button_proc(int msg, DIALOG *d, int c)
 	rectfill(screen, d->x + f + 2, d->y + f + 2, d->x + d->w - f - 3, d->y + d->h - f - 3, normal);
 
 	if (d->dp) {
-	    int rtm = text_mode(-1);
-	    gui_textout(screen, d->dp,
-			d->x + d->w / 2 + s,
-			d->y + d->h / 2 - text_height(font) / 2 + s,
-			(d->flags & D_DISABLED) ? gray : black, TRUE);
-	    text_mode(rtm);
+	    gui_textout_ex(screen, d->dp,
+			   d->x + d->w / 2 + s,
+			   d->y + d->h / 2 - text_height(font) / 2 + s,
+			    (d->flags & D_DISABLED) ? gray : black, -1, TRUE);
 	}
 
 	if (d->flags & D_GOTFOCUS)
@@ -338,10 +336,8 @@ int d_awin95_check_proc(int msg, DIALOG *d, int c)
 	    draw_sprite(screen, checked_bmp, d->x+4, d->y+d->h/2-4);
 
 	if (d->dp) {
-	    int rtm = text_mode(-1);
-	    gui_textout(screen, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
-			(d->flags & D_DISABLED) ? gray : black, FALSE);
-	    text_mode(rtm);
+	    gui_textout_ex(screen, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
+			   (d->flags & D_DISABLED) ? gray : black, -1, FALSE);
 	}
 
 	if (x & 1)
@@ -451,10 +447,8 @@ int d_awin95_radio_proc(int msg, DIALOG *d, int c)
 	    dotted_rect_wh(d->x+16, d->y+d->h/2-text_height(font)/2 - 2, text_length(font, d->dp) + 4, text_height(font) + 4, black, normal);
 
 	if (d->dp) {
-	    int rtm = text_mode(-1);
-	    gui_textout(screen, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
-			(d->flags & D_DISABLED) ? gray : black, FALSE);
-	    text_mode(rtm);
+	    gui_textout_ex(screen, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
+			   (d->flags & D_DISABLED) ? gray : black, -1, FALSE);
 	}
 	return D_O_K;
     }
@@ -542,9 +536,7 @@ int d_awin95_edit_proc(int msg, DIALOG *d, int c)
 	    usetc(buf+usetc(buf, (f) ? f : ' '), 0);
 	    w = text_length(font, buf);
 	    f = ((p == d->d2) && (d->flags & D_GOTFOCUS));
-	    rtm = text_mode(white);
-	    textout(screen, font, buf, d->x+x, d->y+4, fg);
-	    text_mode(rtm);
+	    textout_ex(screen, font, buf, d->x+x, d->y+4, fg, white);
 	    if (f && awin95_time_toggle)
 		vline(screen, d->x+x-1, d->y+3, d->y+text_height(font)+3, black);
 	    if ((x += w) + w > d->w - 4)
@@ -639,7 +631,6 @@ int d_awin95_list_proc(int msg, DIALOG *d, int c)
 		ustrncat(s, (*(getfuncptr)d->dp)(i+d->d2, NULL), sizeof(s)-ucwidth(0));
 		x = d->x + 2;
 		y = d->y + 2 + i*text_height(font);
-		rtm = text_mode(bg);
 		rectfill(screen, x, y, x+7, y+text_height(font)-1, bg);
 		x += 8;
 		len = ustrlen(s);
@@ -647,8 +638,7 @@ int d_awin95_list_proc(int msg, DIALOG *d, int c)
 		    len--;
 		    usetat(s, len, 0);
 		}
-		textout(screen, font, s, x, y, fg);
-		text_mode(rtm);
+		textout_ex(screen, font, s, x, y, fg, bg);
 		x += text_length(font, s);
 		if (x <= d->x+w)
 		    rectfill(screen, x, y, d->x+w, y+text_height(font)-1, bg);
@@ -824,8 +814,6 @@ static void win95_draw_menu_item(MENU *m, int x, int y, int w, int h, int bar, i
 	vline(screen, x + w - 1, y + 1, y + h - 1, nshadow);
     }
 
-    rtm = text_mode(bg);
-
     if (ugetc(m->text)) {
 	i = 0;
 	j = ugetc(m->text);
@@ -837,11 +825,11 @@ static void win95_draw_menu_item(MENU *m, int x, int y, int w, int h, int bar, i
 
 	usetc(buf+i, 0);
 
-	gui_textout(screen, buf, x+8, y+1, fg, FALSE);
+	gui_textout_ex(screen, buf, x+8, y+1, fg, bg, FALSE);
 
 	if (j == '\t') {
 	    tok = m->text+i + uwidth(m->text+i);
-	    gui_textout(screen, tok, x+w-gui_strlen(tok)-10, y+1, fg, FALSE);
+	    gui_textout_ex(screen, tok, x+w-gui_strlen(tok)-10, y+1, fg, bg, FALSE);
 	}
 
 	if ((m->child) && (!bar))
@@ -856,8 +844,6 @@ static void win95_draw_menu_item(MENU *m, int x, int y, int w, int h, int bar, i
 	line(screen, x+1, y+text_height(font)/2+1, x+3, y+text_height(font)+1, fg);
 	line(screen, x+3, y+text_height(font)+1, x+6, y+2, fg);
     }
-
-    text_mode(rtm);
 }
 
 
@@ -887,15 +873,13 @@ static void fill_textout(BITMAP *bmp, FONT *f, AL_CONST char *text,
     text_w = text_length(f, text);
     text_h = text_height(f);
 
-    old_text_mode = text_mode(bg);
-
     if (is_screen_bitmap(bmp))
 	scare_mouse_area(x, y, x+w-1, y+text_h-1);
 
     cl = bmp->cl, ct = bmp->ct, cr = bmp->cr, cb = bmp->cb;
     set_clip(bmp, x, y, x+w-1, y+text_h-1);
 
-    textout(bmp, f, text, x, y, fg);
+    textout_ex(bmp, f, text, x, y, fg, bg);
     if (text_w < w)
 	rectfill(bmp, x + text_w, y, x+w-1, y+text_h-1, bg);
 
@@ -903,14 +887,11 @@ static void fill_textout(BITMAP *bmp, FONT *f, AL_CONST char *text,
 
     if (is_screen_bitmap(bmp))
 	unscare_mouse();
-
-    text_mode(old_text_mode);
 }
 
 
 static void draw_window_title(DIALOG *d, AL_CONST char *text)
 {
-    int old_text_mode = text_mode(blue);
     int height = text_height(font);
 
     rectfill(screen,
@@ -943,7 +924,6 @@ static void draw_window_title(DIALOG *d, AL_CONST char *text)
 	  d->y + border_thickness,
 	  d->y + border_thickness + 2 * internal_border_thickness + height,
 	  highlight);
-    text_mode(old_text_mode);
 }
 
 

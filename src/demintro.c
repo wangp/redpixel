@@ -64,11 +64,11 @@ void introduce_demo(void)
     if (buf) {
 	clear_bitmap(buf);
 	
-	textout_centre(buf, big, players[0].name, cx, cy - 40, -1);
-	textout_centre(buf, small, "VS", cx, cy, WHITE);
-	textout_centre(buf, big, (num_players == 2) ? players[1].name : "NOBODY",
-		       cx, cy + 20, -1);
-	textout_centre(buf, small, demo_description, cx, cy + 70, WHITE);
+	textout_centre_ex(buf, big, players[0].name, cx, cy - 40, -1, -1);
+	textout_centre_ex(buf, small, "VS", cx, cy, WHITE, -1);
+	textout_centre_ex(buf, big, (num_players == 2) ? players[1].name : "NOBODY",
+		          cx, cy + 20, -1, -1);
+	textout_centre_ex(buf, small, demo_description, cx, cy + 70, WHITE, -1);
 	
 	fade_in_and_out(buf, 3000, 1);
 	
@@ -92,13 +92,13 @@ void introduce_map(const char *mapname)
     if (buf) {
 	clear_bitmap(buf);
 	
-	textout_centre(buf, big, mapname, cx, cy - 20, -1);
+	textout_centre_ex(buf, big, mapname, cx, cy - 20, -1, -1);
 	
 	if ((num_players == 2) && (players[0].frags || players[1].frags)) {
-	    textprintf_centre(buf, small, cx, cy + 70, WHITE, 
-			      "%s - %d    %s - %d",
-			      players[0].name, players[0].frags,
-			      players[1].name, players[1].frags);
+	    textprintf_centre_ex(buf, small, cx, cy + 70, WHITE, -1,
+			         "%s - %d    %s - %d",
+				 players[0].name, players[0].frags,
+				 players[1].name, players[1].frags);
 	}
 
 	fade_in_and_out(buf, 1000, 0);

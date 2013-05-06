@@ -190,11 +190,11 @@ static void draw_status(void)
     char buf[10];
 
     if (show_fps)
-	textprintf(dbuf, dat[MINI].dat, 270, 80, WHITE, "FPS: %2d", last_fps);
+	textprintf_ex(dbuf, dat[MINI].dat, 270, 80, WHITE, -1, "FPS: %2d", last_fps);
 
     /* list scores */
     if (key[KEY_TAB]) {
-	textout(dbuf, dat[UNREAL].dat, "FRAG COUNT", 55, 5, -1);
+	textout_ex(dbuf, dat[UNREAL].dat, "FRAG COUNT", 55, 5, -1, -1);
 
 	for (i = 0; i < MAX_PLAYERS; i++) {
 	    tempbuf[i].frags = players[i].frags;
@@ -206,9 +206,9 @@ static void draw_status(void)
 	y = 30;
 	for (i = 0; i < MAX_PLAYERS; i++) {
 	    if (players[tempbuf[i].no].exist) {
-		textprintf(dbuf, dat[UNREAL].dat, 55, y, -1,
-			   "%3d %s", players[tempbuf[i].no].frags,
-			   players[tempbuf[i].no].name);
+		textprintf_ex(dbuf, dat[UNREAL].dat, 55, y, -1, -1,
+			      "%3d %s", players[tempbuf[i].no].frags,
+			      players[tempbuf[i].no].name);
 		y += 20;
 	    }
 	}
@@ -217,12 +217,10 @@ static void draw_status(void)
 
     /* dead, don't continue */
     if ((comm != demo) && (players[local].health == 0)) {
-	textout(dbuf, dat[UNREAL].dat, "PRESS SPACE TO RESPAWN",
-		20, 200 - 30, -1);
+	textout_ex(dbuf, dat[UNREAL].dat, "PRESS SPACE TO RESPAWN",
+		   20, 200 - 30, -1, -1);
 	return;
     }
-
-    text_mode(-1);
 
     i = 0;
     y = 200 - 6 - 16;
@@ -231,14 +229,14 @@ static void draw_status(void)
 	    draw_sprite(dbuf, dat[weapon_order[i].pic].dat,
 			6 + (players[local].cur_weap == weapon_order[i].weap ? 6 : 0), y);
 
-	    textout(dbuf, dat[MINI].dat, weapon_order[i].s, 0, y + 8, RED);
+	    textout_ex(dbuf, dat[MINI].dat, weapon_order[i].s, 0, y + 8, RED, -1);
 
 	    ammo = num_ammo(local, weapon_order[i].weap);
 	    if (ammo != -1) {
 		sprintf(buf, "%d", ammo);
-		textout(dbuf, dat[MINI].dat, buf, 24, y + 8, YELLOW);
+		textout_ex(dbuf, dat[MINI].dat, buf, 24, y + 8, YELLOW, -1);
 		if (weapon_order[i].weap == players[local].cur_weap)
-		    textout(dbuf, dat[UNREAL].dat, buf, 320 - 48, 200 - 24, -1);
+		    textout_ex(dbuf, dat[UNREAL].dat, buf, 320 - 48, 200 - 24, -1, -1);
 	    }
 
 	    y -= 14;
@@ -262,12 +260,12 @@ static void draw_status(void)
     /* health and armour */
     draw_sprite(dbuf, dat[HEART1 + (heart_frame > 2 ? 1 : heart_frame)].dat, 6, 9);
     draw_sprite(dbuf, dat[A_ARMOUR].dat, 60, 9);
-    textprintf(dbuf, dat[UNREAL].dat, 24, 3, -1, "%3d", players[local].health);
-    textprintf(dbuf, dat[UNREAL].dat, 78, 3, -1, "%3d", players[local].armour);
+    textprintf_ex(dbuf, dat[UNREAL].dat, 24, 3, -1, -1, "%3d", players[local].health);
+    textprintf_ex(dbuf, dat[UNREAL].dat, 78, 3, -1, -1, "%3d", players[local].armour);
 
     /* if playing demo, show currently viewed player */
     if (comm == demo)
-	textout_centre(dbuf, dat[MINI].dat, players[local].name, 320/2, 200-10, GREEN);
+	textout_centre_ex(dbuf, dat[MINI].dat, players[local].name, 320/2, 200-10, GREEN, -1);
 }
 
 

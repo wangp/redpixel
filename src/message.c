@@ -80,9 +80,9 @@ void draw_msgs(void)
     for (i = 0; i < num_msgs; i++) {
 	len = text_length(dat[MINI].dat, msg_queue[i]);
 	
-	textout(dbuf, dat[MINI].dat, msg_queue[i],
-		320 - 16 - len, 3 + 7 * i,
-		GREEN - (num_msgs * 2) + (i * 2));
+	textout_ex(dbuf, dat[MINI].dat, msg_queue[i],
+		   320 - 16 - len, 3 + 7 * i,
+		   GREEN - (num_msgs * 2) + (i * 2), -1);
     }
 }
 

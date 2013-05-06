@@ -97,8 +97,8 @@ static int raster_words(char *s)
     txt2 = create_bitmap(w, h);
     clear_bitmap(txt1);
     clear_bitmap(txt2);
-    textout(txt1, dat[UNREAL].dat, s, 0, 0, -1);
-    textout(txt2, dat[UNREAL].dat, s, 0, 0, -1);
+    textout_ex(txt1, dat[UNREAL].dat, s, 0, 0, -1, -1);
+    textout_ex(txt2, dat[UNREAL].dat, s, 0, 0, -1, -1);
     for (y = 0; y < h; y += 2) {
 	hline(txt1, 0, y,     w - 1, 0);
 	hline(txt2, 0, y + 1, w - 1, 0);

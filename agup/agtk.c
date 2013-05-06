@@ -174,10 +174,8 @@ int d_agtk_button_proc(int msg, DIALOG *d, int c)
 	gtk_box(screen, d->x, d->y, d->w, d->h, x, d->flags & D_GOTFOCUS);
 	    
 	if (d->dp) {
-	    int rtm = text_mode(-1);
-	    gui_textout(screen, d->dp, d->x+d->w/2, d->y+d->h/2-text_height(font)/2,
-			(d->flags & D_DISABLED) ? nshadow : black, TRUE);
-	    text_mode(rtm);
+	    gui_textout_ex(screen, d->dp, d->x+d->w/2, d->y+d->h/2-text_height(font)/2,
+			   (d->flags & D_DISABLED) ? nshadow : black, -1, TRUE);
 	}
 	return D_O_K;
     }
@@ -212,10 +210,8 @@ int d_agtk_check_proc(int msg, DIALOG *d, int c)
 	draw_base(screen, d);
 	gtk_bevel(screen, d->x+3, d->y+d->h/2-5, 10, 10, (d->flags & D_SELECTED) ? 2 : 1);
 	if (d->dp) {
-	    int rtm = text_mode(-1);
-	    gui_textout(screen, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
-			(d->flags & D_DISABLED) ? nshadow : black, FALSE);
-	    text_mode(rtm);
+	    gui_textout_ex(screen, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
+			   (d->flags & D_DISABLED) ? nshadow : black, -1, FALSE);
 	}
 	return D_O_K;
     }
@@ -269,10 +265,8 @@ int d_agtk_radio_proc(int msg, DIALOG *d, int c)
 	draw_sprite(screen, (d->flags & D_SELECTED) ? radio_down_bmp : radio_up_bmp, d->x+3, d->y+d->h/2-5);
 
 	if (d->dp) {
-	    int rtm = text_mode(-1);
-	    gui_textout(screen, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
-			(d->flags & D_DISABLED) ? nshadow : black, FALSE);
-	    text_mode(rtm);
+	    gui_textout_ex(screen, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
+			   (d->flags & D_DISABLED) ? nshadow : black, -1, FALSE);
 	}
 	return D_O_K;
     }
@@ -356,9 +350,7 @@ int d_agtk_edit_proc(int msg, DIALOG *d, int c)
 	    usetc(buf+usetc(buf, (f) ? f : ' '), 0);
 	    w = text_length(font, buf);
 	    f = ((p == d->d2) && (d->flags & D_GOTFOCUS));
-	    rtm = text_mode(white);
-	    textout(screen, font, buf, d->x+x, d->y+4, fg);
-	    text_mode(rtm);
+	    textout_ex(screen, font, buf, d->x+x, d->y+4, fg, white);
 	    if (f)
 		vline(screen, d->x+x-1, d->y+3, d->y+fonth+3, black);
 	    if ((x += w) + w > d->w - 4)
@@ -457,7 +449,6 @@ int d_agtk_list_proc(int msg, DIALOG *d, int c)
 		ustrncat(s, (*(getfuncptr)d->dp)(i+d->d2, NULL), sizeof(s)-ucwidth(0));
 		x = d->x + 2;
 		y = d->y + 2 + i*text_height(font);
-		rtm = text_mode(bg);
 		rectfill(screen, x, y, x+7, y+text_height(font)-1, bg);
 		x += 8;
 		len = ustrlen(s);
@@ -465,8 +456,7 @@ int d_agtk_list_proc(int msg, DIALOG *d, int c)
 		    len--;
 		    usetat(s, len, 0);
 		}
-		textout(screen, font, s, x, y, fg);
-		text_mode(rtm);
+		textout_ex(screen, font, s, x, y, fg, bg);
 		x += text_length(font, s);
 		if (x <= d->x+w)
 		    rectfill(screen, x, y, d->x+w, y+text_height(font)-1, bg);
@@ -635,7 +625,6 @@ static void gtk_draw_menu_item(MENU *m, int x, int y, int w, int h, int bar, int
     }
 
     rectfill(screen, x+1, y+1, x+w-3, y+h-4, bg);
-    rtm = text_mode(bg);
 
     if (ugetc(m->text)) {
 	i = 0;
@@ -648,11 +637,11 @@ static void gtk_draw_menu_item(MENU *m, int x, int y, int w, int h, int bar, int
 
 	usetc(buf+i, 0);
 
-	gui_textout(screen, buf, x+8, y+1, fg, FALSE);
+	gui_textout_ex(screen, buf, x+8, y+1, fg, bg, FALSE);
 
 	if (j == '\t') {
 	    tok = m->text+i + uwidth(m->text+i);
-	    gui_textout(screen, tok, x+w-gui_strlen(tok)-10, y+1, fg, FALSE);
+	    gui_textout_ex(screen, tok, x+w-gui_strlen(tok)-10, y+1, fg, bg, FALSE);
 	}
 
 	if ((m->child) && (!bar))
@@ -667,8 +656,6 @@ static void gtk_draw_menu_item(MENU *m, int x, int y, int w, int h, int bar, int
 	line(screen, x+1, y+text_height(font)/2+1, x+3, y+text_height(font)+1, fg);
 	line(screen, x+3, y+text_height(font)+1, x+6, y+2, fg);
     }
-
-    text_mode(rtm);
 }
 
 
@@ -689,14 +676,12 @@ int d_agtk_window_proc(int msg, DIALOG *d, int c)
 	gtk_box(screen, d->x, d->y, d->w, d->h, 0, 1);
 
 	if (d->dp) {
-	    int rtm = text_mode(normal);
 	    int cl = screen->cl, ct = screen->ct, cr = screen->cr, cb = screen->cb;
 	    set_clip(screen, d->x, d->y, d->x+d->w-1, d->y+d->h-1);
 	    
-	    textout(screen, font, d->dp, d->x+6, d->y+6, black);
+	    textout_ex(screen, font, d->dp, d->x+6, d->y+6, black, normal);
 
 	    set_clip(screen, cl, ct, cr, cb);
-	    text_mode(rtm);
 	}
     }
 

@@ -84,7 +84,7 @@ static void quit_proc(void)
 static void error_screen(char *err) 
 {
     clear_bitmap(dbuf);
-    textout_centre(dbuf, dat[MINI].dat, err, 160, 90, WHITE);
+    textout_centre_ex(dbuf, dat[MINI].dat, err, 160, 90, WHITE, -1);
     blit_to_screen(dbuf);
 
     while (!keypressed() && !mouse_b)
@@ -113,8 +113,8 @@ static int prompt(char *string, char *dest, int maxlen)
 	strcpy(temp, dest);
 	strcat(temp, "_");
 	clear_bitmap(dbuf);
-	textout_centre(dbuf, small, string, 160, 70, WHITE);
-	textout_centre(dbuf, small, temp,   160, 90, WHITE);
+	textout_centre_ex(dbuf, small, string, 160, 70, WHITE, -1);
+	textout_centre_ex(dbuf, small, temp,   160, 90, WHITE, -1);
 	blit_to_screen(dbuf);
 
 	/* handle keypress */	
@@ -411,13 +411,13 @@ static char *select_map(int *top, int *selected, char *current_map)
 	clear_bitmap(dbuf);
 	
 	/* recording demos reminder */
-	textout_right(dbuf, small, record_reminder, 320-10, 2, DARKGREY);
+	textout_right_ex(dbuf, small, record_reminder, 320-10, 2, DARKGREY, -1);
 	
 	/* map select */
-	textout(dbuf, small, "GRAVEYARD", 20, 10, RED);
-	textout_centre(dbuf, small,
-		       "UP/DOWN: SELECT  F10: START  F4: DISCONNECT",
-		       160, 120, RED);
+	textout_ex(dbuf, small, "GRAVEYARD", 20, 10, RED, -1);
+	textout_centre_ex(dbuf, small,
+		          "UP/DOWN: SELECT  F10: START  F4: DISCONNECT",
+		          160, 120, RED, -1);
 
 	curmap = maphead.next;
 	for (i = 0; i < (*top); i++)
@@ -430,30 +430,30 @@ static char *select_map(int *top, int *selected, char *current_map)
 		    c = YELLOW;
 		else if (current_map == curmap->fn)
 		    c = GRAY;
-		textout(dbuf, small, get_filename(curmap->fn), 20, 25 + i*10, c);
+		textout_ex(dbuf, small, get_filename(curmap->fn), 20, 25 + i*10, c, -1);
 		curmap = curmap->next;
 	    }
 	}
 	
-	textout(dbuf, small, "*", 10, 25 + ((*selected) - (*top)) * 10, RED);
+	textout_ex(dbuf, small, "*", 10, 25 + ((*selected) - (*top)) * 10, RED, -1);
 
 	/* player list */
-	textout(dbuf, small, "THE DAMNED", 180, 10, RED);
+	textout_ex(dbuf, small, "THE DAMNED", 180, 10, RED, -1);
 	for (i = 0, y = 20; i < num_players; i++, y += 20) 
-	    textout(dbuf, small, players[i].name, 190, y + 5, WHITE);
+	    textout_ex(dbuf, small, players[i].name, 190, y + 5, WHITE, -1);
 
 	/* chat box */
 	hline(dbuf, 0, 130, 319, RED);
 	hline(dbuf, 0, 140, 319, RED);
 	hline(dbuf, 0, 190, 319, RED);
-	textout(dbuf, small, "CHAT BOX", 10, 131, WHITE);
+	textout_ex(dbuf, small, "CHAT BOX", 10, 131, WHITE, -1);
 
 	for (i = 0; i < 6; i++)
-	    textout(dbuf, small, chatbox[i], 0, 141 + i * 8, WHITE);
+	    textout_ex(dbuf, small, chatbox[i], 0, 141 + i * 8, WHITE, -1);
 
 	if (chatting) {
-	    textout(dbuf, small, cur, 0, 192, WHITE);
-	    textout(dbuf, small, "_", text_length(small, cur), 192, WHITE);
+	    textout_ex(dbuf, small, cur, 0, 192, WHITE, -1);
+	    textout_ex(dbuf, small, "_", text_length(small, cur), 192, WHITE, -1);
 	}
 
 	/* blit onto screen  */
@@ -663,13 +663,13 @@ static void score_sheet(void)
 
     show_mouse(NULL);
     blit(dat[FRAGDROP].dat, dbuf, 0, 0, 0, 0, 320, 200);
-    textout_centre(dbuf, dat[MINI].dat, "FRAGS", 160, 50, RED);
+    textout_centre_ex(dbuf, dat[MINI].dat, "FRAGS", 160, 50, RED, -1);
 
     y = 70;
 
     for (i = 0; i < num_players; i++) {
-	textprintf(dbuf, dat[MINI].dat, 100, y, WHITE,
-		   "%s: %d frags", players[i].name, players[i].frags);
+	textprintf_ex(dbuf, dat[MINI].dat, 100, y, WHITE, -1,
+		      "%s: %d frags", players[i].name, players[i].frags);
 	y += 16;
     }
 
@@ -980,7 +980,7 @@ static int libnet_connect_callback(void)
 {
     if (connect_msg) {
 	clear_bitmap(dbuf);
-	textout_centre(dbuf, dat[MINI].dat, connect_msg, 160, 90, WHITE);
+	textout_centre_ex(dbuf, dat[MINI].dat, connect_msg, 160, 90, WHITE, -1);
 	blit_to_screen(dbuf);
 
 	/* only need to do this once */
@@ -1061,7 +1061,6 @@ static void demo_playback_proc(void)
     strncpy(filename, get_resource(R_SHARE, "demos/"), sizeof filename);
     
     x = file_select_ex("Load demo", filename, "rec", sizeof filename, 0, 0);
-    text_mode(-1);
     if (!x) return;
     
     if (demo_read_open(filename) < 0) {
@@ -1154,7 +1153,6 @@ void main_menu(void)
 {
     big = dat[UNREAL].dat;
     small = dat[MINI].dat;
-    text_mode(-1);
 
     maphead.next = NULL;
     num_maps = 0;

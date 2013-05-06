@@ -74,7 +74,7 @@ void join_menu(BLUBBER *bp, int command, int ex)
     switch (command) {
 	case MSG_DRAW:
 	    /* `ex' will be y position */
-	    textout_centre(dbuf, big, bp->string, 160, ex, -1);
+	    textout_centre_ex(dbuf, big, bp->string, 160, ex, -1, -1);
 	    break;
 
 	case MSG_CLICK:
@@ -90,7 +90,7 @@ void menu_proc(BLUBBER *bp, int command, int ex)
     switch (command) {
 	case MSG_DRAW:
 	    /* `ex' will be y position */
-	    textout_centre(dbuf, big, bp->string, 160, ex, -1);
+	    textout_centre_ex(dbuf, big, bp->string, 160, ex, -1, -1);
 	    break;
 
 	case MSG_CLICK:
@@ -215,8 +215,8 @@ static void do_blubber(BLUBBER *start)
 	    draw_trans_sprite(light, dat[L_SPOT].dat, 160 - 192/2, y);
 	    
 	    /* Little message space.  */
-	    textout_right(light, dat[MINI].dat, get_filename(current_stats),
-			  320-2, 200 - text_height(dat[MINI].dat), 8);
+	    textout_right_ex(light, dat[MINI].dat, get_filename(current_stats),
+			     320-2, 200 - text_height(dat[MINI].dat), 8, -1);
 	    
 	    /* Blit to screen.  */
 	    scare_mouse();
