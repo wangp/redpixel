@@ -16,6 +16,8 @@ extern int32_t seed;
 int load_dat(void);
 void unload_dat(void);
 
+ALLEGRO_BITMAP *create_bitmap_with_margin(int w, int h, int marginx, int marginy);
+
 void setup_lighting(void);
 
 

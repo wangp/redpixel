@@ -131,14 +131,12 @@ static void draw_spotlight(void)
 	&& (players[local].health)) {
 	u = (rnd() % 10) - 5;
 	v = (rnd() % 10) - 5;
-#if __A4__
-	blit(light, light, 0, 0, u, v, 320, 200);
-#endif
     }
 
+    /* 'light' has 5 pixel margin on all sides. */
     al_set_target_bitmap(dbuf->real);
     al_set_blender(ALLEGRO_ADD, ALLEGRO_DST_COLOR, ALLEGRO_ZERO);
-    al_draw_bitmap(light, 0, 0, 0);
+    al_draw_bitmap(light, -5 + u, -5 + v, 0);
     al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
 }
 

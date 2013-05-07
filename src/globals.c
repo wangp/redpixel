@@ -42,6 +42,28 @@ void unload_dat(void)
 
 
 
+ALLEGRO_BITMAP *create_bitmap_with_margin(int w, int h, int marginx, int marginy)
+{
+    ALLEGRO_TRANSFORM t;
+    ALLEGRO_BITMAP *old;
+    ALLEGRO_BITMAP *bmp;
+
+    old = al_get_target_bitmap();
+
+    bmp = al_create_bitmap(w + marginx + marginx, h + marginy + marginy);
+    al_set_target_bitmap(bmp);
+
+    al_identity_transform(&t);
+    al_translate_transform(&t, marginx, marginx);
+    al_use_transform(&t);
+
+    al_set_target_bitmap(old);
+
+    return bmp;
+}
+
+
+
 static void setup_light_sprite(BITMAP *bitmap)
 {
     ALLEGRO_LOCKED_REGION *lock;
