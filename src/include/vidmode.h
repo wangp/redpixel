@@ -10,7 +10,6 @@
 #define VID_320x200_WINDOWED	5
 
 extern int desired_video_mode;
-extern int want_scanlines;
 
 int set_desired_video_mode_or_fallback(void);
 

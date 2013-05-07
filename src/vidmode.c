@@ -12,56 +12,6 @@
 
 
 int desired_video_mode;
-int want_scanlines;
-static BITMAP *scanlined_screen;
-
-
-static void prepare_scanlines(void)
-{
-#if __A4__
-    int y, off;
-    
-    if ((!want_scanlines) || (SCREEN_H < 400))
-	return;
-
-    /* don't support banked bitmaps */
-    if (!gfx_driver->linear)
-	return;
-
-#ifdef ALLEGRO_WITH_XWINDOWS
-    /* The current X windows graphics driver currently doesn't like
-     * our scanline trick with the sub-bitmap. I think it maybe should
-     * be classified as a "banked" driver. */
-    if ((gfx_driver->id == GFX_XWINDOWS_FULLSCREEN) ||
-        (gfx_driver->id == GFX_XWINDOWS))
-	return;
-#endif
-#ifdef ALLEGRO_WINDOWS
-    /* The Windows windowed drivers don't like our scanline trick either
-     * (well, some of them at least). */
-    if (gfx_driver->windowed)
-	return;
-#endif
-
-    scanlined_screen = create_sub_bitmap(screen, 0, (SCREEN_H == 400) ? 0 : 20,
-					 SCREEN_W, 200);
-    if (!scanlined_screen)
-	suicide("Out of memory");
-    
-    off = (SCREEN_H == 400) ? 0 : 20;
-    for (y = 0; y < scanlined_screen->h; y++)
-	scanlined_screen->line[y] = screen->line[off + (y*2)];
-#endif
-}
-
-
-static void unprepare_scanlines(void)
-{
-    if (scanlined_screen) {
-	destroy_bitmap(scanlined_screen);
-	scanlined_screen = NULL;
-    }
-}
 
 
 static int set_desired_video_mode(void)
@@ -102,8 +52,6 @@ int set_desired_video_mode_or_fallback(void)
 {
     int width, height;
 
-    unprepare_scanlines();
-    
     if (set_desired_video_mode() < 0) {
 #if __A4__
 	if (get_desktop_resolution(&width, &height) == 0) {
@@ -125,7 +73,6 @@ int set_desired_video_mode_or_fallback(void)
     
     clear_bitmap(screen);
     clip_to_size();
-    prepare_scanlines();
     
     if (set_display_switch_mode(SWITCH_BACKAMNESIA) == -1)
 	set_display_switch_mode(SWITCH_BACKGROUND);
@@ -136,12 +83,6 @@ int set_desired_video_mode_or_fallback(void)
 
 inline void blit_to_screen_offset(BITMAP *buffer, int ox, int oy)
 {
-    if (scanlined_screen) {
-	stretch_blit(buffer, scanlined_screen, 0, 0, 320, 200, ox, oy, 640, 200);
-	return;
-    }
-    
-    /* unscanlined */
     if ((SCREEN_W == 320) && (SCREEN_H == 240))
 	blit(buffer, screen, 0, 0, ox, 20+oy, 320, 200);
     else if ((SCREEN_W == 640) && (SCREEN_H == 400))
@@ -199,5 +140,4 @@ void vidmode_init(void)
 
 void vidmode_shutdown(void)
 {
-    unprepare_scanlines();
 }

@@ -114,7 +114,7 @@ DIALOG config_dlg[] =
     { d_agup_list_proc,       10,   15,   140, 46,  0,    0,    0,   0,           0,    0,  res_list,         NULL,  NULL }, /* 2 */
 
     { d_agup_box_proc,        165,  2,    130, 60,  0,    0,    0,   0,           0,    0,  NULL,             NULL,  NULL }, /* 3 */
-    { d_agup_check_proc,      170,  7,    120, 16,  0,    0,    0,   D_SELECTED,  0,    0,  "SCANLINES (HI-RES)", NULL,  NULL }, /* 4 */
+    { d_yield_proc,           170,  7,    120, 16,  0,    0,    0,   D_SELECTED,  0,    0,  "SCANLINES (HI-RES)", NULL,  NULL }, /* 4 */
     { d_agup_check_proc,      170,  24,   120, 16,  0,    0,    0,   0,           0,    0,  "FILTERED",       NULL,  NULL }, /* 5 */
     { d_agup_check_proc,      170,  40,   120, 16,  0,    0,    0,   0,           0,    0,  "\"FAMILY\" MODE",NULL,  NULL }, /* 6 */
 
@@ -148,7 +148,6 @@ DIALOG config_dlg[] =
 
 
 #define I_RESLIST	2
-#define I_SCANLINES	4
 #define I_FILTERED	5
 #define I_FAMILY	6
 #define I_MUTESFX	8
@@ -178,7 +177,6 @@ void options(void)
 {
     int accepted;
     int old_desired_video_mode = desired_video_mode;
-    int old_want_scanlines = want_scanlines;
     int old_sfx_volume = sfx_volume;
     
     old_font = font;
@@ -190,7 +188,6 @@ void options(void)
     /* set up config_dlg */
     {
 	config_dlg[I_RESLIST].d1 = desired_video_mode;
-	set_D_SELECTED(config_dlg + I_SCANLINES, want_scanlines);
 	set_D_SELECTED(config_dlg + I_FILTERED, filtered);
 	set_D_SELECTED(config_dlg + I_FAMILY, family);
 
@@ -227,7 +224,6 @@ void options(void)
     if (accepted) {
 	
 	desired_video_mode = config_dlg[I_RESLIST].d1;
-	want_scanlines = config_dlg[I_SCANLINES].flags & D_SELECTED;
 	filtered = config_dlg[I_FILTERED].flags & D_SELECTED;
 	family = config_dlg[I_FAMILY].flags & D_SELECTED;
 	
@@ -255,8 +251,7 @@ void options(void)
     }
 
     
-    if ((old_desired_video_mode != desired_video_mode) ||
-	(old_want_scanlines != want_scanlines)) {
+    if (old_desired_video_mode != desired_video_mode) {
 	rpagup_shutdown();
 	if (set_desired_video_mode_or_fallback() < 0)
 	    suicide("Error setting video mode");
@@ -311,7 +306,6 @@ void load_settings(void)
     open_cfg();
     
     desired_video_mode = get_config_int(section, "video_mode", VID_320x200_FULLSCREEN);
-    want_scanlines = get_config_int(section, "scanlines", FALSE);
     filtered = get_config_int(section, "filtered", FALSE);
     family = get_config_int(section, "family", FALSE);
     mute_sfx = get_config_int(section, "mute_sfx", FALSE);
@@ -331,7 +325,6 @@ void save_settings(void)
     open_cfg();
 
     set_config_int(section, "video_mode", desired_video_mode);
-    set_config_int(section, "scanlines", want_scanlines);
     set_config_int(section, "filtered", filtered);
     set_config_int(section, "family", family);
     set_config_int(section, "mute_sfx", mute_sfx);
