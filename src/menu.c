@@ -125,6 +125,24 @@ static inline int touch(int item)
 }
 
 
+static void draw_menu_spotlight(BITMAP *dbuf, BITMAP *spot, int y)
+{
+    const int cx = dbuf->w/2;
+    const int half = spot->w/2;
+
+    al_set_target_bitmap(dbuf->real);
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_DST_COLOR, ALLEGRO_ZERO);
+    al_draw_bitmap(spot->real, cx - half, y, 0);
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
+
+    /* Black out around the spotlight. */
+    rectfill(dbuf, 0, 0, cx - half - 1, dbuf->h, 0);
+    rectfill(dbuf, cx + half, 0, dbuf->w, dbuf->h, 0);
+    rectfill(dbuf, cx - half, 0, cx + half, y - 1, 0);
+    rectfill(dbuf, cx - half, y + spot->h, cx + half, dbuf->h, 0);
+}
+
+
 static void do_blubber(BLUBBER *start)
 {
     BLUBBER *bp;
@@ -209,25 +227,14 @@ static void do_blubber(BLUBBER *start)
 	    
 	    /* Add spotlight. */
 	    y = (top + selected * 32) + (text_height(big) / 2 - 192 / 2);
-		
-#if __A4__
-	    clear_bitmap(light);
-	    blit(dbuf, light, 160 - 192/2, y, 160 - 192/2, y, 192, 192);
-	    draw_trans_sprite(light, dat[L_SPOT].dat, 160 - 192/2, y);
+	    draw_menu_spotlight(dbuf, dat[L_SPOT].dat, y);
 	    
 	    /* Little message space.  */
-	    textout_right_ex(light, dat[MINI].dat, get_filename(current_stats),
+	    textout_right_ex(dbuf, dat[MINI].dat, get_filename(current_stats),
 			     320-2, 200 - text_height(dat[MINI].dat), 8, -1);
-#endif
 	    
 	    /* Blit to screen.  */
-	    scare_mouse();
-#if __A4__
-	    blit_to_screen(light);
-#else
 	    blit_to_screen(dbuf);
-#endif
-	    unscare_mouse();
 	 
 	    dirty = 0;
 	}
