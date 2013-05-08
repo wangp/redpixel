@@ -76,36 +76,11 @@ ALLEGRO_BITMAP *create_bitmap_with_margin(int w, int h, int marginx, int marginy
 
 
 
-static void setup_light_sprite(BITMAP *bitmap)
-{
-    ALLEGRO_LOCKED_REGION *lock;
-    unsigned char *rgba;
-    int x, y;
-
-    bitmap->real = al_create_bitmap(bitmap->w, bitmap->h);
-    lock = al_lock_bitmap(bitmap->real, ALLEGRO_PIXEL_FORMAT_ABGR_8888_LE,
-	ALLEGRO_LOCK_WRITEONLY);
-    rgba = lock->data;
-    for (y = 0; y < bitmap->h; y++){
-	for (x = 0; x < bitmap->w; x++){
-	    int c = *(bitmap->line[y] + x);
-	    unsigned char red = c;
-	    unsigned char green = c;
-	    unsigned char blue = c;
-	    unsigned char alpha = 255;
-	    rgba[y * lock->pitch + x * 4 + 0] = red;
-	    rgba[y * lock->pitch + x * 4 + 1] = green;
-	    rgba[y * lock->pitch + x * 4 + 2] = blue;
-	    rgba[y * lock->pitch + x * 4 + 3] = alpha;
-	}
-    }
-    al_unlock_bitmap(bitmap->real);
-}
-
 /* colour / lighting / translucency tables */
 void setup_lighting(void)
 {
-    setup_light_sprite(dat[L_EXPLO].dat);
-    setup_light_sprite(dat[L_SPOT].dat);
-    setup_light_sprite(dat[L_SPOTB].dat);
+    ALLEGRO_COLOR unused = al_map_rgb(0, 0, 0);
+    convert_8bit(dat[L_EXPLO].dat, CONVERT_8BIT_INTENSITY, unused);
+    convert_8bit(dat[L_SPOT].dat, CONVERT_8BIT_INTENSITY, unused);
+    convert_8bit(dat[L_SPOTB].dat, CONVERT_8BIT_INTENSITY, unused);
 }
