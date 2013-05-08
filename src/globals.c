@@ -29,7 +29,15 @@ int load_dat(void)
 {
     ASSERT(!dat);
     dat = load_datafile(get_resource(R_SHARE, "blood.dat"));
-    return (dat) ? 0 : -1;
+    if (!dat)
+	return -1;
+
+    /* Index 0 is supposed to be opaque black. */
+    set_palette(dat[GAMEPAL].dat);
+    convert_8bit(dat[TITLE].dat, CONVERT_8BIT_PALETTE, al_map_rgb(0, 0, 0));
+    convert_8bit(dat[FRAGDROP].dat, CONVERT_8BIT_PALETTE, al_map_rgb(0, 0, 0));
+
+    return 0;
 }
 
 void unload_dat(void)

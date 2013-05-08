@@ -279,7 +279,7 @@ void blubber(BLUBBER *start)
     
     if (need)
 	set_display_switch_callback(SWITCH_IN, switch_in_callback);
-    
+
     do_blubber(start);
     
     if (need)
