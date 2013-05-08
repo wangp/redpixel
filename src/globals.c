@@ -37,6 +37,10 @@ int load_dat(void)
     convert_8bit(dat[TITLE].dat, CONVERT_8BIT_PALETTE, al_map_rgb(0, 0, 0));
     convert_8bit(dat[FRAGDROP].dat, CONVERT_8BIT_PALETTE, al_map_rgb(0, 0, 0));
 
+    /* Index 0 is transparent. */
+    convert_8bit(dat[XHAIRLCD].dat, CONVERT_8BIT_PALETTE_REPLACE_INDEX0,
+	al_map_rgba(0, 0, 0, 0));
+
     return 0;
 }
 
