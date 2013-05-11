@@ -1090,8 +1090,6 @@ static void demo_playback_proc(void)
     
     /* fade out, for end of movie feel */
     fade_out(4);
-    clear_bitmap(screen);
-    set_palette(dat[GAMEPAL].dat);
         
     score_sheet();
 

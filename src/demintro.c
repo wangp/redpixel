@@ -29,21 +29,14 @@ static void fade_in_and_out(BITMAP *buf, int wait, int allow_int)
     
     /* Fade in, then out.  */
     show_mouse(NULL);
-#if __A4__
-    set_palette(black_palette);
-#endif
-    blit_to_screen(buf);
-    fade_in(dat[GAMEPAL].dat, 8);
+    rp_fade_in(buf, 8);
     
     /* wait a bit */
     for (i = wait / 100; i && (allow_int ? (!keypressed() && !mouse_b) : 1); i--)
 	rest(100);
         
-    fade_out(8);
+    rp_fade_out(buf, 8);
     clear_bitmap(screen);
-    
-    /* Restore palette.  */
-    set_palette(dat[GAMEPAL].dat);
     
     clear_keybuf();
 }

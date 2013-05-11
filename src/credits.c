@@ -136,9 +136,7 @@ void credits(void)
 	    rest(0);
     }
 
-    fade_out(6);
-    clear_bitmap(screen);
-    set_palette(dat[GAMEPAL].dat);
+    rp_fade_out(dbuf, 6);
 
     while (key[KEY_ESC] || mouse_b)
 	;

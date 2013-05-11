@@ -239,9 +239,7 @@ void intro(void)
 	rpjgmod_stop();
     }
 
-    fade_out(6);
-    clear_bitmap(screen);
-    set_palette(dat[GAMEPAL].dat);
+    rp_fade_out(dbuf, 6);
 
     clear_keybuf();
 }
