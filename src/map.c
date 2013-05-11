@@ -13,6 +13,7 @@
 #include "engine.h"
 #include "map.h"
 #include "resource.h"
+#include "rpstring.h"
 #include "stats.h"
 #include "statlist.h"
 
@@ -239,7 +240,7 @@ int load_map_wrapper(const char *fn)
 
     strcpy(path, get_resource(R_SHARE, "maps/"));
   
-    strlwr(strcpy(tmp, fn));
+    rp_strlwr(strcpy(tmp, fn));
     strcat(path, tmp);
     
     return load_map(path);

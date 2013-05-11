@@ -14,6 +14,7 @@
 #include "demo.h"
 #include "engine.h"
 #include "player.h"
+#include "rpstring.h"
 #include "setweaps.h"
 #include "stats.h"
 #include "statlist.h"
@@ -175,7 +176,7 @@ int demo_write_open(char *filename, int players, char *names[])
 	
 	strcpy(d, ctime(&t));
 	d[strlen(d) - 1] = 0;	/* remove \n */
-	strupr(d);
+	rp_strupr(d);
 	
 	pack_fputs(d, fp);
 	pack_putc(0, fp);

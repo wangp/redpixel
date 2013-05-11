@@ -35,6 +35,7 @@ set(REDPIXEL_SOURCES
     src/rnd.c
     src/rpagup.c
     src/rpjgmod.c
+    src/rpstring.c
     src/setweaps.c
     src/skhelp.c
     src/sound.c

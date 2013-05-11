@@ -28,6 +28,7 @@
 #include "options.h"
 #include "player.h"
 #include "resource.h"
+#include "rpstring.h"
 #include "rnd.h"
 #include "setweaps.h"
 #include "sk.h"
@@ -217,7 +218,7 @@ static void get_map_filenames(void)
 
 	tmpmap = malloc(sizeof(MAPFILE));
 	strcpy(tmpmap->fn, f.name);
-	strupr(tmpmap->fn);	/* font only has uppercase */
+	rp_strupr(tmpmap->fn);	/* font USED to only have uppercase */
 	curmap->next = tmpmap;
 	tmpmap->next = NULL;
 	curmap = tmpmap;
@@ -293,7 +294,7 @@ static MAPFILE *match(char *fn)
     MAPFILE *t = maphead.next;
     
     while (t) {
-	if (stricmp(get_filename(t->fn), fn) == 0)
+	if (rp_stricmp(get_filename(t->fn), fn) == 0)
 	    return t;
 	
 	t = t->next; 
@@ -707,7 +708,7 @@ static void try_demo_write_open(void)
 	}
 	
 	if (fn && (demo_write_open(fn, num_players, names) == 0)) {
-	    strupr((sprintf(record_reminder, "RECORDING DEMO AS %s",
+	    rp_strupr((sprintf(record_reminder, "RECORDING DEMO AS %s",
 			    get_filename(fn)), record_reminder));
 	    return;
 	}
