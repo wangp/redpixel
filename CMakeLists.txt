@@ -30,14 +30,11 @@ endif()
 # Too many unused parameters in old code for now.
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -Wno-unused")
 
-add_definitions(-DNO_JGMOD_CODE)
-
 add_executable(redpixel
     ${ALLEGRO4_to_5_SOURCES}
     ${REDPIXEL_SOURCES}
     ${AGUP_SOURCES}
     ${LIBNET_SOURCES}
-    # ${JGMOD_SOURCES}
     )
 
 include_directories(SYSTEM
@@ -56,7 +53,6 @@ include_directories(
     ${REDPIXEL_INCLUDE_DIRS}
     ${AGUP_INCLUDE_DIRS}
     ${LIBNET_INCLUDE_DIRS}
-    # ${JGMOD_INCLUDE_DIRS}
     )
 
 target_link_libraries(redpixel

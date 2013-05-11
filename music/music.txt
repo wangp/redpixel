@@ -1,1 +1,0 @@
-Put any .mod, .s3m, .xm files into this directory.

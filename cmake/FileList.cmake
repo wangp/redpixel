@@ -24,7 +24,6 @@ set(REDPIXEL_SOURCES
     src/message.c
     src/mine.c
     src/mousespr.c
-    src/music.c
     src/options.c
     src/particle.c
     src/player.c
@@ -33,7 +32,6 @@ set(REDPIXEL_SOURCES
     src/rg_rand.c
     src/rnd.c
     src/rpagup.c
-    src/rpjgmod.c
     src/rpstring.c
     src/setweaps.c
     src/skhelp.c
@@ -120,24 +118,5 @@ set(LIBNET_INCLUDE_DIRS
     libnet/include
     libnet/lib/include
     )
-
-set(JGMOD_SOURCES
-    jgmod/src/file_io.c
-    # jgmod/src/jgm.c
-    # jgmod/src/jgmod.c
-    jgmod/src/load_it.c
-    jgmod/src/load_jgm.c
-    jgmod/src/load_mod.c
-    jgmod/src/load_s3m.c
-    jgmod/src/load_xm.c
-    jgmod/src/mod.c
-    jgmod/src/player.c
-    jgmod/src/player2.c
-    jgmod/src/player3.c
-    jgmod/src/player4.c
-    jgmod/src/save_jgm.c
-    )
-
-set(JGMOD_INCLUDE_DIRS jgmod/src)
 
 # vim: set sts=4 sw=4 et:

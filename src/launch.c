@@ -24,7 +24,6 @@
 #include "main.h"
 #include "map.h"
 #include "message.h"
-#include "music.h"
 #include "options.h"
 #include "player.h"
 #include "resource.h"
@@ -681,8 +680,6 @@ static void score_sheet(void)
     while (!keypressed() && !mouse_b);
     clear_keybuf();
     while (mouse_b);
-
-    music_stop();
 }
 
 
@@ -753,7 +750,6 @@ static void do_session(void)
 	    break;
 	last_fn = fn;
 	demo_write_change_map(fn);
-	music_play_random_track();
 
 	/* Init players.  */
 	retain_players();

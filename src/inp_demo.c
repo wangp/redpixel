@@ -11,7 +11,6 @@
 #include "demo.h"
 #include "demintro.h"
 #include "map.h"
-#include "music.h"
 #include "packet.h"
 #include "player.h"
 
@@ -37,8 +36,6 @@ int recv_demo_inputs(void)
 		alert("Error loading map", filename, "", "Damn", NULL, 13, 27);
 		return -1;
 	    }
-
-	    music_play_random_track();
 
 	    retain_players();
 	    reset_engine();

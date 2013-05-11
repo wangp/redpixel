@@ -18,7 +18,6 @@
 #include "mapper.h"
 #include "menu.h"
 #include "mousespr.h"
-#include "music.h"
 #include "options.h"
 #include "resource.h"
 #include "rpagup.h"
@@ -129,8 +128,6 @@ int main(int argc, char *argv[])
 	skSetConfigPath(replace_filename(tmp, argv[0], "", sizeof tmp));
     }
 
-    music_init();
-
     load_settings();
 
     /* map editor option */
@@ -228,6 +225,5 @@ void main_shutdown(void)
     engine_shutdown();
     rpagup_shutdown();
     unload_dat();
-    music_shutdown();
     vidmode_shutdown();
 }

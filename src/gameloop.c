@@ -19,7 +19,6 @@
 #include "input.h"
 #include "main.h"
 #include "map.h"
-#include "music.h"
 #include "options.h"
 #include "packet.h"
 #include "player.h"
@@ -517,8 +516,6 @@ void game_loop(void)
 		render();
 	    }
 	}
-
-	music_poll();
 
     } while (!want_quit);
     
