@@ -44,7 +44,7 @@ static void setup_scaling(int w, int h)
 
 int set_video_mode(void)
 {
-    if (set_gfx_mode(GFX_AUTODETECT, 640, 480, 0, 0) < 0) {
+    if (set_gfx_mode(GFX_AUTODETECT, 3*320, 3*200, 0, 0) < 0) {
 	return -1;
     }
     
