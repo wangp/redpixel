@@ -72,6 +72,19 @@ static void frame_ticker(void)
 
 
 
+static int keypressed_allow_fullscreen(void)
+{
+    if (keypressed()) {
+	if (readkey() >> 8 == KEY_F11)
+	    toggle_fullscreen_window();
+	else
+	    return TRUE;
+    }
+    return FALSE;
+}
+
+
+
 static ALLEGRO_AUDIO_STREAM *start_music(const char *filename)
 {
     ALLEGRO_MIXER *mixer;
@@ -149,7 +162,7 @@ static int raster_words(char *s)
 	    }
 	}
 	
-	if (keypressed())
+	if (keypressed_allow_fullscreen())
 	    goto quit;
     }
 
@@ -174,7 +187,7 @@ static int raster_words(char *s)
 	    }
 	}
 	
-	if (keypressed())
+	if (keypressed_allow_fullscreen())
 	    goto quit;
     } 
 
@@ -218,7 +231,7 @@ static int scan(int x, int y)
 	blit_to_screen(bmp);
 	x++;
 	rest(60);
-	if (keypressed()) {
+	if (keypressed_allow_fullscreen()) {
 	    keyed = 1;
             break;
 	}

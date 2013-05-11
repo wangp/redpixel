@@ -81,6 +81,18 @@ static char *text[] = {
 };
 
 
+static int keypressed_allow_fullscreen(void)
+{
+    if (keypressed()) {
+	if (readkey() >> 8 == KEY_F11)
+	    toggle_fullscreen_window();
+	else
+	    return TRUE;
+    }
+    return FALSE;
+}
+
+
 void credits(void)
 {
     int line = 0;
@@ -102,7 +114,7 @@ void credits(void)
 
     h = text_height(dat[MINI].dat);
 
-    while (!keypressed() && !mouse_b && !theend) {
+    while (!keypressed_allow_fullscreen() && !mouse_b && !theend) {
 	timer = 0;
 	
 	if (--offset < 0) {

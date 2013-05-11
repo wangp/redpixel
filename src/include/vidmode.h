@@ -6,6 +6,7 @@
 #define GAME_H	200
 
 int set_video_mode(void);
+void toggle_fullscreen_window(void);
 
 void get_game_mouse_pos(int *mx, int *my);
 

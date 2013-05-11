@@ -58,6 +58,7 @@ static int show_fps = 0;
 
 
 static volatile int kb_enter;
+static volatile int kb_f11;
 static volatile int kb_f12;
 static volatile int kb_f2;
 static volatile int kb_f3;
@@ -71,6 +72,7 @@ static void my_keyboard_lowlevel_callback(int scancode)
     int pressed = !(scancode & 0x80);
     switch (sc) {
 	case KEY_ENTER: kb_enter = pressed; break;
+        case KEY_F11: kb_f11 = pressed; break;
         case KEY_F12: kb_f12 = pressed; break;
 	case KEY_F2: kb_f2 = pressed; break;
 	case KEY_F3: kb_f3 = pressed; break;
@@ -101,7 +103,7 @@ static void install_my_keyboard_lowlevel_callback(void)
 	LOCK_FUNCTION(my_keyboard_lowlevel_callback);
 	first = 0;
     }
-    kb_enter = kb_f12 = kb_p = 0;
+    kb_enter = kb_f11 = kb_f12 = kb_p = 0;
     want_quit = 0;
     want_help = helping = 0;
     keyboard_lowlevel_callback = my_keyboard_lowlevel_callback;
@@ -464,6 +466,11 @@ void game_loop(void)
 		blood_anim = HEART_ANIM;	/* just borrow this */
 		if (++blood_frame > 5)
 		    blood_frame = 0;
+	    }
+
+	    if (kb_f11) {
+		toggle_fullscreen_window();
+		kb_f11 = 0;
 	    }
 
 	    if (kb_f12) {

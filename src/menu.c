@@ -212,6 +212,10 @@ static void do_blubber(BLUBBER *start)
 		do_action = 1;
 	    else if (k == KEY_ESC)
 		do_prev = 1;
+	    else if (k == KEY_F11) {
+		toggle_fullscreen_window();
+		dirty = 1;
+	    }
 	}
 		
 	/* Redraw dirty menu.  */

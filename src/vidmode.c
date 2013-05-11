@@ -57,6 +57,19 @@ int set_video_mode(void)
 }
 
 
+void toggle_fullscreen_window(void)
+{
+    ALLEGRO_DISPLAY *dpy = al_get_current_display();
+    int flags = al_get_display_flags(dpy);
+    al_set_display_flag(dpy, ALLEGRO_FULLSCREEN_WINDOW,
+	!(flags & ALLEGRO_FULLSCREEN_WINDOW));
+
+    gfx_driver->w = screen->w = al_get_display_width(dpy);
+    gfx_driver->h = screen->h = al_get_display_height(dpy);
+    setup_scaling(SCREEN_W, SCREEN_H);
+}
+
+
 void get_game_mouse_pos(int *mx, int *my)
 {
     int x, y;

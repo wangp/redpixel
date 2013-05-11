@@ -132,6 +132,10 @@ static int prompt(char *string, char *dest, int maxlen)
 	    return 0;
 	}
 
+	if ((k >> 8) == KEY_F11) {
+	    toggle_fullscreen_window();
+	}
+
 	/* entering name */
 	len = strlen(dest);
 
@@ -569,6 +573,11 @@ static char *select_map(int *top, int *selected, char *current_map)
 	    }
 
 	    return curmap->fn;
+	}
+
+	/* F11 key */
+	if ((k >> 8) == KEY_F11) {
+	    toggle_fullscreen_window();
 	}
 
 	/* Enter: send chat */
