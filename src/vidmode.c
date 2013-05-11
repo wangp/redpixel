@@ -7,68 +7,19 @@
 
 
 #include "a4aux.h"
-#include "suicide.h"
 #include "vidmode.h"
-
-
-int desired_video_mode;
-
-
-static int set_desired_video_mode(void)
-{
-    switch (desired_video_mode) {
-	case VID_320x200_FULLSCREEN:
-	    return set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 320, 200, 0, 0);
-	    
-        case VID_320x240_FULLSCREEN:
-	    return set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 320, 240, 0, 0);
-	    
-	case VID_640x400_FULLSCREEN:
-	    return set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 400, 0, 0);
-	
-	case VID_640x480_FULLSCREEN:
-	    return set_gfx_mode(GFX_AUTODETECT_FULLSCREEN, 640, 480, 0, 0);
-	    
-	case VID_640x400_WINDOWED:
-        default:
-	    return set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 400, 0, 0);
-	    
-	case VID_320x200_WINDOWED:
-	    return set_gfx_mode(GFX_AUTODETECT_WINDOWED, 320, 200, 0, 0);	    
-    }
-}
 
 
 static void clip_to_size(void)
 {
-    if ((SCREEN_W == 320) && (SCREEN_H == 240))
-	set_clip_rect(screen, 0, 20, 319, 219);
-    else if ((SCREEN_W == 640) && (SCREEN_H == 480))
-	set_clip_rect(screen, 0, 40, 640, 439);
+    set_clip_rect(screen, 0, 40, 640, 439);
 }
 
 
-int set_desired_video_mode_or_fallback(void)
+int set_video_mode(void)
 {
-    int width, height;
-
-    if (set_desired_video_mode() < 0) {
-#if __A4__
-	if (get_desktop_resolution(&width, &height) == 0) {
-	    /* Probably a windowed environment: choose 640x400 so we
-	     * don't end up in a tiny window. */
-	    desired_video_mode = VID_640x400_FULLSCREEN;
-	    if (set_gfx_mode(GFX_SAFE, 640, 400, 0, 0) < 0)
-		return -1;
-	}
-	else {
-	    desired_video_mode = VID_320x200_FULLSCREEN;
-	    if (set_gfx_mode(GFX_SAFE, 320, 200, 0, 0) < 0)
-		return -1;
-	}
-#else
+    if (set_gfx_mode(GFX_AUTODETECT, 640, 480, 0, 0) < 0) {
 	return -1;
-#endif
     }
     
     clear_bitmap(screen);
@@ -83,14 +34,7 @@ int set_desired_video_mode_or_fallback(void)
 
 inline void blit_to_screen_offset(BITMAP *buffer, int ox, int oy)
 {
-    if ((SCREEN_W == 320) && (SCREEN_H == 240))
-	blit(buffer, screen, 0, 0, ox, 20+oy, 320, 200);
-    else if ((SCREEN_W == 640) && (SCREEN_H == 400))
-	stretch_blit(buffer, screen, 0, 0, 320, 200, ox, oy, 640, 400);
-    else if ((SCREEN_W == 640) && (SCREEN_H == 480))
-	stretch_blit(buffer, screen, 0, 0, 320, 200, ox, 40+oy, 640, 400);
-    else
-	blit(buffer, screen, 0, 0, ox, oy, 320, 200);
+    stretch_blit(buffer, screen, 0, 0, 320, 200, ox, 40+oy, 640, 400);
 }
 
 

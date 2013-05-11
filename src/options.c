@@ -36,27 +36,6 @@ static char stats_filename[1024];
 static char stats_path[1024];
 
 
-static char *res_list(int index, int *list_size)
-{
-    /* see include/vidmode.h */
-    static char *res[] =
-    {
-	"320x200 FULLSCREEN",
-	"320x240 FULLSCREEN",
-	"640x400 FULLSCREEN",
-	"640x480 FULLSCREEN",
-	"640x400 WINDOWED",
-	"320x200 WINDOWED",	
-    };
-    if (index >= 0)
-	return res[index];
-    else {
-	*list_size = sizeof(res) / sizeof(res[0]);
-	return NULL;
-    }
-}
-
-
 static int mouse_speed_callback(void *dp3, int d2)
 {
     (void)dp3;
@@ -105,8 +84,8 @@ DIALOG config_dlg[] =
 {
     /* proc                   x     y     w    h    fg    bg    key  flags        d1    d2  dp                dp2    dp3 */
     { d_clear_proc,           0,    0,    0,   0,   0,    0,    0,   0,           0,    0,  NULL,             NULL,  NULL },/* 0 */
-    { d_text_proc,            14,   5,    0,   0,   0,    0,    0,   0,           0,    0,  "DESIRED RESOLUTION", NULL,  NULL }, /* 1 */
-    { d_agup_list_proc,       10,   15,   140, 46,  0,    0,    0,   0,           0,    0,  res_list,         NULL,  NULL }, /* 2 */
+    { d_yield_proc,           14,   5,    0,   0,   0,    0,    0,   0,           0,    0,  "DESIRED RESOLUTION", NULL,  NULL }, /* 1 */
+    { d_yield_proc,           10,   15,   140, 46,  0,    0,    0,   0,           0,    0,  NULL,             NULL,  NULL }, /* 2 */
 
     { d_yield_proc,           165,  2,    130, 60,  0,    0,    0,   0,           0,    0,  NULL,             NULL,  NULL }, /* 3 */
     { d_yield_proc,           170,  7,    120, 16,  0,    0,    0,   D_SELECTED,  0,    0,  "SCANLINES (HI-RES)", NULL,  NULL }, /* 4 */
@@ -142,7 +121,7 @@ DIALOG config_dlg[] =
 };
 
 
-#define I_RESLIST	2
+#define I_RESLIST_	2
 #define I_FILTERED	5
 #define I_FAMILY	6
 #define I_MUTESFX	8
@@ -171,7 +150,6 @@ static void set_D_SELECTED(DIALOG *d, int yes)
 void options(void)
 {
     int accepted;
-    int old_desired_video_mode = desired_video_mode;
     int old_sfx_volume = sfx_volume;
     
     old_font = font;
@@ -182,8 +160,6 @@ void options(void)
 
     /* set up config_dlg */
     {
-	config_dlg[I_RESLIST].d1 = desired_video_mode;
-
 	set_D_SELECTED(config_dlg + I_MUTESFX, mute_sfx);
 
 	set_D_SELECTED(config_dlg + I_RECORDREMOS, record_demos);
@@ -206,8 +182,6 @@ void options(void)
     /* update settings */
     if (accepted) {
 	
-	desired_video_mode = config_dlg[I_RESLIST].d1;
-	
 	mute_sfx = config_dlg[I_MUTESFX].flags & D_SELECTED;
 	
 	record_demos = config_dlg[I_RECORDREMOS].flags & D_SELECTED;
@@ -224,15 +198,6 @@ void options(void)
     }
 
     
-    if (old_desired_video_mode != desired_video_mode) {
-	rpagup_shutdown();
-	if (set_desired_video_mode_or_fallback() < 0)
-	    suicide("Error setting video mode");
-	set_palette(dat[GAMEPAL].dat);
-	set_stretched_mouse_sprite(dat[XHAIRLCD].dat, (SCREEN_W == 640) ? 2 : 1, 2, 2);
-	rpagup_init();
-    }
-
 #if __A4__
     set_mouse_speed(mouse_speed, mouse_speed);
 #endif
@@ -277,7 +242,6 @@ void load_settings(void)
 {
     open_cfg();
     
-    desired_video_mode = get_config_int(section, "video_mode", VID_320x200_FULLSCREEN);
     mute_sfx = get_config_int(section, "mute_sfx", FALSE);
     record_demos = get_config_int(section, "record_demos", FALSE);
     mouse_speed = get_config_int(section, "mouse_speed", 1);
@@ -292,7 +256,6 @@ void save_settings(void)
 {
     open_cfg();
 
-    set_config_int(section, "video_mode", desired_video_mode);
     set_config_int(section, "mute_sfx", mute_sfx);
     set_config_int(section, "record_demos", record_demos);
     set_config_int(section, "mouse_speed", mouse_speed);

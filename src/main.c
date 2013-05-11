@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 
     /* video mode */
     vidmode_init();
-    if (set_desired_video_mode_or_fallback() < 0) {
+    if (set_video_mode() < 0) {
 	main_shutdown();
 	allegro_message(
 	    "Error setting video mode.\n"
