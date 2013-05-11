@@ -10,9 +10,35 @@
 #include "vidmode.h"
 
 
-static void clip_to_size(void)
+static int viewport_x;
+static int viewport_y;
+static int viewport_w;
+static int viewport_h;
+
+
+static void setup_scaling(int w, int h)
 {
-    set_clip_rect(screen, 0, 40, 640, 439);
+    const double preferred_aspect = (double)GAME_W / GAME_H;
+    const double aspect = (double)w / h;
+
+    if (aspect < preferred_aspect - 0.001) {
+	viewport_w = w;
+	viewport_h = w / preferred_aspect;
+	viewport_x = 0;
+	viewport_y = (h - viewport_h) / 2;
+    }
+    else if (aspect > preferred_aspect + 0.001) {
+	viewport_w = h * preferred_aspect;
+	viewport_h = h;
+	viewport_x = (w - viewport_w) / 2;
+	viewport_y = 0;
+    }
+    else {
+	viewport_x = 0;
+	viewport_y = 0;
+	viewport_w = w;
+	viewport_h = h;
+    }
 }
 
 
@@ -22,8 +48,7 @@ int set_video_mode(void)
 	return -1;
     }
     
-    clear_bitmap(screen);
-    clip_to_size();
+    setup_scaling(SCREEN_W, SCREEN_H);
     
     if (set_display_switch_mode(SWITCH_BACKAMNESIA) == -1)
 	set_display_switch_mode(SWITCH_BACKGROUND);
@@ -32,9 +57,29 @@ int set_video_mode(void)
 }
 
 
+void get_game_mouse_pos(int *mx, int *my)
+{
+    int x, y;
+
+    x = (mouse_x - viewport_x) * GAME_W / viewport_w;
+    y = (mouse_y - viewport_y) * GAME_H / viewport_h;
+
+    *mx = MID(0, x, GAME_W-1);
+    *my = MID(0, y, GAME_H-1);
+}
+
+
 inline void blit_to_screen_offset(BITMAP *buffer, int ox, int oy)
 {
-    stretch_blit(buffer, screen, 0, 0, 320, 200, ox, 40+oy, 640, 400);
+    double scale = (double)viewport_w / GAME_W;
+
+    /* Ensure black borders are black. */
+    al_set_target_bitmap(screen->real);
+    al_clear_to_color(al_map_rgb(0, 0, 0));
+
+    stretch_blit(buffer, screen, 0, 0, GAME_W, GAME_H,
+	viewport_x + scale * ox, viewport_y + scale *oy,
+	viewport_w, viewport_h);
 }
 
 

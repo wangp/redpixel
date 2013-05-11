@@ -26,6 +26,7 @@
 #include "mine.h"
 #include "rnd.h"
 #include "sound.h"
+#include "vidmode.h"
 #include "weapon.h"
 
 
@@ -433,17 +434,8 @@ int num_ammo(int pl, int weapon)
 
 void get_local_input(void)
 {
-    int mx = mouse_x * 320.0/SCREEN_W;
-    int my;
-
-    if (SCREEN_H == 480)
-	my = (mouse_y - 40) / 2;
-    else if (SCREEN_H == 400)
-	my = mouse_y / 2;
-    else if (SCREEN_H == 240)
-	my = mouse_y - 20;
-    else
-	my = mouse_y;
+    int mx, my;
+    get_game_mouse_pos(&mx, &my);
 
     players[local].angle = find_angle(players[local].x - px + 3,
 				      players[local].y - py + 4,
