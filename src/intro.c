@@ -8,10 +8,11 @@
  */
 
 
+#include <stdio.h>
 #include "a4aux.h"
 #include "blood.h"
 #include "globals.h"
-#include "rpjgmod.h"
+#include "resource.h"
 #include "vidmode.h"
 
 
@@ -67,6 +68,36 @@ static volatile int frames;
 static void frame_ticker(void)
 {
     frames++;
+}
+
+
+
+static ALLEGRO_AUDIO_STREAM *start_music(const char *filename)
+{
+    ALLEGRO_MIXER *mixer;
+    ALLEGRO_AUDIO_STREAM *stream;
+    char buf[1024];
+
+    mixer = al_get_default_mixer();
+    if (!mixer)
+	return NULL;
+
+    snprintf(buf, sizeof buf, "%s/%s", get_resource(R_SHARE, "music"), filename);
+    stream = al_load_audio_stream(buf, 2, 2048);
+    if (stream) {
+	al_attach_audio_stream_to_mixer(stream, mixer);
+    }
+    return stream;
+}
+
+
+
+static void stop_music(ALLEGRO_AUDIO_STREAM *stream)
+{
+    if (stream) {
+	al_set_audio_stream_playing(stream, false);
+	al_destroy_audio_stream(stream);
+    }
 }
 
 
@@ -201,11 +232,12 @@ static int scan(int x, int y)
 
 void intro(void)
 {
+    ALLEGRO_AUDIO_STREAM *stream;
     int x, y, x2, y2;
     
     clear_keybuf();
 
-    rpjgmod_play_specific_track("specific/present.xm");
+    stream = start_music("specific/present.xm");
 
     if (raster_words("1998")
 	&& scan(10, 100) 
@@ -235,11 +267,10 @@ void intro(void)
 
 	rest(1600);
     }
-    else {
-	rpjgmod_stop();
-    }
 
     rp_fade_out(dbuf, 6);
 
     clear_keybuf();
+
+    stop_music(stream);
 }
