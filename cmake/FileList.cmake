@@ -10,7 +10,6 @@ set(REDPIXEL_SOURCES
     src/demo.c
     src/engine.c
     src/explo.c
-    src/fblit.c
     src/gameloop.c
     src/getopt.c
     src/globals.c

@@ -4,7 +4,6 @@
 
 extern int mouse_speed;
 extern int record_demos;
-extern int filtered;
 extern int family;
 extern int mute_sfx;
 

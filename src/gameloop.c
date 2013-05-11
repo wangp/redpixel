@@ -15,7 +15,6 @@
 #include "cpu.h"
 #include "demo.h"
 #include "engine.h"
-#include "fblit.h"
 #include "globals.h"
 #include "input.h"
 #include "main.h"
@@ -54,8 +53,6 @@ static int heart_frame, heart_anim;
 static int blood_frame, blood_anim;
 
 static int show_fps = 0;
-
-static BITMAP *ftmp;
 
 
 /*----------------------------------------------------------------------*/
@@ -316,11 +313,8 @@ static void render(void)
     draw_status();
     draw_msgs();
 
-    if (ftmp) 
-	fblit(dbuf, ftmp);
-
     show_mouse(NULL);
-    blit_to_screen_offset(ftmp ? ftmp : dbuf, shakex, shakey);
+    blit_to_screen_offset(dbuf, shakex, shakey);
     if (players[local].health && (comm != demo))
 	show_mouse(screen);
 
@@ -335,9 +329,6 @@ void game_loop(void)
     int i;
     
     install_my_keyboard_lowlevel_callback();
-
-    if (filtered) ftmp = create_bitmap(dbuf->w, dbuf->h);
-    if (ftmp) clear_bitmap(ftmp);
 
     speed_counter = 0;
 
@@ -542,11 +533,6 @@ void game_loop(void)
     clear_keybuf();
 
   quit:
-    
-    if (ftmp) {
-	destroy_bitmap(ftmp);
-	ftmp = 0;
-    }
     
     uninstall_my_keyboard_lowlevel_callback();
 }

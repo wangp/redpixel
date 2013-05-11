@@ -12,7 +12,6 @@
 #include "main.h"
 #include "engine.h"
 #include "blood.h"
-#include "fblit.h"
 #include "globals.h"
 #include "intro.h"
 #include "launch.h"
@@ -175,7 +174,6 @@ int main(int argc, char *argv[])
     }
 
     set_palette(dat[GAMEPAL].dat);
-    fblit_init(dat[GAMEPAL].dat);
 
     rpagup_init();
     

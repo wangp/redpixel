@@ -27,7 +27,6 @@
 
 int mouse_speed;
 int record_demos;
-int filtered;
 int family;
 int mute_sfx;
 
@@ -115,7 +114,7 @@ DIALOG config_dlg[] =
 
     { d_agup_box_proc,        165,  2,    130, 60,  0,    0,    0,   0,           0,    0,  NULL,             NULL,  NULL }, /* 3 */
     { d_yield_proc,           170,  7,    120, 16,  0,    0,    0,   D_SELECTED,  0,    0,  "SCANLINES (HI-RES)", NULL,  NULL }, /* 4 */
-    { d_agup_check_proc,      170,  24,   120, 16,  0,    0,    0,   0,           0,    0,  "FILTERED",       NULL,  NULL }, /* 5 */
+    { d_yield_proc,           170,  24,   120, 16,  0,    0,    0,   0,           0,    0,  "FILTERED",       NULL,  NULL }, /* 5 */
     { d_agup_check_proc,      170,  40,   120, 16,  0,    0,    0,   0,           0,    0,  "\"FAMILY\" MODE",NULL,  NULL }, /* 6 */
 
     { d_agup_box_proc,        10,   65,   300, 100, 0,    0,    0,   0,           0,    0,  NULL,             NULL,  NULL }, /* 7 */
@@ -188,7 +187,6 @@ void options(void)
     /* set up config_dlg */
     {
 	config_dlg[I_RESLIST].d1 = desired_video_mode;
-	set_D_SELECTED(config_dlg + I_FILTERED, filtered);
 	set_D_SELECTED(config_dlg + I_FAMILY, family);
 
 	set_D_SELECTED(config_dlg + I_MUTESFX, mute_sfx);
@@ -224,7 +222,6 @@ void options(void)
     if (accepted) {
 	
 	desired_video_mode = config_dlg[I_RESLIST].d1;
-	filtered = config_dlg[I_FILTERED].flags & D_SELECTED;
 	family = config_dlg[I_FAMILY].flags & D_SELECTED;
 	
 	mute_sfx = config_dlg[I_MUTESFX].flags & D_SELECTED;
@@ -306,7 +303,6 @@ void load_settings(void)
     open_cfg();
     
     desired_video_mode = get_config_int(section, "video_mode", VID_320x200_FULLSCREEN);
-    filtered = get_config_int(section, "filtered", FALSE);
     family = get_config_int(section, "family", FALSE);
     mute_sfx = get_config_int(section, "mute_sfx", FALSE);
     music_set_format(get_config_int(section, "music_format", MUSIC_FMT_MOD));
@@ -325,7 +321,6 @@ void save_settings(void)
     open_cfg();
 
     set_config_int(section, "video_mode", desired_video_mode);
-    set_config_int(section, "filtered", filtered);
     set_config_int(section, "family", family);
     set_config_int(section, "mute_sfx", mute_sfx);
     set_config_int(section, "music_format", music_get_format());

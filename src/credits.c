@@ -10,7 +10,6 @@
 #include "blood.h"
 #include "colours.h"
 #include "globals.h"
-#include "fblit.h"
 #include "main.h"
 #include "options.h"
 #include "version.h"
@@ -85,16 +84,12 @@ static char *text[] = {
 
 void credits(void)
 {
-    BITMAP *ftmp, *bmp;
     int line = 0;
     int offset = 0, h;
     int theend = 0;
     int i;
 
     /* preparation */
-    ftmp = (filtered) ? create_bitmap(dbuf->w, dbuf->h) : 0;
-    bmp  = (ftmp) ? ftmp : dbuf;
-    
     LOCK_VARIABLE(timer);
     LOCK_FUNCTION(timer_func);
     install_int(timer_func, 40);
@@ -116,20 +111,18 @@ void credits(void)
 	    line++;
 	}
 
-	clear_bitmap(bmp);
+	clear_bitmap(dbuf);
 	for (i = -1; i < 200 / h; i++) {
 	    if (!theend) {
 		if (text[line+i][0] == 'x')
 		    theend = 1;
 		else if (text[line+i][0] == 'r')
-		    textout_centre_ex(bmp, dat[MINI].dat, text[line+i]+1, 160, i*h + offset, RED, -1);
+		    textout_centre_ex(dbuf, dat[MINI].dat, text[line+i]+1, 160, i*h + offset, RED, -1);
 		else
-		    textout_centre_ex(bmp, dat[MINI].dat, text[line+i], 160, i*h + offset, WHITE, -1);
+		    textout_centre_ex(dbuf, dat[MINI].dat, text[line+i], 160, i*h + offset, WHITE, -1);
 	    }
 	}
 	
-	if (ftmp) 
-	    fblit(ftmp, dbuf);
 	blit_to_screen(dbuf);
 
 	while (timer == 0)
@@ -143,7 +136,4 @@ void credits(void)
 
     /* clean up */
     remove_int(timer_func);
-    
-    if (ftmp)
-	destroy_bitmap(ftmp);
 }
