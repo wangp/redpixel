@@ -1,2 +1,0 @@
-This is a cut down distribution of JGMOD 0.99.
-The examples have been deleted.
