@@ -7,6 +7,9 @@
 
 
 #include "a4aux.h"
+#include "blood.h"
+#include "globals.h"
+#include "mousespr.h"
 #include "vidmode.h"
 
 
@@ -67,6 +70,8 @@ void toggle_fullscreen_window(void)
     gfx_driver->w = screen->w = al_get_display_width(dpy);
     gfx_driver->h = screen->h = al_get_display_height(dpy);
     setup_scaling(SCREEN_W, SCREEN_H);
+
+    set_stretched_mouse_sprite(dat[XHAIRLCD].dat, screen->w, 2, 2);
 }
 
 
