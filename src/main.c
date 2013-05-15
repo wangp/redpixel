@@ -182,6 +182,7 @@ int main(int argc, char *argv[])
     dbuf = create_bitmap(320, 200);
     light = create_bitmap_with_margin(320, 200, 5, 5);
 
+    rp_hide_mouse();
     set_stretched_mouse_sprite(dat[XHAIRLCD].dat, SCREEN_W, 2, 2);
 #if __A4__
     set_mouse_speed(mouse_speed, mouse_speed);
@@ -191,6 +192,8 @@ int main(int argc, char *argv[])
 
     if (!skip_intro)
 	intro();
+
+    rp_show_mouse();
 
     main_menu();
 

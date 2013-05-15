@@ -107,7 +107,7 @@ void credits(void)
 
     /* begin */
     clear_keybuf();
-    show_mouse(NULL);
+    rp_hide_mouse();
 
     clear_bitmap(screen);
     clear_bitmap(dbuf);

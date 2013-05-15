@@ -153,7 +153,7 @@ static void do_blubber(BLUBBER *start)
     menu_end = 0;
     dirty = 1;
     enter_menu(start);
-    show_mouse(screen);
+    rp_show_mouse();
 
     while (!menu_end) {
 
@@ -250,7 +250,7 @@ static void do_blubber(BLUBBER *start)
 	    while (mouse_b); clear_keybuf();
 	    cur[s].proc(&cur[s], MSG_CLICK, 0);
 	    while (mouse_b); clear_keybuf();
-	    show_mouse(screen);
+	    rp_show_mouse();
 		
 	    dirty = 1;
 	    do_action = 0;
@@ -265,7 +265,7 @@ static void do_blubber(BLUBBER *start)
 
 	    if (bp->thing) {
 		enter_menu(bp->thing);
-		show_mouse(screen);
+		rp_show_mouse();
 		selected = old_mouse_y = 0;
 	    }
 

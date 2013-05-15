@@ -28,7 +28,7 @@ static void fade_in_and_out(BITMAP *buf, int wait, int allow_int)
     int i;
     
     /* Fade in, then out.  */
-    show_mouse(NULL);
+    rp_hide_mouse();
     rp_fade_in(buf, 8);
     
     /* wait a bit */

@@ -105,7 +105,6 @@ static int prompt(char *string, char *dest, int maxlen)
     char temp[maxlen+1];
     int k, len, c;
     
-    show_mouse(NULL);
     clear_keybuf();
     
     while (1) {
@@ -670,7 +669,6 @@ static void score_sheet(void)
 {
     int i, y;
 
-    show_mouse(NULL);
     blit(dat[FRAGDROP].dat, dbuf, 0, 0, 0, 0, 320, 200);
     textout_centre_ex(dbuf, dat[MINI].dat, "FRAGS", 160, 50, RED, -1);
 
@@ -740,8 +738,6 @@ static void do_session(void)
     reset_player_frags();
 
     while (1) {
-	show_mouse(NULL);
-
 	/* Pick a level.  */
       loop:
 	fn = select_map(&top, &selected, last_fn);

@@ -184,8 +184,6 @@ static void map_edit(void)
     selector = selector_tiles;
     reset_map();
 
-    show_mouse(screen);
-
     while (!(key[KEY_Q] && (key_shifts & KB_CTRL_FLAG)))
     {
 	if (key[KEY_PGUP] && first[mode]) 
