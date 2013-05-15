@@ -8,6 +8,13 @@
 int set_video_mode(void);
 void toggle_fullscreen_window(void);
 
+void rp_hide_mouse(void);
+void rp_show_mouse(void);
+
+void maybe_trapped_mouse(void);
+void leave_trapped_mouse(void);
+bool is_trapped_mouse(void);
+void poll_trapped_mouse(void);
 void get_game_mouse_pos(int *mx, int *my);
 
 void blit_to_screen_offset(BITMAP *buffer, int ox, int oy);

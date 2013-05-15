@@ -18,6 +18,12 @@ static int viewport_y;
 static int viewport_w;
 static int viewport_h;
 
+static bool rp_mouse_shown = true;
+
+static ALLEGRO_EVENT_QUEUE *trapped_mouse_queue;
+static int trapped_mouse_x;
+static int trapped_mouse_y;
+
 
 static void setup_scaling(int w, int h)
 {
@@ -75,12 +81,125 @@ void toggle_fullscreen_window(void)
 }
 
 
+void rp_hide_mouse(void)
+{
+    if (rp_mouse_shown) {
+	al_hide_mouse_cursor(al_get_current_display());
+	rp_mouse_shown = false;
+    }
+}
+
+
+void rp_show_mouse(void)
+{
+    if (!rp_mouse_shown) {
+	rp_mouse_shown = true;
+	if (!is_trapped_mouse()) {
+	    al_show_mouse_cursor(al_get_current_display());
+	}
+    }
+}
+
+
+static void enter_trapped_mouse(void)
+{
+    if (trapped_mouse_queue)
+	return;
+
+    trapped_mouse_queue = al_create_event_queue();
+    al_register_event_source(trapped_mouse_queue, al_get_mouse_event_source());
+    trapped_mouse_x = mouse_x;
+    trapped_mouse_y = mouse_y;
+    al_hide_mouse_cursor(al_get_current_display());
+}
+
+
+void leave_trapped_mouse(void)
+{
+    ALLEGRO_DISPLAY *dpy;
+
+    if (!trapped_mouse_queue)
+	return;
+
+    al_destroy_event_queue(trapped_mouse_queue);
+    trapped_mouse_queue = NULL;
+
+    dpy = al_get_current_display();
+    al_set_mouse_xy(dpy,
+	viewport_x + trapped_mouse_x,
+	viewport_y + trapped_mouse_y);
+    if (rp_mouse_shown) {
+	al_show_mouse_cursor(dpy);
+    }
+}
+
+
+void maybe_trapped_mouse(void)
+{
+    int flags = al_get_display_flags(al_get_current_display());
+    if (flags & (ALLEGRO_FULLSCREEN | ALLEGRO_FULLSCREEN_WINDOW))
+	leave_trapped_mouse();
+    else
+	enter_trapped_mouse();
+}
+
+
+bool is_trapped_mouse(void)
+{
+    return (trapped_mouse_queue) ? true : false;
+}
+
+
+void poll_trapped_mouse(void)
+{
+    ALLEGRO_EVENT ev;
+    bool warp = false;
+    ALLEGRO_DISPLAY *d = NULL;
+    int w, h;
+
+    if (!trapped_mouse_queue)
+	return;
+
+    while (al_get_next_event(trapped_mouse_queue, &ev)) {
+	switch (ev.type) {
+	    case ALLEGRO_EVENT_MOUSE_AXES:
+		d = ev.mouse.display;
+		w = al_get_display_width(ev.mouse.display);
+		h = al_get_display_height(ev.mouse.display);
+		trapped_mouse_x = MID(0, trapped_mouse_x + ev.mouse.dx, w-1);
+		trapped_mouse_y = MID(0, trapped_mouse_y + ev.mouse.dy, h-1);
+		if (ev.mouse.x < w/4 || ev.mouse.x > w*3/4 ||
+		    ev.mouse.y < h/4 || ev.mouse.y > h*3/4)
+		{
+		    warp = true;
+		}
+		break;
+	}
+    }
+
+    if (warp && d) {
+	al_set_mouse_xy(d, al_get_display_width(d)/2,
+	    al_get_display_height(d)/2);
+    }
+}
+
+
 void get_game_mouse_pos(int *mx, int *my)
 {
+    int x0, y0;
     int x, y;
 
-    x = (mouse_x - viewport_x) * GAME_W / viewport_w;
-    y = (mouse_y - viewport_y) * GAME_H / viewport_h;
+    if (is_trapped_mouse()) {
+	x0 = trapped_mouse_x;
+	y0 = trapped_mouse_y;
+    }
+    else {
+	x0 = mouse_x;
+	y0 = mouse_y;
+    }
+
+    x = (x0 - viewport_x) * GAME_W / viewport_w;
+    y = (y0 - viewport_y) * GAME_H / viewport_h;
 
     *mx = MID(0, x, GAME_W-1);
     *my = MID(0, y, GAME_H-1);
@@ -91,13 +210,32 @@ inline void blit_to_screen_offset(BITMAP *buffer, int ox, int oy)
 {
     double scale = (double)viewport_w / GAME_W;
 
-    /* Ensure black borders are black. */
     al_set_target_bitmap(screen->real);
+
+    /* Ensure black borders are black. */
     al_clear_to_color(al_map_rgb(0, 0, 0));
 
-    stretch_blit(buffer, screen, 0, 0, GAME_W, GAME_H,
+    al_draw_scaled_bitmap(buffer->real, 0, 0, buffer->w, buffer->h,
 	viewport_x + scale * ox, viewport_y + scale *oy,
-	viewport_w, viewport_h);
+	viewport_w, viewport_h,
+	0);
+
+    /* Draw mouse cursor manually if hardware cursor is hidden (because it is
+     * being warped around).
+     */
+    if (rp_mouse_shown && is_trapped_mouse()) {
+	const BITMAP *cursor = dat[XHAIRLCD].dat;
+	const int hotx = 2;
+	const int hoty = 2;
+	al_draw_scaled_bitmap(cursor->real,
+	    0, 0, cursor->w, cursor->h,
+	    viewport_x + trapped_mouse_x - scale*hotx,
+	    viewport_y + trapped_mouse_y - scale*hoty,
+	    scale * cursor->w, scale * cursor->h,
+	    0);
+    }
+
+    al_flip_display();
 }
 
 

@@ -314,10 +314,12 @@ static void render(void)
     draw_status();
     draw_msgs();
 
-    show_mouse(NULL);
-    blit_to_screen_offset(dbuf, shakex, shakey);
     if (players[local].health && (comm != demo))
-	show_mouse(screen);
+	rp_show_mouse();
+    else
+	rp_hide_mouse();
+
+    blit_to_screen_offset(dbuf, shakex, shakey);
 
     frame_counter++;
 }
@@ -333,7 +335,7 @@ void game_loop(void)
 
     speed_counter = 0;
 
-    show_mouse(screen);
+    maybe_trapped_mouse();
 
     do {
 	frames_dropped = 0;
@@ -344,13 +346,10 @@ void game_loop(void)
 
 	    calc();
 
+	    poll_trapped_mouse();
+
 	    if (comm != demo) {
 		get_local_input();
-
-		/* Hack: the X port of Allegro will "lightly" grab the
-                   mouse in the window if you call get_mouse_mickeys.
-                   You can still break out by moving the mouse faster.  */
- 		{ int x, y; get_mouse_mickeys(&x, &y); }
 	    }
 
 	    switch (comm) {
@@ -470,6 +469,7 @@ void game_loop(void)
 
 	    if (kb_f11) {
 		toggle_fullscreen_window();
+		maybe_trapped_mouse();
 		kb_f11 = 0;
 	    }
 
@@ -504,7 +504,7 @@ void game_loop(void)
 	if (update) {
 	    if (want_help && !helping) {
 		helping = 1;
-		show_mouse(NULL);
+		rp_hide_mouse();
 		clear_bitmap(screen);
 		set_palette(dat[Z_HELPPAL].dat);
 		if (comm == demo)
@@ -517,7 +517,7 @@ void game_loop(void)
 		clear_bitmap(screen);
 		set_palette(dat[GAMEPAL].dat);
 		render();
-		show_mouse(screen);
+		rp_show_mouse();
 	    }
 	    else if (!helping) {
 		render();
@@ -539,4 +539,7 @@ void game_loop(void)
   quit:
     
     uninstall_my_keyboard_lowlevel_callback();
+
+    leave_trapped_mouse();
+    rp_show_mouse();
 }
