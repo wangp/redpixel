@@ -141,10 +141,17 @@ static int raster_words(char *s)
     clear_bitmap(txt2);
     textout_ex(txt1, dat[UNREAL].dat, s, 0, 0, -1, -1);
     textout_ex(txt2, dat[UNREAL].dat, s, 0, 0, -1, -1);
+    /* Have to use Allegro 5 to draw transparent lines. */
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ZERO);
+    al_set_target_bitmap(txt1->real);
     for (y = 0; y < h; y += 2) {
-	hline(txt1, 0, y,     w - 1, 0);
-	hline(txt2, 0, y + 1, w - 1, 0);
+	al_draw_line(0, y + 0.5, w, y + 0.5, al_map_rgba(0, 0, 0, 0), 1.0);
     }
+    al_set_target_bitmap(txt2->real);
+    for (y = 0; y < h; y += 2) {
+	al_draw_line(0, y + 1.5, w, y + 1.5, al_map_rgba(0, 0, 0, 0), 1.0);
+    }
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
 
     y = 100 - h / 2;
     x = -w;
