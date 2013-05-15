@@ -41,6 +41,10 @@ int load_dat(void)
     convert_8bit(dat[XHAIRLCD].dat, CONVERT_8BIT_PALETTE_REPLACE_INDEX0,
 	al_map_rgba(0, 0, 0, 0));
 
+    set_palette(dat[Z_HELPPAL].dat);
+    convert_8bit(dat[Z_HELP].dat, CONVERT_8BIT_PALETTE, al_map_rgb(0, 0, 0));
+    convert_8bit(dat[Z_HELPDEMO].dat, CONVERT_8BIT_PALETTE, al_map_rgb(0, 0, 0));
+
     return 0;
 }
 
