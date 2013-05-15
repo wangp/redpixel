@@ -17,48 +17,19 @@
 
 
 
-#ifdef TARGET_LINUX
-
-#include <sys/time.h>
-#include <unistd.h>
-
-typedef struct timeval WATCH;
-
-static void set_watch(WATCH *watch)
+static double now(void)
 {
-    gettimeofday(watch, NULL);
+    return al_get_time();
 }
 
-static uint32_t elapsed_time(WATCH *watch)
+static double elapsed_time(double t0)
 {
-    WATCH now;
-    set_watch(&now);
-    return ((now.tv_sec - watch->tv_sec) * 1000 +
-	    (now.tv_usec - watch->tv_usec) / 1000);
+    return now() - t0;
 }
 
-#else
-
-typedef uint32_t WATCH;
-
-static void set_watch(WATCH *watch)
+static void wait_until(double t)
 {
-    *watch = clock() * 1000 / CLOCKS_PER_SEC;
-}
-
-static uint32_t elapsed_time(WATCH *watch)
-{
-    WATCH now;
-    set_watch(&now);
-    return (now - *watch);
-}
-
-#endif
-
-static void wait_until(WATCH *watch, uint32_t msecs_elaspsed)
-{
-    while (elapsed_time(watch) < msecs_elaspsed)
-	rest(0);
+    al_rest(t - now());
 }
 
 
@@ -118,14 +89,14 @@ static void stop_music(ALLEGRO_AUDIO_STREAM *stream)
 /* duration to fit music: two seconds */
 static int raster_words(char *s)
 {
-    WATCH watch;
+    double t0;
     BITMAP *txt1;
     BITMAP *txt2;
     int x, y;
     int w, h;
     int nopress = 0;
 
-    set_watch(&watch);
+    t0 = now();
     LOCK_VARIABLE(frames);
     LOCK_FUNCTION(frame_ticker);
     install_int_ex(frame_ticker, BPS_TO_TIMER(60));
@@ -179,7 +150,7 @@ static int raster_words(char *s)
     draw_sprite(dbuf, txt1, x, y);
     draw_sprite(dbuf, txt2, 319 - x - w, y);
     blit_to_screen(dbuf);
-    wait_until(&watch, 1500);
+    wait_until(t0 + 1.5);
 
     /* text out */
     frames = 1;
@@ -200,7 +171,7 @@ static int raster_words(char *s)
 
     /* pause a little */
     clear_bitmap(screen);
-    wait_until(&watch, 2000);
+    wait_until(t0 + 2.0);
 
     nopress = 1;
 
@@ -219,10 +190,10 @@ static int scan(int x, int y)
 {
     BITMAP *bmp;
     int x2, i, j = 0;
-    WATCH watch;
+    double t0;
     int keyed = 0;
 
-    set_watch(&watch);
+    t0 = now();
     
     x2 = x + 60;
 
@@ -242,7 +213,7 @@ static int scan(int x, int y)
 	    keyed = 1;
             break;
 	}
-    } while ((x < x2) && (elapsed_time(&watch) < 3600));
+    } while ((x < x2) && (elapsed_time(t0) < 3.6));
 
     destroy_bitmap(bmp);
     
@@ -265,9 +236,8 @@ void intro(void)
 	&& scan(160, 90)
 	&& raster_words("PRESENTS")) {
 
-	WATCH watch;
-	unsigned int step = 0;
-	set_watch(&watch);
+	double t0 = now();
+	double step = 0.0;
 
 	x = 159; x2 = 160;
 	y = 99;  y2 = 100;
@@ -278,14 +248,14 @@ void intro(void)
 	    blit_to_screen(dbuf);
 
 	    do {
-		step += 8;
+		step += 8.0/1000.0;
 		x--; x2++;
 		y--; y2++;
-	    } while (step < elapsed_time(&watch));
-	    wait_until(&watch, step);
-	} while (x > 0);
+	    } while (step < elapsed_time(t0));
+	    wait_until(t0 + step);
+	} while (x >= 0);
 
-	rest(1600);
+	al_rest(1.6);
     }
 
     rp_fade_out(dbuf, 6);
