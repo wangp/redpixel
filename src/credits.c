@@ -16,14 +16,6 @@
 #include "vidmode.h"
 
 
-static volatile int timer;
-
-static void timer_func(void)
-{
-    timer++;
-} 
-
-
 #define FULLSCREEN	\
     "", "", "", "", "", "", "", "", "", "",	\
     "", "", "", "", "", "", "", "", "", "",	\
@@ -95,15 +87,14 @@ static int keypressed_allow_fullscreen(void)
 
 void credits(void)
 {
+    FONT *fnt;
+    int h;
+    double t0;
+    int frame;
     int line = 0;
-    int offset = 0, h;
+    int offset = 0;
     int theend = 0;
     int i;
-
-    /* preparation */
-    LOCK_VARIABLE(timer);
-    LOCK_FUNCTION(timer_func);
-    install_int(timer_func, 40);
 
     /* begin */
     clear_keybuf();
@@ -112,13 +103,14 @@ void credits(void)
     clear_bitmap(screen);
     clear_bitmap(dbuf);
 
-    h = text_height(dat[MINI].dat);
+    fnt = dat[MINI].dat;
+    h = text_height(fnt);
+    t0 = al_get_time();
+    frame = 0;
 
     while (!keypressed_allow_fullscreen() && !mouse_b && !theend) {
-	timer = 0;
-	
 	if (--offset < 0) {
-	    offset = h;
+	    offset = h - 1;
 	    line++;
 	}
 
@@ -128,23 +120,20 @@ void credits(void)
 		if (text[line+i][0] == 'x')
 		    theend = 1;
 		else if (text[line+i][0] == 'r')
-		    textout_centre_ex(dbuf, dat[MINI].dat, text[line+i]+1, 160, i*h + offset, RED, -1);
+		    textout_centre_ex(dbuf, fnt, text[line+i]+1, 160, i*h + offset, RED, -1);
 		else
-		    textout_centre_ex(dbuf, dat[MINI].dat, text[line+i], 160, i*h + offset, WHITE, -1);
+		    textout_centre_ex(dbuf, fnt, text[line+i], 160, i*h + offset, WHITE, -1);
 	    }
 	}
 	
 	blit_to_screen(dbuf);
 
-	while (timer == 0)
-	    rest(0);
+	frame++;
+	al_rest(t0 + frame*1/25.0 - al_get_time());
     }
 
     rp_fade_out(dbuf, 6);
 
     while (key[KEY_ESC] || mouse_b)
 	;
-
-    /* clean up */
-    remove_int(timer_func);
 }
