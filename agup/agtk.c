@@ -112,11 +112,11 @@ static void gtk_bevel(BITMAP *bmp, int x, int y, int w, int h, int state)
 	    break;
 	    
 	case 3: /* focused for text box and slider */
-	    rect(screen, x, y, x+w-1, y+h-1, black);
-	    hline(screen, x+1, y+1, x+w-2, nshadow);
-	    vline(screen, x+1, y+1, y+h-2, nshadow);
-	    hline(screen, x+2, y+h-2, x+w-2, white);
-	    vline(screen, x+w-2, y+2, y+h-2, white);
+	    rect(bmp, x, y, x+w-1, y+h-1, black);
+	    hline(bmp, x+1, y+1, x+w-2, nshadow);
+	    vline(bmp, x+1, y+1, y+h-2, nshadow);
+	    hline(bmp, x+2, y+h-2, x+w-2, white);
+	    vline(bmp, x+w-2, y+2, y+h-2, white);
 	    break;
     }
 }
@@ -148,7 +148,7 @@ static void gtk_box(BITMAP *bmp, int x, int y, int w, int h, int state, int bord
 int d_agtk_box_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW)
-	gtk_box(screen, d->x, d->y, d->w, d->h, 0, 0);
+	gtk_box(gui_get_screen(), d->x, d->y, d->w, d->h, 0, 0);
     return D_O_K;
 }
 
@@ -156,7 +156,7 @@ int d_agtk_box_proc(int msg, DIALOG *d, int c)
 int d_agtk_shadow_box_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW)
-	gtk_box(screen, d->x, d->y, d->w, d->h, 0, 1);
+	gtk_box(gui_get_screen(), d->x, d->y, d->w, d->h, 0, 1);
     return D_O_K;
 }
 
@@ -164,6 +164,7 @@ int d_agtk_shadow_box_proc(int msg, DIALOG *d, int c)
 int d_agtk_button_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW) {
+	BITMAP *gui_bmp = gui_get_screen();
 	int x;
 	if (d->flags & D_SELECTED)
 	    x = 2;
@@ -171,10 +172,10 @@ int d_agtk_button_proc(int msg, DIALOG *d, int c)
 	    x = 1;
 	else
 	    x = 0;
-	gtk_box(screen, d->x, d->y, d->w, d->h, x, d->flags & D_GOTFOCUS);
+	gtk_box(gui_bmp, d->x, d->y, d->w, d->h, x, d->flags & D_GOTFOCUS);
 	    
 	if (d->dp) {
-	    gui_textout_ex(screen, d->dp, d->x+d->w/2, d->y+d->h/2-text_height(font)/2,
+	    gui_textout_ex(gui_bmp, d->dp, d->x+d->w/2, d->y+d->h/2-text_height(font)/2,
 			   (d->flags & D_DISABLED) ? nshadow : black, -1, TRUE);
 	}
 	return D_O_K;
@@ -207,10 +208,11 @@ int d_agtk_push_proc(int msg, DIALOG *d, int c)
 int d_agtk_check_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW) {
-	draw_base(screen, d);
-	gtk_bevel(screen, d->x+3, d->y+d->h/2-5, 10, 10, (d->flags & D_SELECTED) ? 2 : 1);
+	BITMAP *gui_bmp = gui_get_screen();
+	draw_base(gui_bmp, d);
+	gtk_bevel(gui_bmp, d->x+3, d->y+d->h/2-5, 10, 10, (d->flags & D_SELECTED) ? 2 : 1);
 	if (d->dp) {
-	    gui_textout_ex(screen, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
+	    gui_textout_ex(gui_bmp, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
 			   (d->flags & D_DISABLED) ? nshadow : black, -1, FALSE);
 	}
 	return D_O_K;
@@ -261,11 +263,12 @@ static BITMAP *radio_down_bmp, *radio_up_bmp;
 int d_agtk_radio_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW) {
-	draw_base(screen, d);
-	draw_sprite(screen, (d->flags & D_SELECTED) ? radio_down_bmp : radio_up_bmp, d->x+3, d->y+d->h/2-5);
+	BITMAP *gui_bmp = gui_get_screen();
+	draw_base(gui_bmp, d);
+	draw_sprite(gui_bmp, (d->flags & D_SELECTED) ? radio_down_bmp : radio_up_bmp, d->x+3, d->y+d->h/2-5);
 
 	if (d->dp) {
-	    gui_textout_ex(screen, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
+	    gui_textout_ex(gui_bmp, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
 			   (d->flags & D_DISABLED) ? nshadow : black, -1, FALSE);
 	}
 	return D_O_K;
@@ -278,6 +281,7 @@ int d_agtk_radio_proc(int msg, DIALOG *d, int c)
 int d_agtk_icon_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW) {
+	BITMAP *gui_bmp = gui_get_screen();
 	BITMAP *img = (BITMAP *)d->dp;
 	int x;
 	
@@ -287,9 +291,9 @@ int d_agtk_icon_proc(int msg, DIALOG *d, int c)
 	    x = 1;
 	else
 	    x = 0;
-	gtk_box(screen, d->x, d->y, d->w, d->h, x, d->flags & D_GOTFOCUS);
+	gtk_box(gui_bmp, d->x, d->y, d->w, d->h, x, d->flags & D_GOTFOCUS);
 	
-	stretch_sprite(screen, img, d->x+2, d->y+2, d->w-4, d->h-4);	
+	stretch_sprite(gui_bmp, img, d->x+2, d->y+2, d->w-4, d->h-4);	
 	return D_O_K;
     }
     
@@ -300,6 +304,7 @@ int d_agtk_icon_proc(int msg, DIALOG *d, int c)
 int d_agtk_edit_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW) {
+	BITMAP *gui_bmp;
 	int l, x, b, f, p, w, rtm;
 	int fg = (d->flags & D_DISABLED) ? hshadow : black;
 	char *s = d->dp;
@@ -339,20 +344,22 @@ int d_agtk_edit_proc(int msg, DIALOG *d, int c)
 	    b = d->d2; 
 	}
 
-	if (d->flags & D_GOTFOCUS) 
-	    gtk_bevel(screen, d->x, d->y, d->w, fonth+6, 3);
-	else
-	    gtk_bevel(screen, d->x, d->y, d->w, fonth+6, 2);
+	gui_bmp = gui_get_screen();
 
-	rectfill(screen, d->x+2, d->y+2, d->x+d->w-3, d->y+fonth+3, white);
+	if (d->flags & D_GOTFOCUS) 
+	    gtk_bevel(gui_bmp, d->x, d->y, d->w, fonth+6, 3);
+	else
+	    gtk_bevel(gui_bmp, d->x, d->y, d->w, fonth+6, 2);
+
+	rectfill(gui_bmp, d->x+2, d->y+2, d->x+d->w-3, d->y+fonth+3, white);
 	for (x = 4; p<=b; p++) {
 	    f = ugetat(s, p);
 	    usetc(buf+usetc(buf, (f) ? f : ' '), 0);
 	    w = text_length(font, buf);
 	    f = ((p == d->d2) && (d->flags & D_GOTFOCUS));
-	    textout_ex(screen, font, buf, d->x+x, d->y+4, fg, white);
+	    textout_ex(gui_bmp, font, buf, d->x+x, d->y+4, fg, white);
 	    if (f)
-		vline(screen, d->x+x-1, d->y+3, d->y+fonth+3, black);
+		vline(gui_bmp, d->x+x-1, d->y+3, d->y+fonth+3, black);
 	    if ((x += w) + w > d->w - 4)
 		break;
 	}
@@ -369,18 +376,19 @@ typedef char *(*getfuncptr)(int, int *);
 
 static void gtk_draw_scrollable_frame(DIALOG *d, int listsize, int offset, int height, int fg_color)
 {
+    BITMAP *gui_bmp = gui_get_screen();
     int i, len, c;
     int xx, yy;
 
     /* draw frame */
-    hline(screen, d->x, d->y, d->x+d->w-1, nshadow);
-    vline(screen, d->x, d->y, d->y+d->h-1, nshadow);
-    hline(screen, d->x+1, d->y+1, d->x+d->w-2, black);
-    vline(screen, d->x+1, d->y+1, d->y+d->h-2, black);
-    hline(screen, d->x+2, d->y+d->h-2, d->x+d->w-2, normal);
-    vline(screen, d->x+d->w-2, d->y+2, d->y+d->h-3, normal);
-    hline(screen, d->x+1, d->y+d->h-1, d->x+d->w-1, white);
-    vline(screen, d->x+d->w-1, d->y+1, d->y+d->h-2, white);
+    hline(gui_bmp, d->x, d->y, d->x+d->w-1, nshadow);
+    vline(gui_bmp, d->x, d->y, d->y+d->h-1, nshadow);
+    hline(gui_bmp, d->x+1, d->y+1, d->x+d->w-2, black);
+    vline(gui_bmp, d->x+1, d->y+1, d->y+d->h-2, black);
+    hline(gui_bmp, d->x+2, d->y+d->h-2, d->x+d->w-2, normal);
+    vline(gui_bmp, d->x+d->w-2, d->y+2, d->y+d->h-3, normal);
+    hline(gui_bmp, d->x+1, d->y+d->h-1, d->x+d->w-1, white);
+    vline(gui_bmp, d->x+d->w-1, d->y+1, d->y+d->h-2, white);
 
     /* possibly draw scrollbar */
     if (listsize > height) {
@@ -394,7 +402,7 @@ static void gtk_draw_scrollable_frame(DIALOG *d, int listsize, int offset, int h
 	xx = d->x+d->w-11;
 	yy = d->y;
 	len = (((d->h-2) * offset) + listsize/2) / listsize;
-	gtk_box(screen, xx-2, yy, 12, d->h-1, 2, 0);
+	gtk_box(gui_bmp, xx-2, yy, 12, d->h-1, 2, 0);
 
 	i = ((d->h-5) * height + listsize/2) / listsize;
 	xx = d->x+d->w-11;
@@ -402,15 +410,15 @@ static void gtk_draw_scrollable_frame(DIALOG *d, int listsize, int offset, int h
 
 	if (offset > 0) {
 	    len = (((d->h-5) * offset) + listsize/2) / listsize;
-	    rectfill(screen, xx, yy, xx+8, yy+len, pressed);
+	    rectfill(gui_bmp, xx, yy, xx+8, yy+len, pressed);
 	    yy += len;
 	}
 	if (yy+i < d->y+d->h-3) {
-	    gtk_box(screen, xx, yy, 8, i, c, 0);
+	    gtk_box(gui_bmp, xx, yy, 8, i, c, 0);
 	    yy += i+1;
 	}
 	else
-	    gtk_box(screen, xx, yy, 8, d->h-3-yy+d->y, c, 0);
+	    gtk_box(gui_bmp, xx, yy, 8, d->h-3-yy+d->y, c, 0);
     }
 }
 
@@ -418,6 +426,7 @@ static void gtk_draw_scrollable_frame(DIALOG *d, int listsize, int offset, int h
 int d_agtk_list_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW) {
+	BITMAP *gui_bmp;
 	int height, listsize, i, len, bar, x, y, w;
 	int fg_color, fg, bg;
 	char *sel = d->dp2;
@@ -429,6 +438,8 @@ int d_agtk_list_proc(int msg, DIALOG *d, int c)
 	bar = (listsize > height);
 	w = (bar ? d->w-14 : d->w-3);
 	fg_color = (d->flags & D_DISABLED) ? gui_mg_color : d->fg;
+
+	gui_bmp = gui_get_screen();
 
 	/* draw box contents */
 	for (i=0; i<height; i++) {
@@ -449,28 +460,28 @@ int d_agtk_list_proc(int msg, DIALOG *d, int c)
 		ustrncat(s, (*(getfuncptr)d->dp)(i+d->d2, NULL), sizeof(s)-ucwidth(0));
 		x = d->x + 2;
 		y = d->y + 2 + i*text_height(font);
-		rectfill(screen, x, y, x+7, y+text_height(font)-1, bg);
+		rectfill(gui_bmp, x, y, x+7, y+text_height(font)-1, bg);
 		x += 8;
 		len = ustrlen(s);
 		while (text_length(font, s) >= MAX(d->w - 1 - (bar ? 22 : 10), 1)) {
 		    len--;
 		    usetat(s, len, 0);
 		}
-		textout_ex(screen, font, s, x, y, fg, bg);
+		textout_ex(gui_bmp, font, s, x, y, fg, bg);
 		x += text_length(font, s);
 		if (x <= d->x+w)
-		    rectfill(screen, x, y, d->x+w, y+text_height(font)-1, bg);
+		    rectfill(gui_bmp, x, y, d->x+w, y+text_height(font)-1, bg);
 /*  		if (d->d2+i == d->d1) */
-/*  		    rect(screen, x-text_length(font, s)-8, y, d->x+w, y+text_height(font)-1, yellow); */
+/*  		    rect(gui_bmp, x-text_length(font, s)-8, y, d->x+w, y+text_height(font)-1, yellow); */
 	    }
 	    else {
-		rectfill(screen, d->x+2,  d->y+2+i*text_height(font),
+		rectfill(gui_bmp, d->x+2,  d->y+2+i*text_height(font),
 			 d->x+w, d->y+1+(i+1)*text_height(font), white);
 	    }
 	}
 
 	if (d->y+2+i*text_height(font) <= d->y+d->h-3)
-	    rectfill(screen, d->x+2, d->y+2+i*text_height(font),
+	    rectfill(gui_bmp, d->x+2, d->y+2+i*text_height(font),
 		     d->x+w, d->y+d->h-3, white);
 
 	/* draw frame, maybe with scrollbar */
@@ -534,6 +545,7 @@ int d_agtk_textbox_proc(int msg, DIALOG *d, int c)
 int d_agtk_slider_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW) {
+	BITMAP *gui_bmp;
 	int vert = TRUE;    /* flag: is slider vertical? */
 	int hh = 32;        /* handle height (width for horizontal sliders) */
 	int slp;            /* slider position */
@@ -551,8 +563,10 @@ int d_agtk_slider_proc(int msg, DIALOG *d, int c)
 	slpos = slratio * d->d2;
 	slp = fixtoi(slpos);
 
+	gui_bmp = gui_get_screen();
+
 	/* draw background */
-	gtk_box(screen, d->x, d->y, d->w, d->h, 2, 0);
+	gtk_box(gui_bmp, d->x, d->y, d->w, d->h, 2, 0);
 	
 	/* now draw the handle */
 	if (vert) {
@@ -567,7 +581,7 @@ int d_agtk_slider_proc(int msg, DIALOG *d, int c)
 	    slh = d->h-1-3;
 	}
 	    
-	gtk_box(screen, slx, sly, slw, slh, (d->flags & D_GOTFOCUS) ? 1 : 0, 0);
+	gtk_box(gui_bmp, slx, sly, slw, slh, (d->flags & D_GOTFOCUS) ? 1 : 0, 0);
 
 	return D_O_K;
     }
@@ -604,16 +618,19 @@ static BITMAP *menu_arrow_bmp;
 
 static void gtk_draw_menu(int x, int y, int w, int h)
 {
-    gtk_box(screen, x, y, w, h, 0, 1);
+    gtk_box(gui_get_screen(), x, y, w, h, 0, 1);
 }
 
 
 static void gtk_draw_menu_item(MENU *m, int x, int y, int w, int h, int bar, int sel)
 {
+    BITMAP *gui_bmp;
     int fg, bg;
     int i, j;
     char buf[256], *tok;
     int rtm;
+
+    gui_bmp = gui_get_screen();
     
     if (m->flags & D_DISABLED) {
 	fg = nshadow;
@@ -624,7 +641,7 @@ static void gtk_draw_menu_item(MENU *m, int x, int y, int w, int h, int bar, int
 	bg = (sel) ? highlight : normal;
     }
 
-    rectfill(screen, x+1, y+1, x+w-3, y+h-4, bg);
+    rectfill(gui_bmp, x+1, y+1, x+w-3, y+h-4, bg);
 
     if (ugetc(m->text)) {
 	i = 0;
@@ -637,24 +654,24 @@ static void gtk_draw_menu_item(MENU *m, int x, int y, int w, int h, int bar, int
 
 	usetc(buf+i, 0);
 
-	gui_textout_ex(screen, buf, x+8, y+1, fg, bg, FALSE);
+	gui_textout_ex(gui_bmp, buf, x+8, y+1, fg, bg, FALSE);
 
 	if (j == '\t') {
 	    tok = m->text+i + uwidth(m->text+i);
-	    gui_textout_ex(screen, tok, x+w-gui_strlen(tok)-10, y+1, fg, bg, FALSE);
+	    gui_textout_ex(gui_bmp, tok, x+w-gui_strlen(tok)-10, y+1, fg, bg, FALSE);
 	}
 
 	if ((m->child) && (!bar))
-	    draw_sprite(screen, menu_arrow_bmp, x+w-12, y+(h-menu_arrow_bmp->h)/2);
+	    draw_sprite(gui_bmp, menu_arrow_bmp, x+w-12, y+(h-menu_arrow_bmp->h)/2);
     }
     else {
-	hline(screen, x+4, y+text_height(font)/2+2, x+w-4, nshadow);
-	hline(screen, x+4, y+text_height(font)/2+3, x+w-4, highlight);
+	hline(gui_bmp, x+4, y+text_height(font)/2+2, x+w-4, nshadow);
+	hline(gui_bmp, x+4, y+text_height(font)/2+3, x+w-4, highlight);
     }
 
     if (m->flags & D_SELECTED) {
-	line(screen, x+1, y+text_height(font)/2+1, x+3, y+text_height(font)+1, fg);
-	line(screen, x+3, y+text_height(font)+1, x+6, y+2, fg);
+	line(gui_bmp, x+1, y+text_height(font)/2+1, x+3, y+text_height(font)+1, fg);
+	line(gui_bmp, x+3, y+text_height(font)+1, x+6, y+2, fg);
     }
 }
 
@@ -673,15 +690,16 @@ int d_agtk_menu_proc(int msg, DIALOG *d, int c)
 int d_agtk_window_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW) {
-	gtk_box(screen, d->x, d->y, d->w, d->h, 0, 1);
+	BITMAP *gui_bmp = gui_get_screen();
+	gtk_box(gui_bmp, d->x, d->y, d->w, d->h, 0, 1);
 
 	if (d->dp) {
-	    int cl = screen->cl, ct = screen->ct, cr = screen->cr, cb = screen->cb;
-	    set_clip_rect(screen, d->x, d->y, d->x+d->w-1, d->y+d->h-1);
+	    int cl = gui_bmp->cl, ct = gui_bmp->ct, cr = gui_bmp->cr, cb = gui_bmp->cb;
+	    set_clip_rect(gui_bmp, d->x, d->y, d->x+d->w-1, d->y+d->h-1);
 	    
-	    textout_ex(screen, font, d->dp, d->x+6, d->y+6, black, normal);
+	    textout_ex(gui_bmp, font, d->dp, d->x+6, d->y+6, black, normal);
 
-	    set_clip_rect(screen, cl, ct, cr, cb);
+	    set_clip_rect(gui_bmp, cl, ct, cr, cb);
 	}
     }
 

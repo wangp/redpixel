@@ -92,18 +92,19 @@ static inline void rectedge(BITMAP * bmp, int x1, int y1, int x2, int y2, int fg
 
 static inline void dotted_rect(int x1, int y1, int x2, int y2, int fg, int bg)
 {
+   BITMAP *gui_bmp = gui_get_screen();
    int x = ((x1 + y1) & 1) ? 1 : 0;
    int c;
 
    /* two loops to avoid bank switches */
    for (c = x1; c <= x2; c++)
-      putpixel(screen, c, y1, (((c + y1) & 1) == x) ? fg : bg);
+      putpixel(gui_bmp, c, y1, (((c + y1) & 1) == x) ? fg : bg);
    for (c = x1; c <= x2; c++)
-      putpixel(screen, c, y2, (((c + y2) & 1) == x) ? fg : bg);
+      putpixel(gui_bmp, c, y2, (((c + y2) & 1) == x) ? fg : bg);
 
    for (c = y1 + 1; c < y2; c++) {
-      putpixel(screen, x1, c, (((c + x1) & 1) == x) ? fg : bg);
-      putpixel(screen, x2, c, (((c + x2) & 1) == x) ? fg : bg);
+      putpixel(gui_bmp, x1, c, (((c + x1) & 1) == x) ? fg : bg);
+      putpixel(gui_bmp, x2, c, (((c + x2) & 1) == x) ? fg : bg);
    }
 }
 
@@ -151,11 +152,11 @@ static void win95_bevel(BITMAP *bmp, int x, int y, int w, int h, int state)
 	    break;
 
 	case 4: /* focused for text box and slider */
-	    rect(screen, x, y, x+w-1, y+h-1, black);
-	    hline(screen, x+1, y+1, x+w-2, nshadow);
-	    vline(screen, x+1, y+1, y+h-2, nshadow);
-	    hline(screen, x+2, y+h-2, x+w-2, white);
-	    vline(screen, x+w-2, y+2, y+h-2, white);
+	    rect(bmp, x, y, x+w-1, y+h-1, black);
+	    hline(bmp, x+1, y+1, x+w-2, nshadow);
+	    vline(bmp, x+1, y+1, y+h-2, nshadow);
+	    hline(bmp, x+2, y+h-2, x+w-2, white);
+	    vline(bmp, x+w-2, y+2, y+h-2, white);
 	    break;
     }
 }
@@ -196,14 +197,14 @@ static void win95_text_bevel(BITMAP *bmp, int x, int y, int w, int h, int state)
 static void win95_box(BITMAP *bmp, int x, int y, int w, int h, int pressed)
 {
     if (!pressed) {
-	rectedge(screen, x,     y,     x + w - 1, y + h - 1, highlight, black);
-	rectedge(screen, x + 1, y + 1, x + w - 2, y + h - 2, white, gray);
-	rectfill(screen, x + 2, y + 2, x + w - 3, y + h - 3, normal);
+	rectedge(bmp, x,     y,     x + w - 1, y + h - 1, highlight, black);
+	rectedge(bmp, x + 1, y + 1, x + w - 2, y + h - 2, white, gray);
+	rectfill(bmp, x + 2, y + 2, x + w - 3, y + h - 3, normal);
     }
     else {
-	rectedge(screen, x,     y,     x + w - 1, y + h - 1, gray, white);
-	rectedge(screen, x + 1, y + 1, x + w - 2, y + h - 2, black, highlight);
-	rectfill(screen, x + 2, y + 2, x + w - 3, y + h - 3, normal);
+	rectedge(bmp, x,     y,     x + w - 1, y + h - 1, gray, white);
+	rectedge(bmp, x + 1, y + 1, x + w - 2, y + h - 2, black, highlight);
+	rectfill(bmp, x + 2, y + 2, x + w - 3, y + h - 3, normal);
     }
 }
 
@@ -240,7 +241,7 @@ static void win95_icon(BITMAP *bmp, int x, int y, int w, int h, int state)
 int d_awin95_box_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW)
-	win95_box(screen, d->x, d->y, d->w, d->h, 0);
+	win95_box(gui_get_screen(), d->x, d->y, d->w, d->h, 0);
     return D_O_K;
 }
 
@@ -256,27 +257,28 @@ int d_awin95_shadow_box_proc(int msg, DIALOG *d, int c)
 int d_awin95_button_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW) {
+	BITMAP *gui_bmp = gui_get_screen();
 	int f = 0, s = 0;
 
 	if (d->flags & D_SELECTED) {
 	    s = 1;
-	    rect(screen, d->x, d->y, d->x + d->w - 1, d->y + d->h - 1, black);
-	    rect(screen, d->x + 1, d->y + 1, d->x + d->w - 2, d->y + d->h - 2, gray);
+	    rect(gui_bmp, d->x, d->y, d->x + d->w - 1, d->y + d->h - 1, black);
+	    rect(gui_bmp, d->x + 1, d->y + 1, d->x + d->w - 2, d->y + d->h - 2, gray);
 	}
 	else {
 	    if (d->flags & D_GOTFOCUS) {
 		f = 1;
-		rect(screen, d->x, d->y, d->x + d->w - 1, d->y + d->h - 1, black);
+		rect(gui_bmp, d->x, d->y, d->x + d->w - 1, d->y + d->h - 1, black);
 	    }
 
-	    rectedge(screen, d->x + f, d->y + f, d->x + d->w - f - 1, d->y + d->h - f - 1, white, black);
-	    rectedge(screen, d->x + f + 1, d->y + f + 1, d->x + d->w - f - 2, d->y + d->h - f - 2, highlight, gray);
+	    rectedge(gui_bmp, d->x + f, d->y + f, d->x + d->w - f - 1, d->y + d->h - f - 1, white, black);
+	    rectedge(gui_bmp, d->x + f + 1, d->y + f + 1, d->x + d->w - f - 2, d->y + d->h - f - 2, highlight, gray);
 	}
 
-	rectfill(screen, d->x + f + 2, d->y + f + 2, d->x + d->w - f - 3, d->y + d->h - f - 3, normal);
+	rectfill(gui_bmp, d->x + f + 2, d->y + f + 2, d->x + d->w - f - 3, d->y + d->h - f - 3, normal);
 
 	if (d->dp) {
-	    gui_textout_ex(screen, d->dp,
+	    gui_textout_ex(gui_bmp, d->dp,
 			   d->x + d->w / 2 + s,
 			   d->y + d->h / 2 - text_height(font) / 2 + s,
 			    (d->flags & D_DISABLED) ? gray : black, -1, TRUE);
@@ -319,6 +321,7 @@ int d_awin95_check_proc(int msg, DIALOG *d, int c)
 	d->flags |= D_DIRTY;
 
     if (msg == MSG_DRAW) {
+	BITMAP *gui_bmp = gui_get_screen();
 	int x = 0;
 	if ((d->flags & D_GOTMOUSE) && (mouse_b & 1))
 	    x |= 4;
@@ -327,15 +330,15 @@ int d_awin95_check_proc(int msg, DIALOG *d, int c)
 	if (d->flags & D_GOTFOCUS)
 	    x |= 1;
 
-	draw_base(screen, d);
-	win95_check_bevel(screen, d->x+2, d->y+d->h/2-6, 13, 13, x);
+	draw_base(gui_bmp, d);
+	win95_check_bevel(gui_bmp, d->x+2, d->y+d->h/2-6, 13, 13, x);
 
 	/* Draw X */
 	if (x & 2)
-	    draw_sprite(screen, checked_bmp, d->x+4, d->y+d->h/2-4);
+	    draw_sprite(gui_bmp, checked_bmp, d->x+4, d->y+d->h/2-4);
 
 	if (d->dp) {
-	    gui_textout_ex(screen, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
+	    gui_textout_ex(gui_bmp, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
 			   (d->flags & D_DISABLED) ? gray : black, -1, FALSE);
 	}
 
@@ -435,8 +438,9 @@ int d_awin95_radio_proc(int msg, DIALOG *d, int c)
     if (msg == MSG_LRELEASE || msg == MSG_LPRESS)
 	d->flags |= D_DIRTY;
     if (msg == MSG_DRAW) {
-	draw_base(screen, d);
-	draw_sprite(screen,
+	BITMAP *gui_bmp = gui_get_screen();
+	draw_base(gui_bmp, d);
+	draw_sprite(gui_bmp,
 		    (d->flags & D_SELECTED)
 		    ? (((d->flags & D_GOTMOUSE) && (mouse_b & 1))
 		       ? radio_pressed_bmp : radio_down_bmp)
@@ -446,7 +450,7 @@ int d_awin95_radio_proc(int msg, DIALOG *d, int c)
 	    dotted_rect_wh(d->x+16, d->y+d->h/2-text_height(font)/2 - 2, text_length(font, d->dp) + 4, text_height(font) + 4, black, normal);
 
 	if (d->dp) {
-	    gui_textout_ex(screen, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
+	    gui_textout_ex(gui_bmp, d->dp, d->x+18, d->y+d->h/2-text_height(font)/2,
 			   (d->flags & D_DISABLED) ? gray : black, -1, FALSE);
 	}
 	return D_O_K;
@@ -462,6 +466,7 @@ int d_awin95_icon_proc(int msg, DIALOG *d, int c)
 	d->flags |= D_DIRTY;
 
     if (msg == MSG_DRAW) {
+	BITMAP *gui_bmp = gui_get_screen();
 	BITMAP *img = (BITMAP *)d->dp;
 	int x = 0;
 	
@@ -470,9 +475,9 @@ int d_awin95_icon_proc(int msg, DIALOG *d, int c)
 	if (d->flags & D_GOTFOCUS)
 	    x |= 1;
 
-	win95_icon(screen, d->x, d->y, d->w, d->h, x);
+	win95_icon(gui_bmp, d->x, d->y, d->w, d->h, x);
 		
-	stretch_sprite(screen, img, d->x+2, d->y+2, d->w-4, d->h-4);	
+	stretch_sprite(gui_bmp, img, d->x+2, d->y+2, d->w-4, d->h-4);	
 	return D_O_K;
     }
     
@@ -491,6 +496,7 @@ int d_awin95_edit_proc(int msg, DIALOG *d, int c)
 	d->flags |= D_DIRTY;
     }
     if (msg == MSG_DRAW) {
+	BITMAP *gui_bmp = gui_get_screen();
 	int l, x, b, f, p, w, rtm;
 	int fg = (d->flags & D_DISABLED) ? hshadow : black;
 	char *s = d->dp;
@@ -527,17 +533,17 @@ int d_awin95_edit_proc(int msg, DIALOG *d, int c)
 	    b = d->d2; 
 	}
 
-	win95_text_bevel(screen, d->x, d->y, d->w, fonth+6, d->flags & D_GOTFOCUS ? 1 : 0);
-	rectfill(screen, d->x+2, d->y+2, d->x+d->w-3, d->y+fonth+3, white);
+	win95_text_bevel(gui_bmp, d->x, d->y, d->w, fonth+6, d->flags & D_GOTFOCUS ? 1 : 0);
+	rectfill(gui_bmp, d->x+2, d->y+2, d->x+d->w-3, d->y+fonth+3, white);
 
 	for (x = 4; p<=b; p++) {
 	    f = ugetat(s, p);
 	    usetc(buf+usetc(buf, (f) ? f : ' '), 0);
 	    w = text_length(font, buf);
 	    f = ((p == d->d2) && (d->flags & D_GOTFOCUS));
-	    textout_ex(screen, font, buf, d->x+x, d->y+4, fg, white);
+	    textout_ex(gui_bmp, font, buf, d->x+x, d->y+4, fg, white);
 	    if (f && awin95_time_toggle)
-		vline(screen, d->x+x-1, d->y+3, d->y+text_height(font)+3, black);
+		vline(gui_bmp, d->x+x-1, d->y+3, d->y+text_height(font)+3, black);
 	    if ((x += w) + w > d->w - 4)
 		break;
 	}
@@ -557,25 +563,26 @@ typedef char *(*getfuncptr)(int, int *);
 
 static void win95_draw_scrollable_frame(DIALOG *d, int listsize, int offset, int height, int fg_color)
 {
+    BITMAP *gui_bmp = gui_get_screen();
     int i, len;
     int xx, yy;
 
     /* draw frame */
-    hline(screen, d->x, d->y, d->x+d->w-1, nshadow);
-    vline(screen, d->x, d->y, d->y+d->h-1, nshadow);
-    hline(screen, d->x+1, d->y+1, d->x+d->w-2, black);
-    vline(screen, d->x+1, d->y+1, d->y+d->h-2, black);
-    hline(screen, d->x+2, d->y+d->h-2, d->x+d->w-2, normal);
-    vline(screen, d->x+d->w-2, d->y+2, d->y+d->h-3, normal);
-    hline(screen, d->x+1, d->y+d->h-1, d->x+d->w-1, white);
-    vline(screen, d->x+d->w-1, d->y+1, d->y+d->h-2, white);
+    hline(gui_bmp, d->x, d->y, d->x+d->w-1, nshadow);
+    vline(gui_bmp, d->x, d->y, d->y+d->h-1, nshadow);
+    hline(gui_bmp, d->x+1, d->y+1, d->x+d->w-2, black);
+    vline(gui_bmp, d->x+1, d->y+1, d->y+d->h-2, black);
+    hline(gui_bmp, d->x+2, d->y+d->h-2, d->x+d->w-2, normal);
+    vline(gui_bmp, d->x+d->w-2, d->y+2, d->y+d->h-3, normal);
+    hline(gui_bmp, d->x+1, d->y+d->h-1, d->x+d->w-1, white);
+    vline(gui_bmp, d->x+d->w-1, d->y+1, d->y+d->h-2, white);
 
     /* possibly draw scrollbar */
     if (listsize > height) {
 	xx = d->x+d->w-11;
 	yy = d->y;
 	len = (((d->h-2) * offset) + listsize/2) / listsize;
-	rectfillwh(screen, xx-2, yy+2+11, 11, d->h-4-11, highlight);
+	rectfillwh(gui_bmp, xx-2, yy+2+11, 11, d->h-4-11, highlight);
 
 	i = ((d->h-5) * height + listsize/2) / listsize;
 	xx = d->x+d->w-11;
@@ -583,15 +590,15 @@ static void win95_draw_scrollable_frame(DIALOG *d, int listsize, int offset, int
 
 	if (offset > 0) {
 	    len = (((d->h-5) * offset) + listsize/2) / listsize;
-	    rectfill(screen, xx-2, yy, xx+10, yy+len+1, highlight);
+	    rectfill(gui_bmp, xx-2, yy, xx+10, yy+len+1, highlight);
 	    yy += len;
 	}
 	if (yy+i < d->y+d->h-3) {
-	    win95_box(screen, xx-2, yy, 12, i, 0);
+	    win95_box(gui_bmp, xx-2, yy, 12, i, 0);
 	    yy += i+1;
 	}
 	else
-	    win95_box(screen, xx-2, yy, 12, d->h-3-yy+d->y, 0);
+	    win95_box(gui_bmp, xx-2, yy, 12, d->h-3-yy+d->y, 0);
     }
 }
 
@@ -599,6 +606,7 @@ static void win95_draw_scrollable_frame(DIALOG *d, int listsize, int offset, int
 int d_awin95_list_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW) {
+	BITMAP *gui_bmp = gui_get_screen();
 	int height, listsize, i, len, bar, x, y, w;
 	int fg_color, fg, bg;
 	char *sel = d->dp2;
@@ -630,26 +638,26 @@ int d_awin95_list_proc(int msg, DIALOG *d, int c)
 		ustrncat(s, (*(getfuncptr)d->dp)(i+d->d2, NULL), sizeof(s)-ucwidth(0));
 		x = d->x + 2;
 		y = d->y + 2 + i*text_height(font);
-		rectfill(screen, x, y, x+7, y+text_height(font)-1, bg);
+		rectfill(gui_bmp, x, y, x+7, y+text_height(font)-1, bg);
 		x += 8;
 		len = ustrlen(s);
 		while (text_length(font, s) >= MAX(d->w - 1 - (bar ? 22 : 10), 1)) {
 		    len--;
 		    usetat(s, len, 0);
 		}
-		textout_ex(screen, font, s, x, y, fg, bg);
+		textout_ex(gui_bmp, font, s, x, y, fg, bg);
 		x += text_length(font, s);
 		if (x <= d->x+w)
-		    rectfill(screen, x, y, d->x+w, y+text_height(font)-1, bg);
+		    rectfill(gui_bmp, x, y, d->x+w, y+text_height(font)-1, bg);
 	    }
 	    else {
-		rectfill(screen, d->x+2,  d->y+2+i*text_height(font),
+		rectfill(gui_bmp, d->x+2,  d->y+2+i*text_height(font),
 			 d->x+w, d->y+1+(i+1)*text_height(font), white);
 	    }
 	}
 
 	if (d->y+2+i*text_height(font) <= d->y+d->h-3)
-	    rectfill(screen, d->x+2, d->y+2+i*text_height(font),
+	    rectfill(gui_bmp, d->x+2, d->y+2+i*text_height(font),
 		     d->x+w, d->y+d->h-3, white);
 
 	/* draw frame, maybe with scrollbar */
@@ -714,6 +722,7 @@ int d_awin95_textbox_proc(int msg, DIALOG *d, int c)
 int d_awin95_slider_proc(int msg, DIALOG *d, int c)
 {
     if (msg == MSG_DRAW) {
+	BITMAP *gui_bmp = gui_get_screen();
 	int vert = TRUE;    /* flag: is slider vertical? */
 	int hh = 32;        /* handle height (width for horizontal sliders) */
 	int slp;            /* slider position */
@@ -732,7 +741,7 @@ int d_awin95_slider_proc(int msg, DIALOG *d, int c)
 	slp = fixtoi(slpos);
 
 	/* draw background */
-	win95_box(screen, d->x, d->y, d->w, d->h, 1);
+	win95_box(gui_bmp, d->x, d->y, d->w, d->h, 1);
 	
 	/* now draw the handle */
 	if (vert) {
@@ -747,7 +756,7 @@ int d_awin95_slider_proc(int msg, DIALOG *d, int c)
 	    slh = d->h-1-3;
 	}
 	    
-	win95_box(screen, slx, sly, slw, slh, 0);
+	win95_box(gui_bmp, slx, sly, slw, slh, 0);
 
 	return D_O_K;
     }
@@ -784,12 +793,13 @@ static BITMAP *menu_arrow_bmp;
 
 static void win95_draw_menu(int x, int y, int w, int h)
 {
-    win95_menu_box(screen, x, y, w, h, 0, 1);
+    win95_menu_box(gui_get_screen(), x, y, w, h, 0, 1);
 }
 
 
 static void win95_draw_menu_item(MENU *m, int x, int y, int w, int h, int bar, int sel)
 {
+    BITMAP *gui_bmp = gui_get_screen();
     int fg, bg;
     int i, j;
     char buf[256], *tok;
@@ -804,13 +814,13 @@ static void win95_draw_menu_item(MENU *m, int x, int y, int w, int h, int bar, i
 	bg = (sel && !bar) ? blue : normal;
     }
 
-    rectfill(screen, x, y, x+w-1, y+h-1, bg);
+    rectfill(gui_bmp, x, y, x+w-1, y+h-1, bg);
 
    if (bar && sel) {
-	hline(screen, x, y, x + w - 1, white);
-	vline(screen, x, y, y + h - 1, white);
-	hline(screen, x + 1, y + h - 1, x + w - 1, nshadow);
-	vline(screen, x + w - 1, y + 1, y + h - 1, nshadow);
+	hline(gui_bmp, x, y, x + w - 1, white);
+	vline(gui_bmp, x, y, y + h - 1, white);
+	hline(gui_bmp, x + 1, y + h - 1, x + w - 1, nshadow);
+	vline(gui_bmp, x + w - 1, y + 1, y + h - 1, nshadow);
     }
 
     if (ugetc(m->text)) {
@@ -824,24 +834,24 @@ static void win95_draw_menu_item(MENU *m, int x, int y, int w, int h, int bar, i
 
 	usetc(buf+i, 0);
 
-	gui_textout_ex(screen, buf, x+8, y+1, fg, bg, FALSE);
+	gui_textout_ex(gui_bmp, buf, x+8, y+1, fg, bg, FALSE);
 
 	if (j == '\t') {
 	    tok = m->text+i + uwidth(m->text+i);
-	    gui_textout_ex(screen, tok, x+w-gui_strlen(tok)-10, y+1, fg, bg, FALSE);
+	    gui_textout_ex(gui_bmp, tok, x+w-gui_strlen(tok)-10, y+1, fg, bg, FALSE);
 	}
 
 	if ((m->child) && (!bar))
-	    draw_sprite(screen, menu_arrow_bmp, x+w-12, y+(h-menu_arrow_bmp->h)/2);
+	    draw_sprite(gui_bmp, menu_arrow_bmp, x+w-12, y+(h-menu_arrow_bmp->h)/2);
     }
     else {
-	hline(screen, x+4, y+text_height(font)/2+2, x+w-4, nshadow);
-	hline(screen, x+4, y+text_height(font)/2+3, x+w-4, highlight);
+	hline(gui_bmp, x+4, y+text_height(font)/2+2, x+w-4, nshadow);
+	hline(gui_bmp, x+4, y+text_height(font)/2+3, x+w-4, highlight);
     }
 
     if (m->flags & D_SELECTED) {
-	line(screen, x+1, y+text_height(font)/2+1, x+3, y+text_height(font)+1, fg);
-	line(screen, x+3, y+text_height(font)+1, x+6, y+2, fg);
+	line(gui_bmp, x+1, y+text_height(font)/2+1, x+3, y+text_height(font)+1, fg);
+	line(gui_bmp, x+3, y+text_height(font)+1, x+6, y+2, fg);
     }
 }
 
@@ -895,34 +905,35 @@ static void fill_textout(BITMAP *bmp, FONT *f, AL_CONST char *text,
 
 static void draw_window_title(DIALOG *d, AL_CONST char *text)
 {
+    BITMAP *gui_bmp = gui_get_screen();
     int height = text_height(font);
 
-    rectfill(screen,
+    rectfill(gui_bmp,
 	     d->x + border_thickness + 1,
 	     d->y + border_thickness + 1,
 	     d->x + d->w - border_thickness - 2,
 	     d->y + border_thickness + 1 + internal_border_thickness + height + internal_border_thickness - 1,
 	     blue);
-    fill_textout(screen, font, text,
+    fill_textout(gui_bmp, font, text,
 		 d->x + border_thickness + 1 + internal_border_thickness,
 		 d->y + border_thickness + 1 + internal_border_thickness,
 		 d->w - 2 * (border_thickness + 1 + internal_border_thickness),
 		 white, blue);
-    hline(screen, 
+    hline(gui_bmp, 
 	  d->x + border_thickness, d->y + border_thickness,
 	  d->x + d->w - border_thickness - 2, 
 	  nshadow);
-    vline(screen,
+    vline(gui_bmp,
 	  d->x + border_thickness,
 	  d->y + border_thickness,
 	  d->y + border_thickness + 2 * internal_border_thickness + height, 
 	  nshadow);
-    hline(screen,
+    hline(gui_bmp,
 	  d->x + border_thickness,
 	  d->y + border_thickness + 2 * internal_border_thickness + height + 1,
 	  d->x + d->w - border_thickness - 1,
 	  highlight);
-    vline(screen,
+    vline(gui_bmp,
 	  d->x + d->w - border_thickness - 1,
 	  d->y + border_thickness,
 	  d->y + border_thickness + 2 * internal_border_thickness + height,
@@ -933,7 +944,7 @@ static void draw_window_title(DIALOG *d, AL_CONST char *text)
 int d_awin95_window_proc(int msg, DIALOG *d, int c)
 {
    if (msg == MSG_DRAW) {
-	win95_box(screen, d->x, d->y, d->w, d->h, 0);
+	win95_box(gui_get_screen(), d->x, d->y, d->w, d->h, 0);
 	draw_window_title(d, d->dp ? (AL_CONST char *)d->dp : empty_string);
    }
 
