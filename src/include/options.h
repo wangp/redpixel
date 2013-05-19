@@ -2,7 +2,6 @@
 #define __include_options_h
 
 
-extern int mouse_speed;
 extern int record_demos;
 extern int mute_sfx;
 

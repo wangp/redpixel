@@ -23,7 +23,6 @@
 
 
 
-int mouse_speed;
 int record_demos;
 int mute_sfx;
 
@@ -34,16 +33,6 @@ static int sfx_volume;
 static FONT *old_font;
 static char stats_filename[1024];
 static char stats_path[1024];
-
-
-static int mouse_speed_callback(void *dp3, int d2)
-{
-    (void)dp3;
-#if __A4__
-    set_mouse_speed(d2, d2);
-#endif
-    return D_O_K;
-}
 
 
 static int sfx_volume_callback(void *dp3, int d2)
@@ -101,8 +90,8 @@ DIALOG config_dlg[] =
 
     { d_agup_check_proc,      180,  70,   100, 20,  0,    0,    0,   0,           0,    0,  "RECORD DEMOS",   NULL,  NULL }, /* 12 */
 
-    { d_text_proc,            160,  95,   40,  8,   0,    0,    0,   0,           0,    0,  "MOUSE SPEED",    NULL,  NULL }, /* 13 */
-    { d_agup_slider_proc,     225,  93,   60,  12,  0,    0,    0,   0,           3,    0,  NULL,             mouse_speed_callback,  NULL }, /* 14 */
+    { d_yield_proc,           160,  95,   40,  8,   0,    0,    0,   0,           0,    0,  "MOUSE SPEED",    NULL,  NULL }, /* 13 */
+    { d_yield_proc,           225,  93,   60,  12,  0,    0,    0,   0,           3,    0,  NULL,             NULL,  NULL }, /* 14 */
 
     { d_text_proc,            160,  117,  20,  8,   0,    0,    0,   0,           0,    0,  "SFX",            NULL,  NULL }, /* 15 */
     { d_agup_slider_proc,     185,  115,  100, 12,  0,    0,    0,   0,           8,    0,  NULL,             sfx_volume_callback,  NULL }, /* 16 */
@@ -129,7 +118,7 @@ DIALOG config_dlg[] =
 #define I_PLAYMODULES_	10
 #define I_PLAYCD_	11
 #define I_RECORDREMOS	12
-#define I_MOUSESPEED	14
+#define I_MOUSESPEED_	14
 #define I_SFXVOLUME	16
 #define I_MODVOLUME_	18
 #define I_CDVOLUME_	20  /* removed */
@@ -164,8 +153,6 @@ void options(void)
 
 	set_D_SELECTED(config_dlg + I_RECORDREMOS, record_demos);
 
-	config_dlg[I_MOUSESPEED].d2 = mouse_speed;
-	
 	config_dlg[I_SFXVOLUME].d2 = sfx_volume;
 
 	strncpy(stats_filename, get_filename(current_stats), sizeof stats_filename);
@@ -186,8 +173,6 @@ void options(void)
 	
 	record_demos = config_dlg[I_RECORDREMOS].flags & D_SELECTED;
 	
-	mouse_speed = config_dlg[I_MOUSESPEED].d2;
-
 	sfx_volume = config_dlg[I_SFXVOLUME].d2;
 	
 	set_current_stats(stats_path);
@@ -198,10 +183,6 @@ void options(void)
     }
 
     
-#if __A4__
-    set_mouse_speed(mouse_speed, mouse_speed);
-#endif
-
     set_volume(sfx_volume * 32, -1);
     
     set_weapon_stats();
@@ -242,7 +223,6 @@ void load_settings(void)
     
     mute_sfx = get_config_int(section, "mute_sfx", FALSE);
     record_demos = get_config_int(section, "record_demos", FALSE);
-    mouse_speed = get_config_int(section, "mouse_speed", 1);
     set_current_stats((char *)get_config_string(section, "stats_file", "stats/default.st"));
     sfx_volume = get_config_int(section, "sfx_volume", 8); set_volume(sfx_volume * 32, -1);
     
@@ -256,7 +236,6 @@ void save_settings(void)
 
     set_config_int(section, "mute_sfx", mute_sfx);
     set_config_int(section, "record_demos", record_demos);
-    set_config_int(section, "mouse_speed", mouse_speed);
     set_config_string(section, "stats_file", current_stats);
     set_config_int(section, "sfx_volume", sfx_volume);
 

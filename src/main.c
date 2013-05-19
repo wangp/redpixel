@@ -184,9 +184,6 @@ int main(int argc, char *argv[])
 
     rp_hide_mouse();
     set_stretched_mouse_sprite(dat[XHAIRLCD].dat, SCREEN_W, 2, 2);
-#if __A4__
-    set_mouse_speed(mouse_speed, mouse_speed);
-#endif
 
     /* begin */
 
