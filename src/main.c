@@ -201,6 +201,8 @@ int main(int argc, char *argv[])
 
     save_settings();
 
+    allegro_exit();
+
     return 0;
 }
 
