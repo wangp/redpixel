@@ -30,13 +30,6 @@ endif()
 # Too many unused parameters in old code for now.
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -Wno-unused")
 
-add_executable(redpixel
-    ${ALLEGRO4_to_5_SOURCES}
-    ${REDPIXEL_SOURCES}
-    ${AGUP_SOURCES}
-    ${LIBNET_SOURCES}
-    )
-
 include_directories(SYSTEM
     ${ALLEGRO5_INCLUDE_DIRS}
     ${ALLEGRO5_AUDIO_INCLUDE_DIRS}
@@ -53,6 +46,22 @@ include_directories(
     ${REDPIXEL_INCLUDE_DIRS}
     ${AGUP_INCLUDE_DIRS}
     ${LIBNET_INCLUDE_DIRS}
+    )
+
+link_directories(
+    ${ALLEGRO5_LIBDIR}
+    ${ALLEGRO5_AUDIO_LIBDIR}
+    ${ALLEGRO5_ACODEC_LIBDIR}
+    ${ALLEGRO5_FONT_LIBDIR}
+    ${ALLEGRO5_IMAGE_LIBDIR}
+    ${ALLEGRO5_PRIMITIVES_LIBDIR}
+    )
+
+add_executable(redpixel
+    ${ALLEGRO4_to_5_SOURCES}
+    ${REDPIXEL_SOURCES}
+    ${AGUP_SOURCES}
+    ${LIBNET_SOURCES}
     )
 
 target_link_libraries(redpixel
