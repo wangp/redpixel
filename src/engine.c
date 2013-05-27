@@ -19,6 +19,7 @@
 #include "mine.h"
 #include "particle.h"
 #include "player.h"
+#include "rpblend.h"
 #include "suicide.h"
 
 
@@ -83,9 +84,9 @@ void draw_light(int bmp, int cx, int cy)
 {
     BITMAP *mask = dat[bmp].dat;
     al_set_target_bitmap(light);
-    al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ONE);
+    additive_blender();
     al_draw_bitmap(mask->real, cx - (mask->w / 2), cy - (mask->h / 2), 0);
-    al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
+    normal_blender();
 }
 
 

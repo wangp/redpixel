@@ -32,6 +32,7 @@ set(REDPIXEL_SOURCES
     src/rg_rand.c
     src/rnd.c
     src/rpagup.c
+    src/rpblend.c
     src/rpstring.c
     src/setweaps.c
     src/skhelp.c

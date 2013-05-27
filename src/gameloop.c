@@ -23,6 +23,7 @@
 #include "packet.h"
 #include "player.h"
 #include "rnd.h"
+#include "rpblend.h"
 #include "sk.h"
 #include "vidmode.h"
 
@@ -133,9 +134,9 @@ static void draw_spotlight(void)
 
     /* 'light' has 5 pixel margin on all sides. */
     al_set_target_bitmap(dbuf->real);
-    al_set_blender(ALLEGRO_ADD, ALLEGRO_DST_COLOR, ALLEGRO_ZERO);
+    multiply_blender();
     al_draw_bitmap(light, -5 + u, -5 + v, 0);
-    al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
+    normal_blender();
 }
 
 

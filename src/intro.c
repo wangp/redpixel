@@ -13,6 +13,7 @@
 #include "blood.h"
 #include "globals.h"
 #include "resource.h"
+#include "rpblend.h"
 #include "vidmode.h"
 
 
@@ -113,7 +114,7 @@ static int raster_words(char *s)
     textout_ex(txt1, dat[UNREAL].dat, s, 0, 0, -1, -1);
     textout_ex(txt2, dat[UNREAL].dat, s, 0, 0, -1, -1);
     /* Have to use Allegro 5 to draw transparent lines. */
-    al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ZERO);
+    opaque_blender();
     al_set_target_bitmap(txt1->real);
     for (y = 0; y < h; y += 2) {
 	al_draw_line(0, y + 0.5, w, y + 0.5, al_map_rgba(0, 0, 0, 0), 1.0);
@@ -122,7 +123,7 @@ static int raster_words(char *s)
     for (y = 0; y < h; y += 2) {
 	al_draw_line(0, y + 1.5, w, y + 1.5, al_map_rgba(0, 0, 0, 0), 1.0);
     }
-    al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
+    normal_blender();
 
     y = 100 - h / 2;
     x = -w;

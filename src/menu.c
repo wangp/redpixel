@@ -11,6 +11,7 @@
 #include "blood.h"
 #include "globals.h"
 #include "menu.h"
+#include "rpblend.h"
 #include "stats.h"
 #include "vidmode.h"
 
@@ -131,9 +132,9 @@ static void draw_menu_spotlight(BITMAP *dbuf, BITMAP *spot, int y)
     const int half = spot->w/2;
 
     al_set_target_bitmap(dbuf->real);
-    al_set_blender(ALLEGRO_ADD, ALLEGRO_DST_COLOR, ALLEGRO_ZERO);
+    multiply_blender();
     al_draw_bitmap(spot->real, cx - half, y, 0);
-    al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
+    normal_blender();
 
     /* Black out around the spotlight. */
     rectfill(dbuf, 0, 0, cx - half - 1, dbuf->h, 0);
