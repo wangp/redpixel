@@ -222,7 +222,6 @@ static void do_blubber(BLUBBER *start)
 	if (dirty) {
 	    int y;
 	    
-	    color_map = &light_map;
 	    blit(dat[TITLE].dat, dbuf, 0, 0, 0, 0, 320, 200);
 	    
 	    /* Draw menu items.  */

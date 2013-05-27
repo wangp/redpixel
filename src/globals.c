@@ -17,10 +17,6 @@ DATAFILE *dat;
 BITMAP *dbuf;
 ALLEGRO_BITMAP *light;
 
-RGB_MAP rgb_table;
-COLOR_MAP alpha_map;
-COLOR_MAP light_map;
-
 int32_t seed;
 
 
