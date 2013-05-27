@@ -247,9 +247,13 @@ static void do_blubber(BLUBBER *start)
 	if (do_action) {
 	    int s = selected;
 	    
-	    while (mouse_b); clear_keybuf();
+	    while (mouse_b)
+		rest(0);
+	    clear_keybuf();
 	    cur[s].proc(&cur[s], MSG_CLICK, 0);
-	    while (mouse_b); clear_keybuf();
+	    while (mouse_b)
+		rest(0);
+	    clear_keybuf();
 	    rp_show_mouse();
 		
 	    dirty = 1;
@@ -272,6 +276,8 @@ static void do_blubber(BLUBBER *start)
 	    do_prev = 0;
 	    dirty = 1;
 	}
+
+	al_rest(0);
     }
 }
 

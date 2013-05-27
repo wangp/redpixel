@@ -88,7 +88,7 @@ static void error_screen(char *err)
     blit_to_screen(dbuf);
 
     while (!keypressed() && !mouse_b)
-	;
+	rest(0);
     clear_keybuf();
 }
 
@@ -475,6 +475,8 @@ static char *select_map(int *top, int *selected, char *current_map)
 		remote = skRecv();
 		break;
 	    }
+
+	    rest(0);
 	}
 
 	/* down key */
@@ -684,9 +686,11 @@ static void score_sheet(void)
 
     rest(500);
     clear_keybuf();
-    while (!keypressed() && !mouse_b);
+    while (!keypressed() && !mouse_b)
+	rest(0);
     clear_keybuf();
-    while (mouse_b);
+    while (mouse_b)
+	rest(0);
 }
 
 
@@ -862,13 +866,16 @@ static void peerpeer_trade_names(void)
     left = num_players - 1;
 
     do {
-	while (skRecv() != PEERPEER_MYNAMEIS);
-	while (!skReady());
+	while (skRecv() != PEERPEER_MYNAMEIS)
+	    rest(0);
+	while (!skReady())
+	    rest(0);
 	player = skRecv();
 
 	pos = 0;
 	do {
-	    while (!skReady());
+	    while (!skReady())
+		rest(0);
 	    ch = skRecv();
 	    players[player].name[pos++] = ch; 
 	} while (ch);

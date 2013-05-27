@@ -524,6 +524,9 @@ void game_loop(void)
 		render();
 	    }
 	}
+	else {
+	    rest(0);
+	}
 
     } while (!want_quit);
     
